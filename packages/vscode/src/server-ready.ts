@@ -16,7 +16,7 @@ export async function waitForApiUrl(
   // forward requests to a not-yet-ready OpenCode (and to a stale port during a
   // workspace-switch restart). Gating on the connected status, which flips only
   // after readiness and clears while restarting, mirrors the web proxy's
-  // isOpenCodeReady hold and closes that pre-ready forwarding window.
+  // isOmpReady hold and closes that pre-ready forwarding window.
   const readyUrl = (): string | null => {
     if (manager.getStatus() !== 'connected') {
       return null;

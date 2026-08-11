@@ -167,7 +167,7 @@ export const useMcpConfigStore = create<McpConfigStore>()(
             try {
               const queryParams = configDirectory ? `?directory=${encodeURIComponent(configDirectory)}` : '';
               const response = await runtimeFetch(`/api/config/mcp${queryParams}`, {
-                headers: configDirectory ? { 'x-opencode-directory': configDirectory } : undefined,
+                headers: configDirectory ? { 'x-omp-directory': configDirectory } : undefined,
               });
               if (!response.ok) {
                 throw new Error('Failed to load MCP configs');
@@ -200,7 +200,7 @@ export const useMcpConfigStore = create<McpConfigStore>()(
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                ...(configDirectory ? { 'x-opencode-directory': configDirectory } : {}),
+                ...(configDirectory ? { 'x-omp-directory': configDirectory } : {}),
               },
               body: JSON.stringify(body),
             });
@@ -272,7 +272,7 @@ export const useMcpConfigStore = create<McpConfigStore>()(
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
-                ...(configDirectory ? { 'x-opencode-directory': configDirectory } : {}),
+                ...(configDirectory ? { 'x-omp-directory': configDirectory } : {}),
               },
               body: JSON.stringify(body),
             });
@@ -341,7 +341,7 @@ export const useMcpConfigStore = create<McpConfigStore>()(
             const queryParams = configDirectory ? `?directory=${encodeURIComponent(configDirectory)}` : '';
             const response = await runtimeFetch(`/api/config/mcp/${encodeURIComponent(name)}${queryParams}`, {
               method: 'DELETE',
-              headers: configDirectory ? { 'x-opencode-directory': configDirectory } : undefined,
+              headers: configDirectory ? { 'x-omp-directory': configDirectory } : undefined,
             });
 
             const payload = await response.json().catch(() => null);

@@ -3,8 +3,8 @@ import { summarizeText as summarizeSharedText } from '../text/summarization.js';
 export const createNotificationTemplateRuntime = (deps) => {
   const {
     readSettingsFromDisk,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
+    buildOmpUrl,
+    getOmpAuthHeaders,
     resolveGitBinaryForSpawn,
   } = deps;
 
@@ -137,12 +137,12 @@ export const createNotificationTemplateRuntime = (deps) => {
     if (!sessionId) return '';
 
     try {
-      const url = buildOpenCodeUrl(`/session/${encodeURIComponent(sessionId)}/message`, '');
+      const url = buildOmpUrl(`/session/${encodeURIComponent(sessionId)}/message`, '');
       const response = await fetch(`${url}?limit=5`, {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          ...getOpenCodeAuthHeaders(),
+          ...getOmpAuthHeaders(),
         },
         signal: AbortSignal.timeout(3000),
       });
@@ -202,7 +202,7 @@ export const createNotificationTemplateRuntime = (deps) => {
     }
 
     try {
-      const url = buildOpenCodeUrl(`/session/${encodeURIComponent(sessionId)}`, '');
+      const url = buildOmpUrl(`/session/${encodeURIComponent(sessionId)}`, '');
       const response = await fetch(url, {
         method: 'GET',
         headers: { Accept: 'application/json' },

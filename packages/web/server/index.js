@@ -529,17 +529,17 @@ const ENV_DESKTOP_NOTIFY = (() => {
   return /ompchamber-server/i.test(argv0) || /ompchamber-server/i.test(argv1);
 })();
 
-// OpenCode auth compatibility — the OMP adapter runs in-process on the same
+// OMP auth compatibility — the OMP adapter runs in-process on the same
 // server, so there is no upstream Basic Auth header to attach.
-const getOpenCodeAuthHeaders = () => ({});
-const isOpenCodeConnectionSecure = () => false;
-const ensureLocalOpenCodeServerPassword = async () => {};
+const getOmpAuthHeaders = () => ({});
+const isOmpConnectionSecure = () => false;
+const ensureLocalOmpServerPassword = async () => {};
 
 // OpenCode-shaped URL builder — the OMP adapter registers its surface under
 // /api on this server, so OpenCode-style paths (e.g. /session/xyz) are
 // prefixed with /api to reach it. Consumers such as permission-auto-accept,
 // ompchamber-sessions and scheduled-tasks rely on this mapping.
-const buildOpenCodeUrl = (path, prefixOverride) => {
+const buildOmpUrl = (path, prefixOverride) => {
   const address = server?.address?.();
   const effectivePort = typeof address === 'object' && address
     ? address.port
@@ -574,8 +574,8 @@ applyLoginShellEnvSnapshot();
 notificationTemplateRuntime = createNotificationTemplateRuntime({
   readSettingsFromDisk,
   persistSettings,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   resolveGitBinaryForSpawn,
 });
 
@@ -592,8 +592,8 @@ const notificationTriggerRuntime = createNotificationTriggerRuntime({
   sendPushToAllUiSessions,
   sendApnsToAllUiSessions,
   isAnyInteractiveClientVisible,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
 });
 
 const maybeSendPushForTrigger = (...args) => notificationTriggerRuntime.maybeSendPushForTrigger(...args);
@@ -601,14 +601,14 @@ const setAutoAcceptSession = (sessionId, enabled) => permissionAutoAcceptRuntime
 clearPendingPushBadge = () => notificationTriggerRuntime.clearPendingPushBadge();
 
 const sessionAssistRuntime = createSessionAssistRuntime({
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   getSmallModelService: async () => import('./lib/small-model/index.js'),
 });
 
 const sessionGoalRuntime = createSessionGoalRuntime({
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   getSmallModelService: async () => import('./lib/small-model/index.js'),
   emitGoalNotification: async ({ sessionId, directory, status, goal }) => {
     // The goal settle notification replaces the per-turn ready notifications
@@ -646,20 +646,20 @@ const sessionGoalRuntime = createSessionGoalRuntime({
   },
 });
 const contextObligatoryRuntime = createContextObligatoryRuntime({
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
 });
 
 const globalMessageStreamHub = createGlobalMessageStreamHub({
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   upstreamStallTimeoutMs: getUpstreamStallTimeoutMs,
 });
 
 const permissionAutoAcceptRuntime = createPermissionAutoAcceptRuntime({
   globalEventHub: globalMessageStreamHub,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   readSettingsFromDiskMigrated,
   persistSettings,
   broadcastGlobalUiEvent,
@@ -764,8 +764,8 @@ const staticRoutesRuntime = createStaticRoutesRuntime({
   __dirname,
   express,
   resolveProjectDirectory,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   readSettingsFromDiskMigrated,
   normalizePwaAppName,
   normalizePwaOrientation,
@@ -841,7 +841,7 @@ const startupPipelineRuntime = createStartupPipelineRuntime({
 
 // The OMP engine ships a fixed bundled version and owns configuration
 // reloads; there is no OpenCode binary resolution or runtime upgrade path.
-const getOpenCodeResolutionSnapshot = () => ({
+const getOmpResolutionSnapshot = () => ({
   resolved: null,
   source: null,
   useWsl: false,
@@ -853,19 +853,19 @@ const getOpenCodeResolutionSnapshot = () => ({
   gitBinaryResolved: null,
 });
 
-const getOpenCodeUpgradeCapability = () => ({
+const getOmpUpgradeCapability = () => ({
   supported: false,
   reason: 'bundled',
   version: PINNED_OMP_VERSION,
 });
 
-// OpenCode lifecycle compatibility stubs — under the OMP engine the agent
+// OMP lifecycle compatibility stubs — under the OMP engine the agent
 // process is managed by the OMP runtime, so these never touch a spawned
-// OpenCode server.
-const restartOpenCode = async () => {};
-const waitForOpenCodeReady = async () => {};
+// agent server.
+const restartOmp = async () => {};
+const waitForOmpReady = async () => {};
 const waitForAgentPresence = async () => null;
-const refreshOpenCodeAfterConfigChange = async () => ({ reloaded: true, external: false });
+const refreshOmpAfterConfigChange = async () => ({ reloaded: true, external: false });
 const startHealthMonitoring = () => {};
 const triggerHealthCheck = () => {};
 const scheduledTasksRuntime = createScheduledTasksRuntime({
@@ -874,9 +874,9 @@ const scheduledTasksRuntime = createScheduledTasksRuntime({
     const settings = await readSettingsFromDiskMigrated();
     return sanitizeProjects(settings?.projects || []);
   },
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
-  waitForOpenCodeReady,
+  buildOmpUrl,
+  getOmpAuthHeaders,
+  waitForOmpReady,
   setSessionAutoAccept: (sessionId, enabled, directory) => permissionAutoAcceptRuntime.setSessionPolicy(sessionId, enabled, directory),
   emitTaskRunEvent: (event) => {
     for (const client of uiOMPChamberEventClients) {
@@ -928,23 +928,23 @@ const ompchamberSessionService = createOMPChamberSessionService({
   readSettingsFromDiskMigrated,
   sanitizeProjects,
   validateDirectoryPath,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
-  waitForOpenCodeReady,
+  buildOmpUrl,
+  getOmpAuthHeaders,
+  waitForOmpReady,
   emitSessionCreatedEvent,
 });
 const ompchamberControlService = createOMPChamberControlService({
   readSettingsFromDiskMigrated,
   sanitizeProjects,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
-  waitForOpenCodeReady,
+  buildOmpUrl,
+  getOmpAuthHeaders,
+  waitForOmpReady,
   sessionService: ompchamberSessionService,
   scheduledTaskService,
 });
 
 // The OMP engine is the only engine: start `omp --mode rpc-ui` at startup.
-const bootstrapOpenCodeAtStartup = async () => {
+const bootstrapOmpAtStartup = async () => {
   try {
     await startOmpEngine();
   } catch (error) {
@@ -957,7 +957,7 @@ const bootstrapOpenCodeAtStartup = async () => {
 const ensureGlobalWatcherStarted = async () => {};
 // Kept as a rename-compatible alias for the startup pipeline (which no longer
 // knows about OpenCode).
-const bootstrapAgentEngineAtStartup = bootstrapOpenCodeAtStartup;
+const bootstrapAgentEngineAtStartup = bootstrapOmpAtStartup;
 
 // ---------------------------------------------------------------------------
 // OMP engine
@@ -1296,7 +1296,7 @@ async function main(options = {}) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept,X-Requested-With,Cache-Control,X-OpenCode-Directory,X-OpenCode-Directory-Encoding');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept,X-Requested-With,Cache-Control,X-Omp-Directory,X-Omp-Directory-Encoding');
       res.setHeader('Access-Control-Expose-Headers', 'x-next-cursor');
       res.setHeader('Vary', 'Origin');
       if (req.method === 'OPTIONS') {
@@ -1333,27 +1333,27 @@ async function main(options = {}) {
     serverStartedAt,
     gracefulShutdown,
     getHealthSnapshot: () => ({
-      // OpenCode-shaped health fields are kept for UI compatibility; the OMP
-      // engine is always "ready" once the server is up and there is no
-      // upstream OpenCode process to report.
-      openCodePort: null,
-      openCodeRunning: true,
-      openCodeSecureConnection: false,
-      openCodeAuthSource: null,
-      openCodeApiPrefix: '',
-      openCodeApiPrefixDetected: true,
-      isOpenCodeReady: true,
-      lastOpenCodeError: null,
-      lastOpenCodeLaunchDiagnostics: null,
-      opencodeBinaryResolved: null,
-      opencodeBinarySource: null,
-      opencodeLaunchBinary: null,
-      opencodeLaunchArgs: [],
-      opencodeLaunchWrapperType: null,
-      opencodeViaWsl: false,
-      opencodeWslBinary: null,
-      opencodeWslPath: null,
-      opencodeWslDistro: null,
+      // The OMP engine is always "ready" once the server is up and there is
+      // no separate agent process to report; the launch diagnostics fields
+      // stay null.
+      ompPort: null,
+      ompRunning: true,
+      ompSecureConnection: false,
+      ompAuthSource: null,
+      ompApiPrefix: '',
+      ompApiPrefixDetected: true,
+      isOmpReady: true,
+      lastOmpError: null,
+      lastOmpLaunchDiagnostics: null,
+      ompBinaryResolved: null,
+      ompBinarySource: null,
+      ompLaunchBinary: null,
+      ompLaunchArgs: [],
+      ompLaunchWrapperType: null,
+      ompViaWsl: false,
+      ompWslBinary: null,
+      ompWslPath: null,
+      ompWslDistro: null,
       nodeBinaryResolved: null,
       bunBinaryResolved: null,
       desktopNotifyEnabled: ENV_DESKTOP_NOTIFY,
@@ -1502,9 +1502,9 @@ async function main(options = {}) {
     resolveOptionalProjectDirectory,
     validateDirectoryPath,
     readCustomThemesFromDisk,
-    refreshOpenCodeAfterConfigChange,
-    getOpenCodeResolutionSnapshot,
-    getOpenCodeUpgradeCapability,
+    refreshOmpAfterConfigChange,
+    getOmpResolutionSnapshot,
+    getOmpUpgradeCapability,
     formatSettingsResponse,
     readSettingsFromDisk,
     readSettingsFromDiskMigrated,
@@ -1512,16 +1512,16 @@ async function main(options = {}) {
     sanitizeProjects,
     sanitizeSkillCatalogs,
     isUnsafeSkillRelativePath,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
-    getOpenCodePort: () => null,
+    buildOmpUrl,
+    getOmpAuthHeaders,
+    getOmpPort: () => null,
     buildAugmentedPath,
     projectConfigRuntime,
     scheduledTasksRuntime,
     scheduledTaskService,
     ompchamberSessionService,
     ompchamberControlService,
-    waitForOpenCodeReady,
+    waitForOmpReady,
     emitSessionCreatedEvent,
     getOMPChamberEventClients: () => uiOMPChamberEventClients,
     writeSseEvent,
@@ -1554,8 +1554,8 @@ async function main(options = {}) {
     isExecutable,
     isRequestOriginAllowed,
     rejectWebSocketUpgrade,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
+    buildOmpUrl,
+    getOmpAuthHeaders,
     globalEventHub: globalMessageStreamHub,
     processForwardedEventPayload,
     messageStreamWsClients: uiNotificationWsClients,
@@ -1620,7 +1620,7 @@ async function main(options = {}) {
     expressApp: app,
     httpServer: server,
     getPort: () => tunnelRuntimeContext.getActivePort(),
-    getOpenCodePort: () => null,
+    getOmpPort: () => null,
     getTunnelUrl: () => tunnelService.getPublicUrl(),
     getQuitRiskStatus: () => ({
       tunnel: {
@@ -1629,7 +1629,7 @@ async function main(options = {}) {
       scheduledTasks: scheduledTasksRuntime.getStatus(),
     }),
     isReady: () => true,
-    restartOpenCode: () => restartOpenCode(),
+    restartOmp: () => restartOmp(),
     getEngineProcessInfo: () => ({
       // The OMP engine runs in-process; there is no managed OpenCode process
       // to expose. Structurally withhold pid/port so the Electron-side killer
@@ -1672,7 +1672,7 @@ runCliEntryIfMain({
 export {
   gracefulShutdown,
   setupProxy,
-  restartOpenCode,
+  restartOmp,
   main as startWebUiServer,
   parseServeCliOptions as parseArgs,
 };

@@ -146,8 +146,8 @@ const messagePartsToText = (message) => {
 };
 
 export const createSessionAssistRuntime = ({
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   getSmallModelService,
   quietMs = IDLE_QUIET_MS,
 }) => {
@@ -164,14 +164,14 @@ export const createSessionAssistRuntime = ({
   };
 
   const openCodeFetch = async (path, { directory, method = 'GET', body } = {}) => {
-    const base = buildOpenCodeUrl(path, '');
+    const base = buildOmpUrl(path, '');
     const url = directory ? `${base}?directory=${encodeURIComponent(directory)}` : base;
     const response = await fetch(url, {
       method,
       headers: {
         Accept: 'application/json',
         ...(body ? { 'Content-Type': 'application/json' } : {}),
-        ...getOpenCodeAuthHeaders(),
+        ...getOmpAuthHeaders(),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
@@ -183,12 +183,12 @@ export const createSessionAssistRuntime = ({
   };
 
   const fetchRecentMessages = async (sessionId, directory) => {
-    const base = buildOpenCodeUrl(`/session/${encodeURIComponent(sessionId)}/message`, '');
+    const base = buildOmpUrl(`/session/${encodeURIComponent(sessionId)}/message`, '');
     const params = new URLSearchParams({ limit: String(TRANSCRIPT_MESSAGE_LIMIT) });
     if (directory) params.set('directory', directory);
     const response = await fetch(`${base}?${params.toString()}`, {
       method: 'GET',
-      headers: { Accept: 'application/json', ...getOpenCodeAuthHeaders() },
+      headers: { Accept: 'application/json', ...getOmpAuthHeaders() },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!response.ok) return null;

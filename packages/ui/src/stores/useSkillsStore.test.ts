@@ -149,7 +149,7 @@ describe('useSkillsStore directory resolution', () => {
     ]);
   });
 
-  test('renameSkill uses getRequestDirectory query and x-opencode-directory header', async () => {
+  test('renameSkill uses getRequestDirectory query and x-omp-directory header', async () => {
     runtimeFetchImpl = async (_url, init) => {
       if (init?.method === 'PATCH') {
         return new Response(JSON.stringify({
@@ -183,7 +183,7 @@ describe('useSkillsStore directory resolution', () => {
 
     const headers = new Headers(renameCall?.headers);
     expect(headers.get('content-type')).toBe('application/json');
-    expect(headers.get('x-opencode-directory')).toBe(activeProjectPath);
+    expect(headers.get('x-omp-directory')).toBe(activeProjectPath);
   });
 
   test('invalidateSkillsLoadCache() with no argument clears the active-project cache key used by loadSkills', async () => {

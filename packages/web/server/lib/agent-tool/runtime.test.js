@@ -79,7 +79,7 @@ describe('managed agent tool runtime', () => {
     const { runtime, dataDir, env } = await createRuntime();
     env.OPENCODE_CONFIG_CONTENT = '{ // existing\n "plugin": ["file:///existing.js", ["example-plugin", {"flag": true}]], "model": "test/model" }';
 
-    const preparedEnv = await runtime.prepareManagedOpenCodeEnv();
+    const preparedEnv = await runtime.prepareManagedOmpEnv();
     const config = JSON.parse(preparedEnv.OPENCODE_CONFIG_CONTENT);
     const pluginPath = path.join(dataDir, 'agent-tool', 'ompchamber-plugin.js');
     const source = await fs.readFile(pluginPath, 'utf8');
@@ -168,7 +168,7 @@ describe('managed agent tool runtime', () => {
 
   it('requires the per-child token on the loopback route', async () => {
     const { runtime } = await createRuntime();
-    const env = await runtime.prepareManagedOpenCodeEnv();
+    const env = await runtime.prepareManagedOmpEnv();
     const app = express();
     runtime.registerRoutes(app, express);
 
@@ -198,7 +198,7 @@ describe('managed agent tool runtime', () => {
     const previousUrl = process.env.OMPCHAMBER_AGENT_TOOL_URL;
     const previousToken = process.env.OMPCHAMBER_AGENT_TOOL_TOKEN;
     try {
-      const env = await runtime.prepareManagedOpenCodeEnv();
+      const env = await runtime.prepareManagedOmpEnv();
       process.env.OMPCHAMBER_AGENT_TOOL_URL = env.OMPCHAMBER_AGENT_TOOL_URL;
       process.env.OMPCHAMBER_AGENT_TOOL_TOKEN = env.OMPCHAMBER_AGENT_TOOL_TOKEN;
       const pluginPath = path.join(dataDir, 'agent-tool', 'ompchamber-plugin.js');

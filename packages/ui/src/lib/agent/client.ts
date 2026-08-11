@@ -1710,8 +1710,8 @@ class OmpService {
     try {
       const normalizedBase = this.baseUrl.endsWith('/') ? this.baseUrl.replace(/\/+$/, '') : this.baseUrl;
       const healthUrl = normalizedBase === '/api' || normalizedBase.endsWith('/api')
-        ? '/api/opencode/health'
-        : `${normalizedBase}/opencode/health`;
+        ? '/api/omp/health'
+        : `${normalizedBase}/omp/health`;
       markStartupTrace('agentClient.checkHealth:url', { baseUrl: this.baseUrl, healthUrl });
       const timeout = createTimeoutSignal(OMP_HEALTH_TIMEOUT_MS);
       const response = await runtimeFetch(healthUrl, { signal: timeout.signal }).finally(timeout.cleanup);
@@ -1745,7 +1745,7 @@ class OmpService {
     }
 
     if (options?.asProject) {
-      const response = await runtimeFetch(`${this.baseUrl}/opencode/directory`, {
+      const response = await runtimeFetch(`${this.baseUrl}/omp/directory`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1979,7 +1979,7 @@ class OmpService {
       return null;
     }
 
-    const url = `${this.baseUrl}/opencode/directory`;
+    const url = `${this.baseUrl}/omp/directory`;
     console.log('[AgentClient] POST', url, 'with path:', directoryPath);
 
     try {

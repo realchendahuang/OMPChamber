@@ -29,7 +29,7 @@ the server runs only the OMP engine (`packages/web/server/agent-runtime/omp/`).
 - `packages/web/server/lib/ompchamber/project-icon-routes.js`: project icon upload/read/discovery route registration.
 - `packages/web/server/lib/ompchamber/providers.js`: custom OpenAI-compatible provider config CRUD.
 - `packages/web/server/lib/ompchamber/pwa-manifest-routes.js`: PWA manifest route registration.
-- `packages/web/server/lib/ompchamber/routes.js`: OpenCode-shaped settings/auth/upgrade route registration (kept for UI compatibility; upgrade is always unsupported under the OMP engine).
+- `packages/web/server/lib/ompchamber/routes.js`: OMP-named settings/auth/upgrade route registration (`/api/omp/*`, `/api/config/omp-resolution`; upgrade is always unsupported under the OMP engine).
 - `packages/web/server/lib/ompchamber/server-startup-runtime.js`: server bind/startup tunnel and process handler wiring.
 - `packages/web/server/lib/ompchamber/server-utils-runtime.js`: shared server runtime utilities (PATH augmentation only; the OpenCode proxy/port/snapshot surface was removed).
 - `packages/web/server/lib/ompchamber/session-runtime.js`: session status/attention/activity runtime for SSE events.
@@ -66,8 +66,8 @@ The following OpenCode runtime modules were physically deleted (Phase 5 of the O
   `opencode-resolution-runtime.js`, `upgrade-capability.js`, `watcher.js`, `managed-process-registry.js`,
   `proxy.js`, `cli-entry-runtime.js`, `cli-options.js`, `path-utils.js`
 
-The server now runs only the OMP engine. `index.js` keeps OpenCode-shaped compatibility
-stubs (`buildOpenCodeUrl`, `getOpenCodeAuthHeaders`, `waitForOpenCodeReady`, etc.) so
+The server now runs only the OMP engine. `index.js` keeps lifecycle compatibility
+stubs (`buildOmpUrl`, `getOmpAuthHeaders`, `waitForOmpReady`, etc.) so
 internal consumers (permission-auto-accept, ompchamber-sessions, scheduled-tasks,
 notifications, context-obligatory) keep working against the OMP adapter surface.
 

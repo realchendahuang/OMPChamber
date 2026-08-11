@@ -406,13 +406,13 @@ function chunkSpecs(specs: string[]): string[][] {
 }
 
 function buildDirectoryHeaders(directory: string | null): HeadersInit | undefined {
-  return directory ? { 'x-opencode-directory': directory } : undefined;
+  return directory ? { 'x-omp-directory': directory } : undefined;
 }
 
 function buildJsonHeaders(directory: string | null): HeadersInit {
   return {
     'Content-Type': 'application/json',
-    ...(directory ? { 'x-opencode-directory': directory } : {}),
+    ...(directory ? { 'x-omp-directory': directory } : {}),
   };
 }
 

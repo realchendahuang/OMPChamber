@@ -17,8 +17,8 @@ export function acceptDirectoryMessageStreamWsConnection({
   socket,
   requestedLastEventId,
   requestedDirectory,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   processForwardedEventPayload,
   wsClients,
   triggerHealthCheck,
@@ -106,7 +106,7 @@ export function acceptDirectoryMessageStreamWsConnection({
           buildUrlFailed = false;
           let targetUrl;
           try {
-            targetUrl = new URL(buildOpenCodeUrl('/event', ''));
+            targetUrl = new URL(buildOmpUrl('/event', ''));
           } catch {
             buildUrlFailed = true;
             throw new Error('OpenCode service unavailable');
@@ -118,7 +118,7 @@ export function acceptDirectoryMessageStreamWsConnection({
 
           return targetUrl;
         },
-        getHeaders: getOpenCodeAuthHeaders,
+        getHeaders: getOmpAuthHeaders,
         onConnect() {
           if (!streamReady) {
             sendMessageStreamWsFrame(socket, {

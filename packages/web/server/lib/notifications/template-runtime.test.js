@@ -7,8 +7,8 @@ const originalFetch = globalThis.fetch;
 const createRuntime = (settings = {}) => createNotificationTemplateRuntime({
   readSettingsFromDisk: async () => settings,
   persistSettings: vi.fn(async () => {}),
-  buildOpenCodeUrl: (path) => path,
-  getOpenCodeAuthHeaders: () => ({}),
+  buildOmpUrl: (path) => path,
+  getOmpAuthHeaders: () => ({}),
   resolveGitBinaryForSpawn: () => 'git',
 });
 

@@ -62,7 +62,7 @@ describe('createWebFilesAPI', () => {
 
     expect(runtimeFetchMock).toHaveBeenLastCalledWith('/api/fs/stat', {
       query: new URLSearchParams({ path: '/worktree-b/file.txt' }),
-      headers: { 'x-opencode-directory': '/worktree-a' },
+      headers: { 'x-omp-directory': '/worktree-a' },
     });
 
     runtimeFetchMock.mockResolvedValueOnce(new Response('content'));
@@ -71,7 +71,7 @@ describe('createWebFilesAPI', () => {
     expect(runtimeFetchMock).toHaveBeenLastCalledWith('/api/fs/read', {
       query: new URLSearchParams({ path: '/worktree-b/file.txt' }),
       cache: 'default',
-      headers: { 'x-opencode-directory': '/worktree-a' },
+      headers: { 'x-omp-directory': '/worktree-a' },
     });
   });
 
@@ -84,7 +84,7 @@ describe('createWebFilesAPI', () => {
 
     expect(runtimeFetchMock).toHaveBeenLastCalledWith('/api/fs/raw', {
       query: { path: '/current-workspace/file.txt', download: true },
-      headers: { 'x-opencode-directory': '/current-workspace' },
+      headers: { 'x-omp-directory': '/current-workspace' },
     });
   });
 });

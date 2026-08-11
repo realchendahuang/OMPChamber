@@ -333,7 +333,7 @@ export const useAgentsStore = create<AgentsStore>()(
                       const response = await runtimeFetch(`/api/config/agents/${encodeURIComponent(agent.name)}${queryParams}`, {
                         headers: {
                           'Cache-Control': 'no-cache',
-                          ...(configDirectory ? { 'x-opencode-directory': configDirectory } : {}),
+                          ...(configDirectory ? { 'x-omp-directory': configDirectory } : {}),
                         }
                       });
 
@@ -422,7 +422,7 @@ export const useAgentsStore = create<AgentsStore>()(
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                ...(configDirectory ? { 'x-opencode-directory': configDirectory } : {}),
+                ...(configDirectory ? { 'x-omp-directory': configDirectory } : {}),
               },
               body: JSON.stringify(agentConfig)
             });
@@ -492,7 +492,7 @@ export const useAgentsStore = create<AgentsStore>()(
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
-                ...(configDirectory ? { 'x-opencode-directory': configDirectory } : {}),
+                ...(configDirectory ? { 'x-omp-directory': configDirectory } : {}),
               },
               body: JSON.stringify(agentConfig)
             });
@@ -550,7 +550,7 @@ export const useAgentsStore = create<AgentsStore>()(
               method: 'DELETE',
               headers: {
                 'Content-Type': 'application/json',
-                ...(configDirectory ? { 'x-opencode-directory': configDirectory } : {}),
+                ...(configDirectory ? { 'x-omp-directory': configDirectory } : {}),
               },
               body: JSON.stringify({ scope }),
             });

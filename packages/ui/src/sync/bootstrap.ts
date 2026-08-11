@@ -98,9 +98,9 @@ export async function bootstrapGlobal(
       const healthRes = await runtimeFetch('/health', { signal: AbortSignal.timeout(4000) })
       if (healthRes.ok) {
         const health = await healthRes.json()
-        if (health.lastOpenCodeError) {
-          message = health.lastOpenCodeError
-        } else if (!health.openCodeRunning) {
+        if (health.lastOmpError) {
+          message = health.lastOmpError
+        } else if (!health.ompRunning) {
           message = "OMP process is not running"
         }
       }

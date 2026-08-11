@@ -18,7 +18,7 @@ import { registerSkillRoutes } from './skill-routes.js';
 import { registerPluginRoutes } from './plugin-routes.js';
 import { getNpmInfo, clearCache as clearNpmCache } from './npm-registry.js';
 import { parseNpmSpec, parsePathSpec, isExactSemver } from './plugin-spec.js';
-import { registerOpenCodeRoutes } from './routes.js';
+import { registerOmpRoutes } from './routes.js';
 import { getProviderSources, removeProviderConfig, upsertProviderConfig } from './providers.js';
 import { getAgentSources, getAgentConfig, createAgent, updateAgent, deleteAgent } from './agents.js';
 import { getCommandSources, createCommand, updateCommand, deleteCommand } from './commands.js';
@@ -97,9 +97,9 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       resolveOptionalProjectDirectory,
       validateDirectoryPath,
       readCustomThemesFromDisk,
-      refreshOpenCodeAfterConfigChange,
-      getOpenCodeResolutionSnapshot,
-      getOpenCodeUpgradeCapability,
+      refreshOmpAfterConfigChange,
+      getOmpResolutionSnapshot,
+      getOmpUpgradeCapability,
       formatSettingsResponse,
       readSettingsFromDisk,
       readSettingsFromDiskMigrated,
@@ -107,16 +107,16 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       sanitizeProjects,
       sanitizeSkillCatalogs,
       isUnsafeSkillRelativePath,
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders,
-      getOpenCodePort,
+      buildOmpUrl,
+      getOmpAuthHeaders,
+      getOmpPort,
       buildAugmentedPath,
       projectConfigRuntime,
       scheduledTasksRuntime,
       scheduledTaskService,
       ompchamberSessionService,
       ompchamberControlService,
-      waitForOpenCodeReady,
+      waitForOmpReady,
       getOMPChamberEventClients,
       writeSseEvent,
       emitSessionCreatedEvent,
@@ -125,17 +125,17 @@ export const createFeatureRoutesRuntime = (dependencies) => {
 
     registerSettingsUtilityRoutes(app, {
       readCustomThemesFromDisk,
-      refreshOpenCodeAfterConfigChange,
+      refreshOmpAfterConfigChange,
       clientReloadDelayMs,
     });
 
     registerPermissionAutoAcceptRoutes(app, permissionAutoAcceptRuntime);
 
-    registerOpenCodeRoutes(app, {
+    registerOmpRoutes(app, {
       crypto,
       clientReloadDelayMs,
-      getOpenCodeResolutionSnapshot,
-      getOpenCodeUpgradeCapability,
+      getOmpResolutionSnapshot,
+      getOmpUpgradeCapability,
       formatSettingsResponse,
       readSettingsFromDisk,
       readSettingsFromDiskMigrated,
@@ -146,9 +146,9 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       getProviderSources,
       removeProviderConfig,
       upsertProviderConfig,
-      refreshOpenCodeAfterConfigChange,
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders,
+      refreshOmpAfterConfigChange,
+      buildOmpUrl,
+      getOmpAuthHeaders,
     });
 
     registerProjectIconRoutes(app, {
@@ -178,9 +178,9 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       readSettingsFromDiskMigrated,
       sanitizeProjects,
       validateDirectoryPath,
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders,
-      waitForOpenCodeReady,
+      buildOmpUrl,
+      getOmpAuthHeaders,
+      waitForOmpReady,
       emitSessionCreatedEvent,
       sessionService: ompchamberSessionService,
     });
@@ -190,7 +190,7 @@ export const createFeatureRoutesRuntime = (dependencies) => {
     registerConfigEntityRoutes(app, {
       resolveProjectDirectory,
       resolveOptionalProjectDirectory,
-      refreshOpenCodeAfterConfigChange,
+      refreshOmpAfterConfigChange,
       clientReloadDelayMs,
       getAgentSources,
       getAgentConfig,
@@ -216,7 +216,7 @@ export const createFeatureRoutesRuntime = (dependencies) => {
 
     registerPluginRoutes(app, {
       resolveOptionalProjectDirectory,
-      refreshOpenCodeAfterConfigChange,
+      refreshOmpAfterConfigChange,
       clientReloadDelayMs,
       listPluginEntries,
       getPluginEntry,
@@ -246,11 +246,11 @@ export const createFeatureRoutesRuntime = (dependencies) => {
       readSettingsFromDisk,
       sanitizeSkillCatalogs,
       isUnsafeSkillRelativePath,
-      refreshOpenCodeAfterConfigChange,
+      refreshOmpAfterConfigChange,
       clientReloadDelayMs,
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders,
-      getOpenCodePort,
+      buildOmpUrl,
+      getOmpAuthHeaders,
+      getOmpPort,
       getSkillSources,
       discoverSkills,
       mergeDiscoveredSkills,

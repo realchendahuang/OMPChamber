@@ -531,7 +531,7 @@ export const registerSkillRoutes = (app, dependencies) => {
         console.log(`[Server] Renaming skill: ${skillName} -> ${newName}`);
         console.log('[Server] Working directory:', directory);
         renameSkill(skillName, newName, directory);
-        await refreshOpenCodeAfterConfigChange('skill rename');
+        await refreshOmpAfterConfigChange('skill rename');
 
         return res.json({
           success: true,

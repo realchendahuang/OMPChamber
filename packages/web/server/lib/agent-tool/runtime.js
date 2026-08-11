@@ -170,7 +170,7 @@ export const createAgentToolRuntime = (dependencies) => {
   const pluginPath = path.join(pluginDirectory, 'ompchamber-plugin.js');
   let activeToken = null;
 
-  const prepareManagedOpenCodeEnv = async () => {
+  const prepareManagedOmpEnv = async () => {
     const port = getActivePort();
     if (!Number.isInteger(port) || port <= 0) {
       throw new Error('OMPChamber listener port is unavailable for managed tool injection');
@@ -249,7 +249,7 @@ export const createAgentToolRuntime = (dependencies) => {
   };
 
   return {
-    prepareManagedOpenCodeEnv,
+    prepareManagedOmpEnv,
     registerRoutes,
     execute,
   };

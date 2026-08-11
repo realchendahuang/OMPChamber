@@ -39,8 +39,8 @@ describe('context obligatory runtime', () => {
       throw new Error(`Unexpected ${url.pathname}`);
     }));
     const runtime = createContextObligatoryRuntime({
-      buildOpenCodeUrl: (path) => `http://opencode.test${path}`,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl: (path) => `http://opencode.test${path}`,
+      getOmpAuthHeaders: () => ({}),
     });
 
     await runtime.processPayload({ type: 'session.compacted', properties: { sessionID: 'ses_1' } });
@@ -67,8 +67,8 @@ describe('context obligatory runtime', () => {
     const fetchImpl = vi.fn();
     vi.stubGlobal('fetch', fetchImpl);
     const runtime = createContextObligatoryRuntime({
-      buildOpenCodeUrl: (path) => `http://opencode.test${path}`,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl: (path) => `http://opencode.test${path}`,
+      getOmpAuthHeaders: () => ({}),
     });
     await runtime.processPayload({ type: 'session.status', properties: { sessionID: 'ses_1', status: { type: 'idle' } } });
     expect(fetchImpl).not.toHaveBeenCalled();

@@ -135,9 +135,9 @@ export const createOMPChamberControlService = (dependencies) => {
   const {
     readSettingsFromDiskMigrated,
     sanitizeProjects,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
-    waitForOpenCodeReady,
+    buildOmpUrl,
+    getOmpAuthHeaders,
+    waitForOmpReady,
     sessionService,
     scheduledTaskService,
     fetchImpl = fetch,
@@ -165,14 +165,14 @@ export const createOMPChamberControlService = (dependencies) => {
   };
 
   const getBaseUrl = async () => {
-    if (typeof waitForOpenCodeReady === 'function') await waitForOpenCodeReady(10_000, 250);
-    return buildOpenCodeUrl('/', '').replace(/\/$/, '');
+    if (typeof waitForOmpReady === 'function') await waitForOmpReady(10_000, 250);
+    return buildOmpUrl('/', '').replace(/\/$/, '');
   };
 
   const buildHeaders = (directory) => ({
-    ...getOpenCodeAuthHeaders(),
+    ...getOmpAuthHeaders(),
     accept: 'application/json',
-    ...(directory ? { 'x-opencode-directory': directory } : {}),
+    ...(directory ? { 'x-omp-directory': directory } : {}),
   });
 
   const fetchJson = async (url, options = {}) => {

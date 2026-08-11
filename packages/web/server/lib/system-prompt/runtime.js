@@ -56,7 +56,7 @@ export const createSystemPromptRuntime = ({ fsPromises, path, dataDir }) => {
   const pluginDirectory = path.join(dataDir, 'system-prompt');
   const pluginPath = path.join(pluginDirectory, 'ompchamber-system-prompt-plugin.js');
 
-  const prepareManagedOpenCodeEnv = async (rawConfig) => {
+  const prepareManagedOmpEnv = async (rawConfig) => {
     await fsPromises.mkdir(pluginDirectory, { recursive: true });
     await fsPromises.writeFile(pluginPath, createPluginSource(), { mode: 0o600 });
     return {
@@ -64,5 +64,5 @@ export const createSystemPromptRuntime = ({ fsPromises, path, dataDir }) => {
     };
   };
 
-  return { prepareManagedOpenCodeEnv };
+  return { prepareManagedOmpEnv };
 };

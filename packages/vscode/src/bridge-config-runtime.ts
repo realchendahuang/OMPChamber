@@ -135,7 +135,7 @@ export async function handleConfigBridgeMessage(
   const { id, type, payload } = message;
 
   switch (type) {
-    case 'api:config/opencode-resolution:get': {
+    case 'api:config/omp-resolution:get': {
       const debugInfo = ctx?.manager?.getDebugInfo();
       // The dedicated binary-override setting was removed: the extension always
       // spawns its bundled server, so there is no configurable binary anymore.

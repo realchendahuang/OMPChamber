@@ -396,17 +396,17 @@ describe('runtimeFetch header sanitization', () => {
 
   test('sanitizeHeadersForBrowser leaves Latin-1 directory hints unchanged', () => {
     const path = 'C:\\work\\foo%20bar';
-    const result = sanitizeHeadersForBrowser({ 'x-opencode-directory': path });
+    const result = sanitizeHeadersForBrowser({ 'x-omp-directory': path });
     expect(result).toBeFalsy();
   });
 
   test('sanitizeHeadersForBrowser encodes non-Latin-1 directory hints with marker', () => {
     const path = 'D:\\文件夹';
-    const result = sanitizeHeadersForBrowser({ 'x-opencode-directory': path });
+    const result = sanitizeHeadersForBrowser({ 'x-omp-directory': path });
     expect(result).toBeTruthy();
     const encoded = Object.fromEntries(result!);
-    expect(encoded['x-opencode-directory']).toBe(encodeURIComponent(path));
-    expect(encoded['x-opencode-directory-encoding']).toBe('uri');
+    expect(encoded['x-omp-directory']).toBe(encodeURIComponent(path));
+    expect(encoded['x-omp-directory-encoding']).toBe('uri');
   });
 
   test('sanitizeHeadersForBrowser returns undefined for empty/undefined input', () => {
@@ -445,15 +445,15 @@ describe('runtimeFetch header sanitization', () => {
       }) as typeof fetch;
 
       await runtimeFetch('/api/config/providers', {
-        headers: { 'x-opencode-directory': 'D:\\文件夹' },
+        headers: { 'x-omp-directory': 'D:\\文件夹' },
       });
 
       expect(calls).toHaveLength(1);
-      const encoded = calls[0].headers.get('x-opencode-directory');
+      const encoded = calls[0].headers.get('x-omp-directory');
       expect(encoded).not.toBe('D:\\文件夹');
       // decodeURIComponent round-trips back to original
       expect(decodeURIComponent(encoded!)).toBe('D:\\文件夹');
-      expect(calls[0].headers.get('x-opencode-directory-encoding')).toBe('uri');
+      expect(calls[0].headers.get('x-omp-directory-encoding')).toBe('uri');
     } finally {
       setRuntimeUrlResolver(previous);
       Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow });

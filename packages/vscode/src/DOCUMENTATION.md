@@ -52,7 +52,7 @@ The webview CSP permits `blob:` only for `worker-src` so shared UI parsers can r
 
 - `bridge-config-runtime.ts`
   - Config and skills message handlers (`api:config/*`).
-  - Includes binary-resolution diagnostics parity handler used by shared UI (`/api/config/opencode-resolution`).
+  - Includes binary-resolution diagnostics parity handler used by shared UI (`/api/config/omp-resolution`).
 
 - `bridge-settings-runtime.ts`
   - Settings read/write and skill discovery via API for bridge consumers.

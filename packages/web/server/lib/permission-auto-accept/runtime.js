@@ -20,8 +20,8 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function createPermissionAutoAcceptRuntime({
   globalEventHub,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   readSettingsFromDiskMigrated,
   persistSettings,
   broadcastGlobalUiEvent,
@@ -96,14 +96,14 @@ export function createPermissionAutoAcceptRuntime({
   };
 
   const request = async (path, { directory, method = 'GET', body } = {}) => {
-    const url = new URL(buildOpenCodeUrl(path, ''));
+    const url = new URL(buildOmpUrl(path, ''));
     if (directory) url.searchParams.set('directory', directory);
     const response = await fetchImpl(url, {
       method,
       headers: {
         Accept: 'application/json',
         ...(body ? { 'Content-Type': 'application/json' } : {}),
-        ...getOpenCodeAuthHeaders(),
+        ...getOmpAuthHeaders(),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
       signal: AbortSignal.timeout(requestTimeoutMs),

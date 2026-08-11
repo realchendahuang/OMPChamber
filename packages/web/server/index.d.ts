@@ -5,9 +5,9 @@ export interface WebUiServerController {
   expressApp: Express;
   httpServer: Server;
   getPort: () => number | null;
-  getOpenCodePort: () => number | null;
+  getOmpPort: () => number | null;
   isReady: () => boolean;
-  restartOpenCode: () => Promise<void>;
+  restartOmp: () => Promise<void>;
   stop: (options?: { exitProcess?: boolean }) => Promise<void>;
 }
 
@@ -25,7 +25,7 @@ export declare function startWebUiServer(
 
 export declare function gracefulShutdown(options?: { exitProcess?: boolean }): Promise<void>;
 export declare function setupProxy(app: Express): void;
-export declare function restartOpenCode(): Promise<void>;
+export declare function restartOmp(): Promise<void>;
 export declare function parseArgs(argv?: string[]): {
   port: number;
   host?: string;

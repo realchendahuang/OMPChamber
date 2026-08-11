@@ -130,13 +130,13 @@ export const sanitizeHeadersForBrowser = (init?: HeadersInit): [string, string][
     if (shouldEncodeHeaderValue(key, value)) {
       entries.push([key, encodeURIComponent(value)]);
       dirty = true;
-      if (key.toLowerCase() === 'x-opencode-directory') encodedDirectoryHint = true;
+      if (key.toLowerCase() === 'x-omp-directory') encodedDirectoryHint = true;
     } else {
       entries.push([key, value]);
     }
   }
   if (encodedDirectoryHint) {
-    entries.push(['x-opencode-directory-encoding', 'uri']);
+    entries.push(['x-omp-directory-encoding', 'uri']);
   }
   return dirty ? entries : undefined;
 };

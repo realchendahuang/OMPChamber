@@ -72,9 +72,9 @@ describe('rebindUpstream (#2638)', () => {
     let port = 4096;
     let fetchCalls = 0;
 
-    // Port changes after a managed restart: buildOpenCodeUrl resolves the
+    // Port changes after a managed restart: buildOmpUrl resolves the
     // CURRENT port on every attempt, exactly like production network-runtime.
-    const buildOpenCodeUrl = vi.fn(() => `http://127.0.0.1:${port}/global/event`);
+    const buildOmpUrl = vi.fn(() => `http://127.0.0.1:${port}/global/event`);
     const fetchImpl = vi.fn(async (_url, options) => {
       fetchCalls += 1;
       if (fetchCalls === 1) {
@@ -92,8 +92,8 @@ describe('rebindUpstream (#2638)', () => {
     });
 
     const globalHub = createGlobalMessageStreamHub({
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl,
+      getOmpAuthHeaders: () => ({}),
       fetchImpl,
       upstreamReconnectDelayMs: 0,
     });
@@ -106,8 +106,8 @@ describe('rebindUpstream (#2638)', () => {
         throw new Error('upgrade should not be used in this test');
       },
       globalEventHub: globalHub,
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl,
+      getOmpAuthHeaders: () => ({}),
       processForwardedEventPayload() {},
       wsClients,
       heartbeatIntervalMs: 5000,
@@ -143,7 +143,7 @@ describe('rebindUpstream (#2638)', () => {
     let port = 4096;
     let fetchCalls = 0;
 
-    const buildOpenCodeUrl = vi.fn(() => `http://127.0.0.1:${port}/event`);
+    const buildOmpUrl = vi.fn(() => `http://127.0.0.1:${port}/event`);
     const fetchImpl = vi.fn(async (_url, options) => {
       fetchCalls += 1;
       return createSseResponse({
@@ -160,8 +160,8 @@ describe('rebindUpstream (#2638)', () => {
       rejectWebSocketUpgrade() {
         throw new Error('upgrade should not be used in this test');
       },
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl,
+      getOmpAuthHeaders: () => ({}),
       processForwardedEventPayload() {},
       wsClients,
       heartbeatIntervalMs: 5000,

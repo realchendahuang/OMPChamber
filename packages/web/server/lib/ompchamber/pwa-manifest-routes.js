@@ -13,8 +13,8 @@ export const registerPwaManifestRoute = (app, dependencies) => {
   const {
     process,
     resolveProjectDirectory,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
+    buildOmpUrl,
+    getOmpAuthHeaders,
     readSettingsFromDiskMigrated,
     normalizePwaAppName,
     normalizePwaOrientation,
@@ -101,11 +101,11 @@ export const registerPwaManifestRoute = (app, dependencies) => {
         return `?directory=${encodeURIComponent(preparedDirectory)}`;
       })();
 
-      const response = await fetch(buildOpenCodeUrl(`/session${query}`, ''), {
+      const response = await fetch(buildOmpUrl(`/session${query}`, ''), {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          ...getOpenCodeAuthHeaders(),
+          ...getOmpAuthHeaders(),
         },
         signal: AbortSignal.timeout(2500),
       });

@@ -55,7 +55,7 @@ const readFileContent = async (
   const response = await runtimeFetch(`/api/fs/read?${params.toString()}`, {
     // Avoid conditional requests (304 + empty body).
     cache: 'no-store',
-    headers: options?.directory ? { 'x-opencode-directory': options.directory } : undefined,
+    headers: options?.directory ? { 'x-omp-directory': options.directory } : undefined,
   });
   if (!response.ok) {
     const errorPayload = await response.json().catch(() => ({ error: response.statusText }));

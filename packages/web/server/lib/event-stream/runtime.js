@@ -149,8 +149,8 @@ export function createMessageStreamWsRuntime({
   uiAuthController,
   isRequestOriginAllowed,
   rejectWebSocketUpgrade,
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   processForwardedEventPayload,
   wsClients,
   triggerHealthCheck,
@@ -172,8 +172,8 @@ export function createMessageStreamWsRuntime({
 
   const ownsGlobalHub = !globalEventHub;
   const globalHub = globalEventHub ?? createGlobalMessageStreamHub({
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
+    buildOmpUrl,
+    getOmpAuthHeaders,
     fetchImpl,
     upstreamStallTimeoutMs,
     upstreamReconnectDelayMs,
@@ -212,8 +212,8 @@ export function createMessageStreamWsRuntime({
       socket,
       requestedLastEventId,
       requestedDirectory,
-      buildOpenCodeUrl,
-      getOpenCodeAuthHeaders,
+      buildOmpUrl,
+      getOmpAuthHeaders,
       processForwardedEventPayload,
       wsClients,
       triggerHealthCheck,
@@ -267,7 +267,7 @@ export function createMessageStreamWsRuntime({
      * the old process (or an orphaned survivor of it) still holds the
      * previous one, and a healthy-but-pinned SSE connection never notices —
      * so the UI would stop receiving events until the app restarts (#2638).
-     * Restarting the shared hub re-dials `buildOpenCodeUrl` (which reads the
+     * Restarting the shared hub re-dials `buildOmpUrl` (which reads the
      * current port) on its next attempt; directory-scoped readers are
      * rebuilt by closing their client sockets, which reconnect with
      * `Last-Event-ID` and re-establish the stream against the new port.

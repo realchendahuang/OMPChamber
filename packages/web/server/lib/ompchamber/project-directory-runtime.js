@@ -58,8 +58,8 @@ export const createProjectDirectoryRuntime = (dependencies) => {
   };
 
   const resolveProjectDirectory = async (req) => {
-    const rawHeaderDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
-    const headerEncoding = typeof req.get === 'function' ? req.get('x-opencode-directory-encoding') : null;
+    const rawHeaderDirectory = typeof req.get === 'function' ? req.get('x-omp-directory') : null;
+    const headerEncoding = typeof req.get === 'function' ? req.get('x-omp-directory-encoding') : null;
     const headerDirectory = rawHeaderDirectory ? safeDecodeMarkedURIComponent(rawHeaderDirectory, headerEncoding) : null;
     const queryDirectory = Array.isArray(req.query?.directory)
       ? req.query.directory[0]
@@ -117,8 +117,8 @@ export const createProjectDirectoryRuntime = (dependencies) => {
   };
 
   const resolveOptionalProjectDirectory = async (req) => {
-    const rawHeaderDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
-    const headerEncoding = typeof req.get === 'function' ? req.get('x-opencode-directory-encoding') : null;
+    const rawHeaderDirectory = typeof req.get === 'function' ? req.get('x-omp-directory') : null;
+    const headerEncoding = typeof req.get === 'function' ? req.get('x-omp-directory-encoding') : null;
     const headerDirectory = rawHeaderDirectory ? safeDecodeMarkedURIComponent(rawHeaderDirectory, headerEncoding) : null;
     const queryDirectory = Array.isArray(req.query?.directory)
       ? req.query.directory[0]

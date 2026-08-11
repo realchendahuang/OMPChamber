@@ -1,18 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { registerOpenCodeRoutes } from './routes.js';
+import { registerOmpRoutes } from './routes.js';
 
 // No global body parser on purpose: the real server parses JSON per-route, so
 // these tests must fail if the pending route loses its own parser again.
 const createApp = (overrides = {}) => {
   const app = express();
   const dependencies = {
-    buildOpenCodeUrl: (path) => `http://opencode.local${path}`,
-    getOpenCodeAuthHeaders: () => ({ 'x-opencode-auth': 'test' }),
+    buildOmpUrl: (path) => `http://opencode.local${path}`,
+    getOmpAuthHeaders: () => ({ 'x-omp-auth': 'test' }),
     ...overrides,
   };
-  registerOpenCodeRoutes(app, dependencies);
+  registerOmpRoutes(app, dependencies);
   return { app, dependencies };
 };
 
@@ -43,7 +43,7 @@ describe('MCP OAuth browser callback route', () => {
     expect(String(url)).toBe('http://opencode.local/mcp/linear/auth/callback?directory=%2Fprojects%2Fdemo');
     expect(init.method).toBe('POST');
     expect(JSON.parse(init.body)).toEqual({ code: 'auth-code' });
-    expect(init.headers['x-opencode-auth']).toBe('test');
+    expect(init.headers['x-omp-auth']).toBe('test');
 
     expect(response.text).toContain('Authorization Complete');
     // Started from the desktop shell: the page hands control back via deep link.

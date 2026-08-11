@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { registerOpenCodeRoutes } from './routes.js';
+import { registerOmpRoutes } from './routes.js';
 
 const originalFetch = globalThis.fetch;
 
@@ -13,17 +13,17 @@ const createApp = (overrides = {}) => {
   const app = express();
   app.use(express.json());
   const dependencies = {
-    getOpenCodeUpgradeCapability: () => ({
+    getOmpUpgradeCapability: () => ({
       supported: false,
       manager: 'ompchamber',
       reason: 'bundled',
     }),
-    buildOpenCodeUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
-    getOpenCodeAuthHeaders: () => ({}),
-    refreshOpenCodeAfterConfigChange: vi.fn(async () => {}),
+    buildOmpUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
+    getOmpAuthHeaders: () => ({}),
+    refreshOmpAfterConfigChange: vi.fn(async () => {}),
     ...overrides,
   };
-  registerOpenCodeRoutes(app, dependencies);
+  registerOmpRoutes(app, dependencies);
   return { app, dependencies };
 };
 
@@ -33,7 +33,7 @@ describe('OpenCode upgrade routes', () => {
     const { app } = createApp();
 
     await request(app)
-      .post('/api/opencode/upgrade')
+      .post('/api/omp/upgrade')
       .send({})
       .expect(409, {
         success: false,
@@ -52,7 +52,7 @@ describe('OpenCode upgrade routes', () => {
     const { app } = createApp();
 
     const response = await request(app)
-      .get('/api/opencode/upgrade-status')
+      .get('/api/omp/upgrade-status')
       .expect(200);
 
     expect(response.body).toEqual({
@@ -77,7 +77,7 @@ describe('OpenCode upgrade routes', () => {
     });
     globalThis.fetch = vi.fn(() => upstreamResponse);
     const { app, dependencies } = createApp({
-      getOpenCodeUpgradeCapability: () => ({
+      getOmpUpgradeCapability: () => ({
         supported: true,
         manager: 'opencode',
         reason: null,
@@ -85,7 +85,7 @@ describe('OpenCode upgrade routes', () => {
     });
 
     const first = request(app)
-      .post('/api/opencode/upgrade')
+      .post('/api/omp/upgrade')
       .send({})
       .expect(200, {
         success: true,
@@ -98,7 +98,7 @@ describe('OpenCode upgrade routes', () => {
     });
 
     await request(app)
-      .post('/api/opencode/upgrade')
+      .post('/api/omp/upgrade')
       .send({})
       .expect(409, {
         success: false,
@@ -108,6 +108,6 @@ describe('OpenCode upgrade routes', () => {
 
     releaseUpgrade();
     await first;
-    expect(dependencies.refreshOpenCodeAfterConfigChange).toHaveBeenCalledTimes(1);
+    expect(dependencies.refreshOmpAfterConfigChange).toHaveBeenCalledTimes(1);
   });
 });

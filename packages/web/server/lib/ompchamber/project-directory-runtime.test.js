@@ -110,7 +110,7 @@ describe('project directory runtime', () => {
   });
 
   describe('resolveProjectDirectory', () => {
-    it('resolves symlinks in x-opencode-directory header', async () => {
+    it('resolves symlinks in x-omp-directory header', async () => {
       const runtime = createTestRuntime({
         fsPromises: {
           stat: async () => ({ isDirectory: () => true }),
@@ -119,7 +119,7 @@ describe('project directory runtime', () => {
       });
 
       const req = {
-        get: (header) => header === 'x-opencode-directory' ? '/home/user/workspace/project' : null,
+        get: (header) => header === 'x-omp-directory' ? '/home/user/workspace/project' : null,
         query: {},
       };
 
@@ -128,7 +128,7 @@ describe('project directory runtime', () => {
       expect(result).toEqual({ directory: '/real/workspace/project', error: null });
     });
 
-    it('decodes marked x-opencode-directory header values', async () => {
+    it('decodes marked x-omp-directory header values', async () => {
       const pathWithUnicode = '/home/user/测试项目';
       let validatedPath = null;
       const runtime = createTestRuntime({
@@ -143,8 +143,8 @@ describe('project directory runtime', () => {
 
       const req = {
         get: (header) => {
-          if (header === 'x-opencode-directory') return encodeURIComponent(pathWithUnicode);
-          if (header === 'x-opencode-directory-encoding') return 'uri';
+          if (header === 'x-omp-directory') return encodeURIComponent(pathWithUnicode);
+          if (header === 'x-omp-directory-encoding') return 'uri';
           return null;
         },
         query: {},
@@ -170,7 +170,7 @@ describe('project directory runtime', () => {
       });
 
       const req = {
-        get: (header) => header === 'x-opencode-directory' ? rawPath : null,
+        get: (header) => header === 'x-omp-directory' ? rawPath : null,
         query: {},
       };
 
@@ -193,7 +193,7 @@ describe('project directory runtime', () => {
       });
 
       const req = {
-        get: (header) => header === 'x-opencode-directory' ? encodeURIComponent(validPath) : null,
+        get: (header) => header === 'x-omp-directory' ? encodeURIComponent(validPath) : null,
         query: { directory: validPath },
       };
 
@@ -288,7 +288,7 @@ describe('project directory runtime', () => {
       });
 
       const req = {
-        get: (header) => header === 'x-opencode-directory' ? '/symlink/workspace/project' : null,
+        get: (header) => header === 'x-omp-directory' ? '/symlink/workspace/project' : null,
         query: {},
       };
 
@@ -311,7 +311,7 @@ describe('project directory runtime', () => {
       });
 
       const req = {
-        get: (header) => header === 'x-opencode-directory' ? rawPath : null,
+        get: (header) => header === 'x-omp-directory' ? rawPath : null,
         query: {},
       };
 

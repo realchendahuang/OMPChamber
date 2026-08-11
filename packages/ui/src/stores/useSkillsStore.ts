@@ -274,7 +274,7 @@ export const useSkillsStore = create<SkillsStore>()(
 
                 const response = await runBackgroundNetworkTask(() => runtimeFetch(`/api/config/skills${queryParams}`, {
                   priority: 'low',
-                  headers: directory ? { 'x-opencode-directory': directory } : undefined,
+                  headers: directory ? { 'x-omp-directory': directory } : undefined,
                 }));
                 if (!response.ok) {
                   throw new Error(`Failed to list skills: ${response.status}`);
@@ -335,7 +335,7 @@ export const useSkillsStore = create<SkillsStore>()(
             const queryParams = directory ? `?directory=${encodeURIComponent(directory)}` : '';
             
             const response = await runtimeFetch(`/api/config/skills/${encodeURIComponent(name)}${queryParams}`, {
-              headers: directory ? { 'x-opencode-directory': directory } : undefined,
+              headers: directory ? { 'x-omp-directory': directory } : undefined,
             });
             if (!response.ok) {
               return null;
@@ -366,7 +366,7 @@ export const useSkillsStore = create<SkillsStore>()(
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                ...(directory ? { 'x-opencode-directory': directory } : {}),
+                ...(directory ? { 'x-omp-directory': directory } : {}),
               },
               body: JSON.stringify(skillConfig)
             });
@@ -425,7 +425,7 @@ export const useSkillsStore = create<SkillsStore>()(
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
-                ...(directory ? { 'x-opencode-directory': directory } : {}),
+                ...(directory ? { 'x-omp-directory': directory } : {}),
               },
               body: JSON.stringify(skillConfig)
             });
@@ -479,7 +479,7 @@ export const useSkillsStore = create<SkillsStore>()(
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
-                ...(directory ? { 'x-opencode-directory': directory } : {}),
+                ...(directory ? { 'x-omp-directory': directory } : {}),
               },
               body: JSON.stringify({ renameTo: newName }),
             });
@@ -522,7 +522,7 @@ export const useSkillsStore = create<SkillsStore>()(
 
             const response = await runtimeFetch(`/api/config/skills/${encodeURIComponent(name)}${queryParams}`, {
               method: 'DELETE',
-              headers: directory ? { 'x-opencode-directory': directory } : undefined,
+              headers: directory ? { 'x-omp-directory': directory } : undefined,
             });
 
             const payload = await response.json().catch(() => null);
@@ -580,7 +580,7 @@ export const useSkillsStore = create<SkillsStore>()(
             
             const response = await runtimeFetch(
               `/api/config/skills/${encodeURIComponent(skillName)}/files/${encodeURIComponent(filePath)}?${queryParams.slice(1)}`,
-              { headers: directory ? { 'x-opencode-directory': directory } : undefined },
+              { headers: directory ? { 'x-omp-directory': directory } : undefined },
             );
             if (!response.ok) {
               return null;
@@ -604,7 +604,7 @@ export const useSkillsStore = create<SkillsStore>()(
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
-                  ...(directory ? { 'x-opencode-directory': directory } : {}),
+                  ...(directory ? { 'x-omp-directory': directory } : {}),
                 },
                 body: JSON.stringify({ content })
               }
@@ -625,7 +625,7 @@ export const useSkillsStore = create<SkillsStore>()(
               `/api/config/skills/${encodeURIComponent(skillName)}/files/${encodeURIComponent(filePath)}${queryParams}`,
               {
                 method: 'DELETE',
-                headers: directory ? { 'x-opencode-directory': directory } : undefined,
+                headers: directory ? { 'x-omp-directory': directory } : undefined,
               }
             );
             

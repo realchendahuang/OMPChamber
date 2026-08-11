@@ -113,9 +113,9 @@ const createApp = (overrides = {}, options = {}) => {
     readSettingsFromDiskMigrated: async () => ({ projects: [{ id: 'proj_1', path: '/repo/app' }] }),
     sanitizeProjects: (projects) => projects,
     validateDirectoryPath: async (directory) => ({ ok: true, directory }),
-    buildOpenCodeUrl: (route) => `http://opencode.test${route}`,
-    getOpenCodeAuthHeaders: () => ({ Authorization: 'Bearer test' }),
-    waitForOpenCodeReady: vi.fn(async () => undefined),
+    buildOmpUrl: (route) => `http://opencode.test${route}`,
+    getOmpAuthHeaders: () => ({ Authorization: 'Bearer test' }),
+    waitForOmpReady: vi.fn(async () => undefined),
     ...overrides,
   });
   return { app, calls };

@@ -51,8 +51,8 @@ describe('PWA manifest route', () => {
       registerPwaManifestRoute(app, {
         process: { platform: 'darwin' },
         resolveProjectDirectory: async () => ({ directory: '/workspace/app' }),
-        buildOpenCodeUrl: (route) => route,
-        getOpenCodeAuthHeaders: () => ({}),
+        buildOmpUrl: (route) => route,
+        getOmpAuthHeaders: () => ({}),
         readSettingsFromDiskMigrated: async () => ({}),
         normalizePwaAppName: (value, fallback) => typeof value === 'string' && value.trim() ? value.trim() : fallback,
         normalizePwaOrientation: (value, fallback) => typeof value === 'string' && value.trim() ? value.trim() : fallback,
@@ -106,8 +106,8 @@ describe('PWA manifest route', () => {
       registerPwaManifestRoute(app, {
         process: { platform: 'darwin' },
         resolveProjectDirectory: async () => ({ directory: '/' }),
-        buildOpenCodeUrl: (route) => route,
-        getOpenCodeAuthHeaders: () => ({}),
+        buildOmpUrl: (route) => route,
+        getOmpAuthHeaders: () => ({}),
         readSettingsFromDiskMigrated: async () => ({}),
         normalizePwaAppName: (value, fallback) => typeof value === 'string' && value.trim() ? value.trim() : fallback,
         normalizePwaOrientation: (value, fallback) => typeof value === 'string' && value.trim() ? value.trim() : fallback,

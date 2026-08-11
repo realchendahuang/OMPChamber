@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { registerOpenCodeRoutes } from './routes.js';
+import { registerOmpRoutes } from './routes.js';
 
 const createApp = (overrides = {}) => {
   const app = express();
@@ -14,7 +14,7 @@ const createApp = (overrides = {}) => {
     persistSettings: vi.fn(async (settings) => settings),
     ...overrides,
   };
-  registerOpenCodeRoutes(app, dependencies);
+  registerOmpRoutes(app, dependencies);
   return { app, dependencies };
 };
 
@@ -23,7 +23,7 @@ describe('OpenCode project directory route', () => {
     const { app, dependencies } = createApp();
 
     const response = await request(app)
-      .post('/api/opencode/directory')
+      .post('/api/omp/directory')
       .send({ path: '/projects/testing-one', create: true })
       .expect(200);
 
@@ -36,7 +36,7 @@ describe('OpenCode project directory route', () => {
     const { app, dependencies } = createApp();
 
     await request(app)
-      .post('/api/opencode/directory')
+      .post('/api/omp/directory')
       .send({ path: '/projects/existing' })
       .expect(200);
 

@@ -245,8 +245,8 @@ const messageTokenTotal = (info) => {
 };
 
 export const createSessionGoalRuntime = ({
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
   getSmallModelService,
   emitGoalNotification,
   idleQuietMs = IDLE_QUIET_MS,
@@ -266,7 +266,7 @@ export const createSessionGoalRuntime = ({
   };
 
   const openCodeFetch = async (fetchPath, { directory, method = 'GET', body, query } = {}) => {
-    const base = buildOpenCodeUrl(fetchPath, '');
+    const base = buildOmpUrl(fetchPath, '');
     const params = new URLSearchParams(query || {});
     if (directory) params.set('directory', directory);
     const search = params.toString();
@@ -276,7 +276,7 @@ export const createSessionGoalRuntime = ({
       headers: {
         Accept: 'application/json',
         ...(body ? { 'Content-Type': 'application/json' } : {}),
-        ...getOpenCodeAuthHeaders(),
+        ...getOmpAuthHeaders(),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),

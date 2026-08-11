@@ -6,7 +6,7 @@ export const createHmrStateRuntime = (dependencies) => {
     stateKey,
   } = dependencies;
 
-  const getInitialOpenCodeWorkingDirectory = () => {
+  const getInitialOmpWorkingDirectory = () => {
     const configured = typeof processLike.env.OMPCHAMBER_WORKING_DIRECTORY === 'string'
       ? processLike.env.OMPCHAMBER_WORKING_DIRECTORY.trim()
       : '';
@@ -16,76 +16,76 @@ export const createHmrStateRuntime = (dependencies) => {
   const getOrCreateHmrState = () => {
     if (!globalThisLike[stateKey]) {
       globalThisLike[stateKey] = {
-        openCodeProcess: null,
-        openCodePort: null,
-        openCodeWorkingDirectory: getInitialOpenCodeWorkingDirectory(),
+        ompProcess: null,
+        ompPort: null,
+        ompWorkingDirectory: getInitialOmpWorkingDirectory(),
         isShuttingDown: false,
         signalsAttached: false,
-        userProvidedOpenCodePassword: undefined,
-        openCodeAuthPassword: null,
-        openCodeAuthSource: null,
+        userProvidedOmpPassword: undefined,
+        ompAuthPassword: null,
+        ompAuthSource: null,
       };
     }
     return globalThisLike[stateKey];
   };
 
-  const ensureUserProvidedOpenCodePassword = (hmrState) => {
-    if (typeof hmrState.userProvidedOpenCodePassword !== 'undefined') {
+  const ensureUserProvidedOmpPassword = (hmrState) => {
+    if (typeof hmrState.userProvidedOmpPassword !== 'undefined') {
       return;
     }
     const initialPassword = typeof processLike.env.OPENCODE_SERVER_PASSWORD === 'string'
       ? processLike.env.OPENCODE_SERVER_PASSWORD.trim()
       : '';
-    hmrState.userProvidedOpenCodePassword = initialPassword || null;
+    hmrState.userProvidedOmpPassword = initialPassword || null;
   };
 
-  const getUserProvidedOpenCodePassword = (hmrState) => (
-    typeof hmrState.userProvidedOpenCodePassword === 'string' && hmrState.userProvidedOpenCodePassword.length > 0
-      ? hmrState.userProvidedOpenCodePassword
+  const getUserProvidedOmpPassword = (hmrState) => (
+    typeof hmrState.userProvidedOmpPassword === 'string' && hmrState.userProvidedOmpPassword.length > 0
+      ? hmrState.userProvidedOmpPassword
       : null
   );
 
-  const resolveOpenCodeAuthFromState = ({ hmrState, userProvidedOpenCodePassword }) => ({
-    openCodeAuthPassword:
-      typeof hmrState.openCodeAuthPassword === 'string' && hmrState.openCodeAuthPassword.length > 0
-        ? hmrState.openCodeAuthPassword
-        : userProvidedOpenCodePassword,
-    openCodeAuthSource:
-      typeof hmrState.openCodeAuthSource === 'string' && hmrState.openCodeAuthSource.length > 0
-        ? hmrState.openCodeAuthSource
-        : (userProvidedOpenCodePassword ? 'user-env' : null),
+  const resolveOmpAuthFromState = ({ hmrState, userProvidedOmpPassword }) => ({
+    ompAuthPassword:
+      typeof hmrState.ompAuthPassword === 'string' && hmrState.ompAuthPassword.length > 0
+        ? hmrState.ompAuthPassword
+        : userProvidedOmpPassword,
+    ompAuthSource:
+      typeof hmrState.ompAuthSource === 'string' && hmrState.ompAuthSource.length > 0
+        ? hmrState.ompAuthSource
+        : (userProvidedOmpPassword ? 'user-env' : null),
   });
 
   const syncStateFromRuntime = (hmrState, runtime) => {
-    hmrState.openCodeProcess = runtime.openCodeProcess;
-    hmrState.openCodePort = runtime.openCodePort;
-    hmrState.openCodeBaseUrl = runtime.openCodeBaseUrl;
+    hmrState.ompProcess = runtime.ompProcess;
+    hmrState.ompPort = runtime.ompPort;
+    hmrState.ompBaseUrl = runtime.ompBaseUrl;
     hmrState.isShuttingDown = runtime.isShuttingDown;
     hmrState.signalsAttached = runtime.signalsAttached;
-    hmrState.openCodeWorkingDirectory = runtime.openCodeWorkingDirectory;
-    hmrState.openCodeAuthPassword = runtime.openCodeAuthPassword;
-    hmrState.openCodeAuthSource = runtime.openCodeAuthSource;
+    hmrState.ompWorkingDirectory = runtime.ompWorkingDirectory;
+    hmrState.ompAuthPassword = runtime.ompAuthPassword;
+    hmrState.ompAuthSource = runtime.ompAuthSource;
   };
 
-  const restoreRuntimeFromState = ({ hmrState, userProvidedOpenCodePassword }) => {
-    const auth = resolveOpenCodeAuthFromState({ hmrState, userProvidedOpenCodePassword });
+  const restoreRuntimeFromState = ({ hmrState, userProvidedOmpPassword }) => {
+    const auth = resolveOmpAuthFromState({ hmrState, userProvidedOmpPassword });
     return {
-      openCodeProcess: hmrState.openCodeProcess,
-      openCodePort: hmrState.openCodePort,
-      openCodeBaseUrl: hmrState.openCodeBaseUrl ?? null,
+      ompProcess: hmrState.ompProcess,
+      ompPort: hmrState.ompPort,
+      ompBaseUrl: hmrState.ompBaseUrl ?? null,
       isShuttingDown: hmrState.isShuttingDown,
       signalsAttached: hmrState.signalsAttached,
-      openCodeWorkingDirectory: hmrState.openCodeWorkingDirectory,
-      openCodeAuthPassword: auth.openCodeAuthPassword,
-      openCodeAuthSource: auth.openCodeAuthSource,
+      ompWorkingDirectory: hmrState.ompWorkingDirectory,
+      ompAuthPassword: auth.ompAuthPassword,
+      ompAuthSource: auth.ompAuthSource,
     };
   };
 
   return {
     getOrCreateHmrState,
-    ensureUserProvidedOpenCodePassword,
-    getUserProvidedOpenCodePassword,
-    resolveOpenCodeAuthFromState,
+    ensureUserProvidedOmpPassword,
+    getUserProvidedOmpPassword,
+    resolveOmpAuthFromState,
     syncStateFromRuntime,
     restoreRuntimeFromState,
   };

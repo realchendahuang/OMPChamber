@@ -31,8 +31,8 @@ const buildContextPrompt = (entries) => {
 };
 
 export const createContextObligatoryRuntime = ({
-  buildOpenCodeUrl,
-  getOpenCodeAuthHeaders,
+  buildOmpUrl,
+  getOmpAuthHeaders,
 }) => {
   const inflight = new Set();
   let stopped = false;
@@ -41,12 +41,12 @@ export const createContextObligatoryRuntime = ({
     const params = new URLSearchParams(query || {});
     if (directory) params.set('directory', directory);
     const search = params.toString();
-    const response = await fetch(`${buildOpenCodeUrl(fetchPath, '')}${search ? `?${search}` : ''}`, {
+    const response = await fetch(`${buildOmpUrl(fetchPath, '')}${search ? `?${search}` : ''}`, {
       method,
       headers: {
         Accept: 'application/json',
         ...(body ? { 'Content-Type': 'application/json' } : {}),
-        ...getOpenCodeAuthHeaders(),
+        ...getOmpAuthHeaders(),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),

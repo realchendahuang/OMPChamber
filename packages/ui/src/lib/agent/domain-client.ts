@@ -13,7 +13,7 @@
  *   - `global.event` returns an SSE async-iterator stream
  *
  * Directory scoping follows the SDK convention: GET/HEAD requests carry the
- * directory as a query parameter, other methods as `x-opencode-directory`
+ * directory as a query parameter, other methods as `x-omp-directory`
  * header (the server adapter reads either).
  */
 

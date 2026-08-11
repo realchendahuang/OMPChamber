@@ -12,7 +12,7 @@ restart).
 ## Runtime flow
 
 1. The OMPChamber HTTP listener binds and publishes its authoritative port.
-2. `prepareManagedOpenCodeEnv()` materializes the plugin under
+2. `prepareManagedOmpEnv()` materializes the plugin under
    `<ompchamber-data-dir>/agent-tool/` and appends its `file://` URL to
    `OPENCODE_CONFIG_CONTENT` without replacing existing plugin entries.
 3. A random per-child token and loopback callback URL are added only to the

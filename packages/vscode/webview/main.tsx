@@ -301,9 +301,9 @@ const getRequestDirectoryHint = (url: URL, input?: RequestInfo | URL, init?: Req
   const queryDirectory = url.searchParams.get('directory') || undefined;
   if (queryDirectory) return queryDirectory;
   const headers = getRequestHeaders(input, init);
-  const directoryEncoding = Object.entries(headers).find(([key]) => key.toLowerCase() === 'x-opencode-directory-encoding')?.[1];
+  const directoryEncoding = Object.entries(headers).find(([key]) => key.toLowerCase() === 'x-omp-directory-encoding')?.[1];
   for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === 'x-opencode-directory') {
+    if (key.toLowerCase() === 'x-omp-directory') {
       // headersToRecord marks encoded directory hints so direct/raw percent
       // sequences from other callers are not decoded accidentally.
       if (directoryEncoding !== 'uri') return value;
@@ -557,7 +557,7 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
     const cliAvailable = window.__OMPCHAMBER_CONNECTION__?.cliAvailable ?? true;
     return new Response(JSON.stringify({ 
       status: isReady ? 'ok' : 'connecting', 
-      isOpenCodeReady: isReady,
+      isOmpReady: isReady,
       cliAvailable,
     }), {
       status: 200,
@@ -859,9 +859,9 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
     }
   }
 
-  if (pathname === '/api/config/opencode-resolution' && method === 'GET') {
+  if (pathname === '/api/config/omp-resolution' && method === 'GET') {
     try {
-      const data = await sendBridgeMessage('api:config/opencode-resolution:get');
+      const data = await sendBridgeMessage('api:config/omp-resolution:get');
       return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -976,7 +976,7 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
     }
   }
 
-  if (pathname === '/api/opencode/version' && method === 'GET') {
+  if (pathname === '/api/omp/version' && method === 'GET') {
     try {
       const data = await sendBridgeMessage('api:server/version');
       return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -986,7 +986,7 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
     }
   }
 
-  if (pathname === '/api/opencode/health' && method === 'GET') {
+  if (pathname === '/api/omp/health' && method === 'GET') {
     const connectionStatus = window.__OMPCHAMBER_CONNECTION__?.status;
     return new Response(JSON.stringify({ healthy: connectionStatus === 'connected' }), {
       status: 200,
@@ -994,12 +994,12 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
     });
   }
 
-  if (pathname === '/api/opencode/upgrade-status' && method === 'GET') {
+  if (pathname === '/api/omp/upgrade-status' && method === 'GET') {
     const data = await sendBridgeMessage('api:server/upgrade-status');
     return jsonResponse(data);
   }
 
-  if (pathname === '/api/opencode/upgrade' && method === 'POST') {
+  if (pathname === '/api/omp/upgrade' && method === 'POST') {
     const body = await extractJsonBody(input, init, method);
     const result = await sendBridgeMessage<{ status: number; body: unknown }>('api:server/upgrade', body);
     return jsonResponse(result.body, result.status);
@@ -1049,7 +1049,7 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
     return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 
-  if (pathname.startsWith('/api/opencode/directory')) {
+  if (pathname.startsWith('/api/omp/directory')) {
     const body = await extractJsonBody(input, init, method);
     const result = await sendBridgeMessage('api:server/directory', { path: body.path });
     return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -1160,7 +1160,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const cliAvailable = window.__OMPCHAMBER_CONNECTION__?.cliAvailable ?? true;
     return new Response(JSON.stringify({ 
       status: isReady ? 'ok' : 'connecting', 
-      isOpenCodeReady: isReady,
+      isOmpReady: isReady,
       cliAvailable,
     }), {
       status: 200,

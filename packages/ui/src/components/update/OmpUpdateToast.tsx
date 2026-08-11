@@ -54,7 +54,7 @@ export const OmpUpdateToast: React.FC = () => {
     });
 
     try {
-      const response = await runtimeFetch('/api/opencode/upgrade', {
+      const response = await runtimeFetch('/api/omp/upgrade', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export const OmpUpdateToast: React.FC = () => {
 
     const checkForUpdate = async (attempt: number, runtimeKey = getRuntimeKey()) => {
       try {
-        const response = await runtimeFetch('/api/opencode/upgrade-status', { headers: { Accept: 'application/json' } });
+        const response = await runtimeFetch('/api/omp/upgrade-status', { headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error(response.statusText || 'OMP upgrade status check failed');
         const status = await response.json().catch(() => null) as OmpUpgradeStatusLike | null;
         const version = resolveOmpUpgradeStatusVersion(status);

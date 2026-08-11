@@ -7,11 +7,11 @@ import {
   buildDeferredRestartResponse,
 } from './config-mutation-response.js';
 
-export const registerOpenCodeRoutes = (app, dependencies) => {
+export const registerOmpRoutes = (app, dependencies) => {
   const {
     crypto,
-    getOpenCodeResolutionSnapshot,
-    getOpenCodeUpgradeCapability,
+    getOmpResolutionSnapshot,
+    getOmpUpgradeCapability,
     formatSettingsResponse,
     readSettingsFromDisk,
     readSettingsFromDiskMigrated,
@@ -22,9 +22,9 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
     getProviderSources,
     removeProviderConfig,
     upsertProviderConfig,
-    refreshOpenCodeAfterConfigChange,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
+    refreshOmpAfterConfigChange,
+    buildOmpUrl,
+    getOmpAuthHeaders,
     fsPromises = fs.promises,
   } = dependencies;
 
@@ -87,10 +87,10 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
 </body>
 </html>`;
 
-  const readOpenCodeCurrentVersion = async () => {
-    const healthResponse = await fetch(buildOpenCodeUrl('/global/health', ''), {
+  const readOmpCurrentVersion = async () => {
+    const healthResponse = await fetch(buildOmpUrl('/global/health', ''), {
       method: 'GET',
-      headers: { Accept: 'application/json', ...getOpenCodeAuthHeaders() },
+      headers: { Accept: 'application/json', ...getOmpAuthHeaders() },
     });
     const health = await healthResponse.json().catch(() => null);
     if (!healthResponse.ok) {
@@ -123,7 +123,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     return 0;
   };
 
-  const fetchLatestOpenCodeVersionFromGithub = async () => {
+  const fetchLatestOmpVersionFromGithub = async () => {
     const response = await fetch('https://api.github.com/repos/anomalyco/opencode/releases/latest', {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(10_000),
@@ -136,7 +136,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     return tag.replace(/^v/, '');
   };
 
-  const fetchLatestOpenCodeVersionFromNpm = async () => {
+  const fetchLatestOmpVersionFromNpm = async () => {
     const response = await fetch('https://registry.npmjs.org/opencode-ai/latest', {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(10_000),
@@ -148,10 +148,10 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     return typeof payload?.version === 'string' ? payload.version.trim().replace(/^v/, '') : '';
   };
 
-  const fetchLatestOpenCodeVersion = async () => {
+  const fetchLatestOmpVersion = async () => {
     const results = await Promise.allSettled([
-      fetchLatestOpenCodeVersionFromNpm(),
-      fetchLatestOpenCodeVersionFromGithub(),
+      fetchLatestOmpVersionFromNpm(),
+      fetchLatestOmpVersionFromGithub(),
     ]);
     const versions = results
       .filter((result) => result.status === 'fulfilled' && result.value)
@@ -182,10 +182,10 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     }
   });
 
-  app.get('/api/config/opencode-resolution', async (_req, res) => {
+  app.get('/api/config/omp-resolution', async (_req, res) => {
     try {
       const settings = await readSettingsFromDiskMigrated();
-      const resolution = await getOpenCodeResolutionSnapshot(settings);
+      const resolution = await getOmpResolutionSnapshot(settings);
       res.json(resolution);
     } catch (error) {
       console.error('Failed to resolve OpenCode binary:', error);
@@ -193,11 +193,11 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     }
   });
 
-  let openCodeUpgradePromise = null;
+  let ompUpgradePromise = null;
 
-  app.post('/api/opencode/upgrade', async (req, res) => {
+  app.post('/api/omp/upgrade', async (req, res) => {
     try {
-      const capability = getOpenCodeUpgradeCapability();
+      const capability = getOmpUpgradeCapability();
       if (!capability.supported) {
         return res.status(409).json({
           success: false,
@@ -209,7 +209,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
             : 'This OpenCode runtime cannot be upgraded by OMPChamber.',
         });
       }
-      if (openCodeUpgradePromise) {
+      if (ompUpgradePromise) {
         return res.status(409).json({
           success: false,
           code: 'OPENCODE_UPGRADE_IN_PROGRESS',
@@ -221,12 +221,12 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         ? req.body.target.trim()
         : undefined;
       const upgradeOperation = (async () => {
-        const response = await fetch(buildOpenCodeUrl('/global/upgrade', ''), {
+        const response = await fetch(buildOmpUrl('/global/upgrade', ''), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
-            ...getOpenCodeAuthHeaders(),
+            ...getOmpAuthHeaders(),
           },
           body: JSON.stringify(target ? { target } : {}),
         });
@@ -242,7 +242,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         }
 
         try {
-          await refreshOpenCodeAfterConfigChange('OpenCode upgrade');
+          await refreshOmpAfterConfigChange('OpenCode upgrade');
         } catch (restartError) {
           return {
             status: 500,
@@ -261,14 +261,14 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
           body: { ...(payload ?? { success: true }), restarted: true },
         };
       })();
-      openCodeUpgradePromise = upgradeOperation;
+      ompUpgradePromise = upgradeOperation;
 
       try {
         const result = await upgradeOperation;
         return res.status(result.status).json(result.body);
       } finally {
-        if (openCodeUpgradePromise === upgradeOperation) {
-          openCodeUpgradePromise = null;
+        if (ompUpgradePromise === upgradeOperation) {
+          ompUpgradePromise = null;
         }
       }
     } catch (error) {
@@ -280,11 +280,11 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     }
   });
 
-  app.get('/api/opencode/upgrade-status', async (_req, res) => {
+  app.get('/api/omp/upgrade-status', async (_req, res) => {
     try {
-      const capability = getOpenCodeUpgradeCapability();
+      const capability = getOmpUpgradeCapability();
       if (!capability.supported) {
-        const current = await readOpenCodeCurrentVersion().catch(() => ({ ok: false, currentVersion: null }));
+        const current = await readOmpCurrentVersion().catch(() => ({ ok: false, currentVersion: null }));
         return res.json({
           available: false,
           currentVersion: current.ok ? current.currentVersion : null,
@@ -294,11 +294,11 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       }
 
       const [healthResponse, latestVersion] = await Promise.all([
-        fetch(buildOpenCodeUrl('/global/health', ''), {
+        fetch(buildOmpUrl('/global/health', ''), {
           method: 'GET',
-          headers: { Accept: 'application/json', ...getOpenCodeAuthHeaders() },
+          headers: { Accept: 'application/json', ...getOmpAuthHeaders() },
         }),
-        fetchLatestOpenCodeVersion(),
+        fetchLatestOmpVersion(),
       ]);
       const health = await healthResponse.json().catch(() => null);
       if (!healthResponse.ok) {
@@ -326,11 +326,11 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     }
   });
 
-  app.get('/api/opencode/health', async (_req, res) => {
+  app.get('/api/omp/health', async (_req, res) => {
     try {
-      const healthResponse = await fetch(buildOpenCodeUrl('/global/health', ''), {
+      const healthResponse = await fetch(buildOmpUrl('/global/health', ''), {
         method: 'GET',
-        headers: { Accept: 'application/json', ...getOpenCodeAuthHeaders() },
+        headers: { Accept: 'application/json', ...getOmpAuthHeaders() },
       });
       const health = await healthResponse.json().catch(() => null);
       if (!healthResponse.ok) {
@@ -348,11 +348,11 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     }
   });
 
-  app.get('/api/opencode/version', async (_req, res) => {
+  app.get('/api/omp/version', async (_req, res) => {
     try {
-      const healthResponse = await fetch(buildOpenCodeUrl('/global/health', ''), {
+      const healthResponse = await fetch(buildOmpUrl('/global/health', ''), {
         method: 'GET',
-        headers: { Accept: 'application/json', ...getOpenCodeAuthHeaders() },
+        headers: { Accept: 'application/json', ...getOmpAuthHeaders() },
       });
       const health = await healthResponse.json().catch(() => null);
       if (!healthResponse.ok) {
@@ -518,11 +518,11 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     }
 
     try {
-      const callbackUrl = new URL(buildOpenCodeUrl(`/mcp/${encodeURIComponent(context.name)}/auth/callback`, ''));
+      const callbackUrl = new URL(buildOmpUrl(`/mcp/${encodeURIComponent(context.name)}/auth/callback`, ''));
       if (context.directory) callbackUrl.searchParams.set('directory', context.directory);
       const upstream = await fetch(callbackUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...getOpenCodeAuthHeaders() },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...getOmpAuthHeaders() },
         body: JSON.stringify({ code }),
       });
       if (!upstream.ok) {
@@ -551,7 +551,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         return res.status(400).json({ error: 'Provider ID is required' });
       }
 
-      const headerDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
+      const headerDirectory = typeof req.get === 'function' ? req.get('x-omp-directory') : null;
       const queryDirectory = Array.isArray(req.query?.directory)
         ? req.query.directory[0]
         : req.query?.directory;
@@ -598,7 +598,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         return res.status(400).json({ error: 'Invalid scope' });
       }
 
-      const headerDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
+      const headerDirectory = typeof req.get === 'function' ? req.get('x-omp-directory') : null;
       const queryDirectory = Array.isArray(req.query?.directory)
         ? req.query.directory[0]
         : req.query?.directory;
@@ -645,7 +645,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       }
 
       const scope = typeof req.query?.scope === 'string' ? req.query.scope : 'auth';
-      const headerDirectory = typeof req.get === 'function' ? req.get('x-opencode-directory') : null;
+      const headerDirectory = typeof req.get === 'function' ? req.get('x-omp-directory') : null;
       const queryDirectory = Array.isArray(req.query?.directory)
         ? req.query.directory[0]
         : req.query?.directory;
@@ -702,7 +702,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     }
   });
 
-  app.post('/api/opencode/directory', async (req, res) => {
+  app.post('/api/omp/directory', async (req, res) => {
     try {
       const requestedPath = typeof req.body?.path === 'string' ? req.body.path.trim() : '';
       if (!requestedPath) {

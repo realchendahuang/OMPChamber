@@ -301,12 +301,12 @@ export const debugUtils = {
         ok: resp.ok,
         contentType,
         type: isJson ? 'json' : 'html',
-        openCodePort: parsed?.openCodePort ?? null,
-        openCodeRunning: parsed?.openCodeRunning ?? null,
-        openCodeSecureConnection: parsed?.openCodeSecureConnection ?? null,
-        openCodeAuthSource: parsed?.openCodeAuthSource ?? null,
-        isOpenCodeReady: parsed?.isOpenCodeReady ?? null,
-        lastOpenCodeError: parsed?.lastOpenCodeError ?? null,
+        ompPort: parsed?.ompPort ?? null,
+        ompRunning: parsed?.ompRunning ?? null,
+        ompSecureConnection: parsed?.ompSecureConnection ?? null,
+        ompAuthSource: parsed?.ompAuthSource ?? null,
+        isOmpReady: parsed?.isOmpReady ?? null,
+        lastOmpError: parsed?.lastOmpError ?? null,
         preview: body ? body.slice(0, 120) : null,
       };
     } catch (error) {

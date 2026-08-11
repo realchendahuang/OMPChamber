@@ -15,18 +15,18 @@ type ProbeResult = {
 };
 
 type OMPChamberHealthSnapshot = {
-  openCodePort?: unknown;
-  openCodeRunning?: unknown;
-  openCodeSecureConnection?: unknown;
-  openCodeAuthSource?: unknown;
-  isOpenCodeReady?: unknown;
-  lastOpenCodeError?: unknown;
-  lastOpenCodeLaunchDiagnostics?: unknown;
-  opencodeBinaryResolved?: unknown;
-  opencodeBinarySource?: unknown;
-  opencodeLaunchBinary?: unknown;
-  opencodeLaunchArgs?: unknown;
-  opencodeLaunchWrapperType?: unknown;
+  ompPort?: unknown;
+  ompRunning?: unknown;
+  ompSecureConnection?: unknown;
+  ompAuthSource?: unknown;
+  isOmpReady?: unknown;
+  lastOmpError?: unknown;
+  lastOmpLaunchDiagnostics?: unknown;
+  ompBinaryResolved?: unknown;
+  ompBinarySource?: unknown;
+  ompLaunchBinary?: unknown;
+  ompLaunchArgs?: unknown;
+  ompLaunchWrapperType?: unknown;
   nodeBinaryResolved?: unknown;
   bunBinaryResolved?: unknown;
 };
@@ -189,7 +189,7 @@ const buildOmpStatusReport = async (): Promise<string> => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
     try {
-      const resp = await runtimeFetch(urls.api('/api/config/opencode-resolution'), {
+      const resp = await runtimeFetch(urls.api('/api/config/omp-resolution'), {
         method: 'GET',
         headers: { Accept: 'application/json' },
         signal: controller.signal,
@@ -266,16 +266,16 @@ const buildOmpStatusReport = async (): Promise<string> => {
   lines.push(`Directory: ${directory || '(none)'}`);
   lines.push(`Platform: ${platform}`);
 
-  const runtimeOmpPort = normalizePort(ompchamberHealth?.openCodePort);
+  const runtimeOmpPort = normalizePort(ompchamberHealth?.ompPort);
   lines.push(`OMP runtime port: ${runtimeOmpPort ?? '(unknown)'}`);
-  if (typeof ompchamberHealth?.openCodeRunning === 'boolean') {
-    lines.push(`OMP runtime running: ${ompchamberHealth.openCodeRunning ? 'yes' : 'no'}`);
+  if (typeof ompchamberHealth?.ompRunning === 'boolean') {
+    lines.push(`OMP runtime running: ${ompchamberHealth.ompRunning ? 'yes' : 'no'}`);
   }
-  if (typeof ompchamberHealth?.openCodeSecureConnection === 'boolean') {
-    lines.push(`Secure OMP connection: ${ompchamberHealth.openCodeSecureConnection ? 'true' : 'false'}`);
+  if (typeof ompchamberHealth?.ompSecureConnection === 'boolean') {
+    lines.push(`Secure OMP connection: ${ompchamberHealth.ompSecureConnection ? 'true' : 'false'}`);
   }
-  if (typeof ompchamberHealth?.openCodeAuthSource === 'string' && ompchamberHealth.openCodeAuthSource.trim()) {
-    lines.push(`OMP auth source: ${ompchamberHealth.openCodeAuthSource}`);
+  if (typeof ompchamberHealth?.ompAuthSource === 'string' && ompchamberHealth.ompAuthSource.trim()) {
+    lines.push(`OMP auth source: ${ompchamberHealth.ompAuthSource}`);
   }
 
   if (typeof window !== 'undefined') {
@@ -290,8 +290,8 @@ const buildOmpStatusReport = async (): Promise<string> => {
     lines.push('');
     lines.push('OMP CLI resolution:');
 
-    const launchDiagnostics = isRecord(ompchamberHealth?.lastOpenCodeLaunchDiagnostics)
-      ? ompchamberHealth.lastOpenCodeLaunchDiagnostics
+    const launchDiagnostics = isRecord(ompchamberHealth?.lastOmpLaunchDiagnostics)
+      ? ompchamberHealth.lastOmpLaunchDiagnostics
       : null;
     const actualLaunchArgs = launchDiagnostics && Array.isArray(launchDiagnostics.args)
       ? launchDiagnostics.args.filter((value): value is string => typeof value === 'string')
@@ -304,7 +304,7 @@ const buildOmpStatusReport = async (): Promise<string> => {
     const resolved =
       ompchamberOmpResolution && typeof ompchamberOmpResolution.resolved === 'string'
         ? ompchamberOmpResolution.resolved
-        : (ompchamberHealth && typeof ompchamberHealth.opencodeBinaryResolved === 'string' ? ompchamberHealth.opencodeBinaryResolved : '');
+        : (ompchamberHealth && typeof ompchamberHealth.ompBinaryResolved === 'string' ? ompchamberHealth.ompBinaryResolved : '');
     const resolvedDir =
       ompchamberOmpResolution && typeof ompchamberOmpResolution.resolvedDir === 'string'
         ? ompchamberOmpResolution.resolvedDir
@@ -312,20 +312,20 @@ const buildOmpStatusReport = async (): Promise<string> => {
     const source =
       ompchamberOmpResolution && typeof ompchamberOmpResolution.source === 'string'
         ? ompchamberOmpResolution.source
-        : (ompchamberHealth && typeof ompchamberHealth.opencodeBinarySource === 'string' ? ompchamberHealth.opencodeBinarySource : '');
+        : (ompchamberHealth && typeof ompchamberHealth.ompBinarySource === 'string' ? ompchamberHealth.ompBinarySource : '');
     const configuredLaunchBinary =
       ompchamberOmpResolution && typeof ompchamberOmpResolution.launchBinary === 'string'
         ? ompchamberOmpResolution.launchBinary
-        : (ompchamberHealth && typeof ompchamberHealth.opencodeLaunchBinary === 'string' ? ompchamberHealth.opencodeLaunchBinary : '');
+        : (ompchamberHealth && typeof ompchamberHealth.ompLaunchBinary === 'string' ? ompchamberHealth.ompLaunchBinary : '');
     const configuredLaunchWrapperType =
       ompchamberOmpResolution && typeof ompchamberOmpResolution.launchWrapperType === 'string'
         ? ompchamberOmpResolution.launchWrapperType
-        : (ompchamberHealth && typeof ompchamberHealth.opencodeLaunchWrapperType === 'string' ? ompchamberHealth.opencodeLaunchWrapperType : '');
+        : (ompchamberHealth && typeof ompchamberHealth.ompLaunchWrapperType === 'string' ? ompchamberHealth.ompLaunchWrapperType : '');
     const configuredLaunchArgs =
       ompchamberOmpResolution && Array.isArray(ompchamberOmpResolution.launchArgs)
         ? ompchamberOmpResolution.launchArgs.filter((value): value is string => typeof value === 'string')
-        : (ompchamberHealth && Array.isArray(ompchamberHealth.opencodeLaunchArgs)
-          ? ompchamberHealth.opencodeLaunchArgs.filter((value): value is string => typeof value === 'string')
+        : (ompchamberHealth && Array.isArray(ompchamberHealth.ompLaunchArgs)
+          ? ompchamberHealth.ompLaunchArgs.filter((value): value is string => typeof value === 'string')
           : []);
     const node =
       ompchamberOmpResolution && typeof ompchamberOmpResolution.node === 'string'

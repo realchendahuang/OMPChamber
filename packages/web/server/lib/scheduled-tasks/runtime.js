@@ -284,9 +284,9 @@ export const createScheduledTasksRuntime = (deps) => {
   const {
     projectConfigRuntime,
     listProjects,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
-    waitForOpenCodeReady,
+    buildOmpUrl,
+    getOmpAuthHeaders,
+    waitForOmpReady,
     emitTaskRunEvent,
     setSessionAutoAccept,
     createSession = defaultCreateSession,
@@ -558,12 +558,12 @@ export const createScheduledTasksRuntime = (deps) => {
       throw new Error('project path is unavailable');
     }
 
-    if (typeof waitForOpenCodeReady === 'function') {
-      await waitForOpenCodeReady(10_000, 250);
+    if (typeof waitForOmpReady === 'function') {
+      await waitForOmpReady(10_000, 250);
     }
 
-    const baseUrl = buildOpenCodeUrl('/', '').replace(/\/$/, '');
-    const authHeaders = getOpenCodeAuthHeaders();
+    const baseUrl = buildOmpUrl('/', '').replace(/\/$/, '');
+    const authHeaders = getOmpAuthHeaders();
 
     const sessionID = await createSession({
       baseUrl,

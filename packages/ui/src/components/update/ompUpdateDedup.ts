@@ -85,7 +85,7 @@ export interface OmpUpgradeStatusLike {
 }
 
 /**
- * Pulls the candidate version out of an `/api/opencode/upgrade-status` JSON
+ * Pulls the candidate version out of an `/api/omp/upgrade-status` JSON
  * payload. Returns `''` when the payload is missing the field, has the wrong
  * type, or reports `available !== true`.
  */

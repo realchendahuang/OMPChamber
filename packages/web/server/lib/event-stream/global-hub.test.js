@@ -45,8 +45,8 @@ describe('createGlobalMessageStreamHub', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const received = [];
     const hub = createGlobalMessageStreamHub({
-      buildOpenCodeUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
+      getOmpAuthHeaders: () => ({}),
       upstreamReconnectDelayMs: 100,
       fetchImpl: async () => createSseResponse({
         blocks: [
@@ -78,8 +78,8 @@ describe('createGlobalMessageStreamHub', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const received = [];
     const hub = createGlobalMessageStreamHub({
-      buildOpenCodeUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
+      getOmpAuthHeaders: () => ({}),
       upstreamReconnectDelayMs: 100,
       fetchImpl: async () => createSseResponse(),
     });
@@ -107,8 +107,8 @@ describe('createGlobalMessageStreamHub', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const received = [];
     const hub = createGlobalMessageStreamHub({
-      buildOpenCodeUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl: (pathname) => `http://127.0.0.1:4096${pathname}`,
+      getOmpAuthHeaders: () => ({}),
       upstreamReconnectDelayMs: 100,
       fetchImpl: async () => createSseResponse({
         blocks: [

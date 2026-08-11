@@ -142,9 +142,9 @@ describe('scheduled-tasks runtime syncProject wiring', () => {
   });
 
   const createRuntimeDeps = (overrides = {}) => ({
-    buildOpenCodeUrl: () => 'http://localhost',
-    getOpenCodeAuthHeaders: () => ({}),
-    waitForOpenCodeReady: async () => {},
+    buildOmpUrl: () => 'http://localhost',
+    getOmpAuthHeaders: () => ({}),
+    waitForOmpReady: async () => {},
     ...overrides,
   });
 
@@ -229,9 +229,9 @@ describe('scheduled-tasks runtime OMP execution path', () => {
   });
 
   const createRuntimeDeps = (overrides = {}) => ({
-    buildOpenCodeUrl: () => 'http://localhost',
-    getOpenCodeAuthHeaders: () => ({}),
-    waitForOpenCodeReady: async () => {},
+    buildOmpUrl: () => 'http://localhost',
+    getOmpAuthHeaders: () => ({}),
+    waitForOmpReady: async () => {},
     ...overrides,
   });
 

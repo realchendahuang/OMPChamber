@@ -81,7 +81,7 @@ const resolveVariant = (providers, providerID, modelID, variant) => {
 const parseConfigModel = (value) => splitModel(value);
 
 const buildDirectoryHeaders = (directory) => ({
-  ...(directory ? { 'x-opencode-directory': directory } : {}),
+  ...(directory ? { 'x-omp-directory': directory } : {}),
 });
 
 const fetchJson = async (url, authHeaders, fallback, directory) => {
@@ -92,13 +92,13 @@ const fetchJson = async (url, authHeaders, fallback, directory) => {
   return response.json().catch(() => fallback);
 };
 
-const fetchSelectionInputs = async ({ buildOpenCodeUrl, authHeaders, directory, readSettingsFromDiskMigrated }) => {
+const fetchSelectionInputs = async ({ buildOmpUrl, authHeaders, directory, readSettingsFromDiskMigrated }) => {
   const settings = await readSettingsFromDiskMigrated();
-  const providersUrl = new URL(buildOpenCodeUrl('/config/providers', ''));
+  const providersUrl = new URL(buildOmpUrl('/config/providers', ''));
   providersUrl.searchParams.set('directory', directory);
-  const agentsUrl = new URL(buildOpenCodeUrl('/agent', ''));
+  const agentsUrl = new URL(buildOmpUrl('/agent', ''));
   agentsUrl.searchParams.set('directory', directory);
-  const configUrl = new URL(buildOpenCodeUrl('/config', ''));
+  const configUrl = new URL(buildOmpUrl('/config', ''));
   configUrl.searchParams.set('directory', directory);
 
   const [providersBody, agentsBody, configBody] = await Promise.all([
@@ -374,9 +374,9 @@ export const createOMPChamberSessionService = (dependencies) => {
     readSettingsFromDiskMigrated,
     sanitizeProjects,
     validateDirectoryPath,
-    buildOpenCodeUrl,
-    getOpenCodeAuthHeaders,
-    waitForOpenCodeReady,
+    buildOmpUrl,
+    getOmpAuthHeaders,
+    waitForOmpReady,
     emitSessionCreatedEvent,
     createSessionGoal: createSessionGoalOverride,
   } = dependencies;
@@ -408,9 +408,9 @@ export const createOMPChamberSessionService = (dependencies) => {
   // Reject them before any session, worktree, or goal side effect happens.
   const validateRequestedSelection = async ({ directory, requestedModel, requestedAgent, requestedVariant }) => {
     if (!requestedModel && !requestedAgent && !requestedVariant) return;
-    const authHeaders = getOpenCodeAuthHeaders();
+    const authHeaders = getOmpAuthHeaders();
     const { providers, agents } = await fetchSelectionInputs({
-      buildOpenCodeUrl,
+      buildOmpUrl,
       authHeaders,
       directory,
       readSettingsFromDiskMigrated,
@@ -472,7 +472,7 @@ export const createOMPChamberSessionService = (dependencies) => {
     }
     if (!model || !agent) {
       const inputs = await fetchSelectionInputs({
-        buildOpenCodeUrl,
+        buildOmpUrl,
         authHeaders,
         directory,
         readSettingsFromDiskMigrated,
@@ -584,7 +584,7 @@ export const createOMPChamberSessionService = (dependencies) => {
       throw new OMPChamberControlError('worktree.name is required when worktree is provided', 400);
     }
 
-    if (typeof waitForOpenCodeReady === 'function') await waitForOpenCodeReady(10_000, 250);
+    if (typeof waitForOmpReady === 'function') await waitForOmpReady(10_000, 250);
 
     if (prompt) {
       await validateRequestedSelection({
@@ -601,8 +601,8 @@ export const createOMPChamberSessionService = (dependencies) => {
       await waitForWorktreeBootstrapReady({ directory: sessionDirectory });
     }
 
-    const baseUrl = buildOpenCodeUrl('/', '').replace(/\/$/, '');
-    const authHeaders = getOpenCodeAuthHeaders();
+    const baseUrl = buildOmpUrl('/', '').replace(/\/$/, '');
+    const authHeaders = getOmpAuthHeaders();
     const sessionID = await createSession({
       baseUrl,
       authHeaders,
@@ -686,7 +686,7 @@ export const createOMPChamberSessionService = (dependencies) => {
         throw new OMPChamberControlError(resolvedDirectory.error, resolvedDirectory.status || 400);
       }
       directory = resolvedDirectory.directory;
-      if (typeof waitForOpenCodeReady === 'function') await waitForOpenCodeReady(10_000, 250);
+      if (typeof waitForOmpReady === 'function') await waitForOmpReady(10_000, 250);
 
       await validateRequestedSelection({
         directory,
@@ -695,8 +695,8 @@ export const createOMPChamberSessionService = (dependencies) => {
         requestedVariant: asNonEmptyString(payload.variant),
       });
 
-      const baseUrl = buildOpenCodeUrl('/', '').replace(/\/$/, '');
-      const authHeaders = getOpenCodeAuthHeaders();
+      const baseUrl = buildOmpUrl('/', '').replace(/\/$/, '');
+      const authHeaders = getOmpAuthHeaders();
       if (action === 'fork') {
         targetSession = await forkSession({
           baseUrl,

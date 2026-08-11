@@ -118,7 +118,7 @@ export const AgentPermissionsEditor: React.FC<AgentPermissionsEditorProps> = ({ 
         const response = await runtimeFetch(`/api/config/agents/${encodeURIComponent(agentName)}/config${query}`, {
           headers: {
             'Cache-Control': 'no-cache',
-            ...(directory ? { 'x-opencode-directory': directory } : {}),
+            ...(directory ? { 'x-omp-directory': directory } : {}),
           },
         });
         if (!response.ok) throw new Error(String(response.status));

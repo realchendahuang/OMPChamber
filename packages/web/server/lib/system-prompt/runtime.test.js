@@ -18,7 +18,7 @@ describe('managed system prompt runtime', () => {
     temporaryDirectories.push(dataDir);
     const runtime = createSystemPromptRuntime({ fsPromises: fs, path, dataDir });
 
-    const prepared = await runtime.prepareManagedOpenCodeEnv('{ "plugin": ["file:///existing.js"], "model": "test/model" }');
+    const prepared = await runtime.prepareManagedOmpEnv('{ "plugin": ["file:///existing.js"], "model": "test/model" }');
     const config = JSON.parse(prepared.OPENCODE_CONFIG_CONTENT);
     const pluginPath = path.join(dataDir, 'system-prompt', 'ompchamber-system-prompt-plugin.js');
 
@@ -43,7 +43,7 @@ describe('managed system prompt runtime', () => {
     const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-system-prompt-'));
     temporaryDirectories.push(dataDir);
     const runtime = createSystemPromptRuntime({ fsPromises: fs, path, dataDir });
-    await runtime.prepareManagedOpenCodeEnv('{}');
+    await runtime.prepareManagedOmpEnv('{}');
     const pluginPath = path.join(dataDir, 'system-prompt', 'ompchamber-system-prompt-plugin.js');
     const pluginModule = await import(`${pathToFileURL(pluginPath).href}?test=${Date.now()}`);
     const hooks = await pluginModule.OMPChamberSystemPromptPlugin();
@@ -57,7 +57,7 @@ describe('managed system prompt runtime', () => {
     const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-system-prompt-'));
     temporaryDirectories.push(dataDir);
     const runtime = createSystemPromptRuntime({ fsPromises: fs, path, dataDir });
-    await runtime.prepareManagedOpenCodeEnv('{}');
+    await runtime.prepareManagedOmpEnv('{}');
     const pluginPath = path.join(dataDir, 'system-prompt', 'ompchamber-system-prompt-plugin.js');
     const pluginModule = await import(`${pathToFileURL(pluginPath).href}?test=${Date.now()}`);
     const hooks = await pluginModule.OMPChamberSystemPromptPlugin();

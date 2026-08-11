@@ -32,8 +32,8 @@ const startIdleTick = async (fetchImpl) => {
   const getSmallModelService = vi.fn();
   vi.stubGlobal('fetch', fetchImpl);
   const runtime = createSessionGoalRuntime({
-    buildOpenCodeUrl: (pathname) => `http://opencode.test${pathname}`,
-    getOpenCodeAuthHeaders: () => ({}),
+    buildOmpUrl: (pathname) => `http://opencode.test${pathname}`,
+    getOmpAuthHeaders: () => ({}),
     getSmallModelService,
     idleQuietMs: 10,
   });
@@ -153,8 +153,8 @@ describe('session goal live activity gate', () => {
     };
     vi.stubGlobal('fetch', fetchImpl);
     const runtime = createSessionGoalRuntime({
-      buildOpenCodeUrl: (pathname) => `http://opencode.test${pathname}`,
-      getOpenCodeAuthHeaders: () => ({}),
+      buildOmpUrl: (pathname) => `http://opencode.test${pathname}`,
+      getOmpAuthHeaders: () => ({}),
       getSmallModelService: async () => service,
       idleQuietMs: 10,
     });

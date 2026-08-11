@@ -1016,7 +1016,7 @@ export const registerAuthAndAccessRoutes = (app, dependencies) => {
 export const registerSettingsUtilityRoutes = (app, dependencies) => {
   const {
     readCustomThemesFromDisk,
-    refreshOpenCodeAfterConfigChange,
+    refreshOmpAfterConfigChange,
     clientReloadDelayMs,
   } = dependencies;
 
@@ -1034,7 +1034,7 @@ export const registerSettingsUtilityRoutes = (app, dependencies) => {
     try {
       console.log('[Server] Manual configuration reload requested');
 
-      const refreshResult = await refreshOpenCodeAfterConfigChange('manual configuration reload');
+      const refreshResult = await refreshOmpAfterConfigChange('manual configuration reload');
 
       if (refreshResult?.external) {
         return res.json(buildExternalManualRestartResponse(
@@ -1082,7 +1082,7 @@ export const registerCommonRequestMiddleware = (app, dependencies) => {
       req.path.startsWith('/api/magic-prompts') ||
       req.path.startsWith('/api/prompts') ||
       req.path.startsWith('/api/terminal') ||
-      req.path.startsWith('/api/opencode') ||
+      req.path.startsWith('/api/omp') ||
       req.path.startsWith('/api/push') ||
       req.path.startsWith('/api/notifications') ||
       req.path.startsWith('/api/permission-auto-accept') ||

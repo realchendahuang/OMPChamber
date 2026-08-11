@@ -11,7 +11,7 @@ let projectDir;
 let userConfigPath;
 let rootDir;
 let plugins;
-let refreshOpenCodeAfterConfigChange;
+let refreshOmpAfterConfigChange;
 let app;
 let cleanupPaths;
 
@@ -26,7 +26,7 @@ function createApp(overrides = {}) {
   testApp.use(express.json());
   registerPluginRoutes(testApp, {
     resolveOptionalProjectDirectory: async () => ({ directory: projectDir, error: null }),
-    refreshOpenCodeAfterConfigChange,
+    refreshOmpAfterConfigChange,
     clientReloadDelayMs: 25,
     listPluginEntries: plugins.listPluginEntries,
     getPluginEntry: plugins.getPluginEntry,
@@ -75,7 +75,7 @@ describe('opencode plugin routes', () => {
     projectDir = fs.mkdtempSync(path.join(rootDir, 'project-'));
     fs.rmSync(userConfigPath, { force: true });
     fs.rmSync(path.join(rootDir, 'plugins'), { recursive: true, force: true });
-    refreshOpenCodeAfterConfigChange = mock(async () => undefined);
+    refreshOmpAfterConfigChange = mock(async () => undefined);
     cleanupPaths = [];
     app = createApp();
   });
@@ -273,7 +273,7 @@ describe('opencode plugin routes', () => {
       restartDeferred: true,
       message: 'Plugin entry created. Restart OpenCode to apply.',
     });
-    expect(refreshOpenCodeAfterConfigChange).not.toHaveBeenCalled();
+    expect(refreshOmpAfterConfigChange).not.toHaveBeenCalled();
   });
 
   test('GET after POST returns created entry', async () => {
@@ -314,7 +314,7 @@ describe('opencode plugin routes', () => {
     });
     const after = await request(app).get('/api/config/plugins').expect(200);
     expect(after.body.entries[0]).toEqual(expect.objectContaining({ spec: 'b', scope: 'user' }));
-    expect(refreshOpenCodeAfterConfigChange).not.toHaveBeenCalled();
+    expect(refreshOmpAfterConfigChange).not.toHaveBeenCalled();
   });
 
   test('DELETE /entry/:id removes entry and prunes plugin key', async () => {
@@ -334,7 +334,7 @@ describe('opencode plugin routes', () => {
       restartDeferred: true,
       message: 'Plugin entry deleted. Restart OpenCode to apply.',
     });
-    expect(refreshOpenCodeAfterConfigChange).not.toHaveBeenCalled();
+    expect(refreshOmpAfterConfigChange).not.toHaveBeenCalled();
   });
 
   test('POST /file writes plugin dir file', async () => {
@@ -348,7 +348,7 @@ describe('opencode plugin routes', () => {
       message: 'Plugin file created. Restart OpenCode to apply.',
     });
     expect(fs.readFileSync(path.join(rootDir, 'plugins', 'test.js'), 'utf8')).toBe('//x');
-    expect(refreshOpenCodeAfterConfigChange).not.toHaveBeenCalled();
+    expect(refreshOmpAfterConfigChange).not.toHaveBeenCalled();
   });
 
   test('POST duplicate file returns 409', async () => {
@@ -380,7 +380,7 @@ describe('opencode plugin routes', () => {
       restartDeferred: true,
       message: 'Plugin file updated. Restart OpenCode to apply.',
     });
-    expect(refreshOpenCodeAfterConfigChange).not.toHaveBeenCalled();
+    expect(refreshOmpAfterConfigChange).not.toHaveBeenCalled();
   });
 
   test('DELETE /file/:id unlinks file', async () => {
@@ -398,7 +398,7 @@ describe('opencode plugin routes', () => {
       restartDeferred: true,
       message: 'Plugin file deleted. Restart OpenCode to apply.',
     });
-    expect(refreshOpenCodeAfterConfigChange).not.toHaveBeenCalled();
+    expect(refreshOmpAfterConfigChange).not.toHaveBeenCalled();
   });
 
   test('PATCH unknown entry id returns 404', async () => {
