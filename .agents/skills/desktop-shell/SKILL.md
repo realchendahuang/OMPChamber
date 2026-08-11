@@ -12,7 +12,7 @@ Read `packages/electron/README.md` and nearby `packages/electron` code before ed
 ## Runtime Boundary
 
 - Electron boots `@ompchamber/web` in the same Node process and loads the UI over loopback. Do not introduce a sidecar server process.
-- Keep OpenCode feature backends and shared domain logic in web/server or runtime APIs.
+- Keep OMP engine feature backends and shared domain logic in web/server or runtime APIs.
 - Keep Electron focused on inherently native behavior: windows, menus, dialogs, notifications, updater, deep links, runtime host switching, privileged IPC, SSH, and tunnel lifecycle.
 - Shared renderer-facing contracts belong in `packages/ui`; shared server behavior belongs in `packages/web`.
 - Electron is the desktop release target.

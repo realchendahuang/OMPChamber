@@ -119,7 +119,7 @@ date
 
 Do not translate:
 
-- Product names: `OMPChamber`, `OpenCode`, `GitHub`
+- Product names: `OMPChamber`, `OMP`, `OpenChamber`, `GitHub`
 - Protocol/tool acronyms: `MCP`, `SSE`, `WebSocket`, `API`
 - Model/provider names
 - File paths, command names, environment variables
