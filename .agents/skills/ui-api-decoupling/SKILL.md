@@ -1,13 +1,13 @@
 ---
 name: ui-api-decoupling
-description: Use when creating or modifying OMPChamber shared UI data access, OpenCode SDK calls, `RuntimeAPIs`, runtime fetch/auth/URLs, authenticated browser assets, bridges/proxies, runtime switching, or server API routes.
+description: Use when creating or modifying OMPChamber shared UI data access, OMP engine APIs, `RuntimeAPIs`, runtime fetch/auth/URLs, authenticated browser assets, bridges/proxies, runtime switching, or server API routes.
 ---
 
 # UI API Decoupling
 
 ## Core Boundary
 
-- Official OpenCode API calls use `@opencode-ai/sdk/v2` through `opencodeClient`.
+- Engine-facing calls go through `agentClient` (`packages/ui/src/lib/agent/client.ts`), the `OmpService` facade over the in-repo DomainClient. It talks to the OMPChamber server, which drives the OMP engine through the server's OMP adapter. The `@opencode-ai/sdk` dependency is gone repo-wide; do not reintroduce an engine SDK in shared UI.
 - OMPChamber-owned HTTP capabilities use `RuntimeAPIs` where runtime-specific behavior exists, otherwise explicit OMPChamber routes through `runtimeFetch`.
 - Browser/realtime consumers use shared runtime URL/socket helpers.
 - Shared UI never hardcodes localhost, ports, API origins, credentials, or one runtime's transport assumptions.
@@ -16,8 +16,8 @@ description: Use when creating or modifying OMPChamber shared UI data access, Op
 
 | Need | Correct path |
 |---|---|
-| Official OpenCode endpoint | `opencodeClient` or its SDK client |
-| SDK gap for official OpenCode | Narrow documented wrapper in `opencodeClient` preserving request fidelity |
+| Engine endpoint (session, message, config, provider, ...) | `agentClient` facade method |
+| Engine gap not covered by the facade | Narrow documented extension of `agentClient`/`DomainClient` preserving request fidelity; server side handled by the OMP adapter |
 | OMPChamber HTTP route | `runtimeFetch('/api/...')` |
 | Runtime-owned capability | Extend `RuntimeAPIs` and implement each applicable runtime |
 | Browser-owned authenticated URL | Runtime URL resolver and scoped URL auth |
@@ -35,10 +35,10 @@ Load every matching reference before editing.
 
 ## Mandatory Rules
 
-1. **Do not bypass the SDK for official OpenCode APIs.** Preserve SDK-generated method, body, headers, query, auth, and abort signal.
-2. **Keep OMPChamber routes explicit.** Register them before the generic OpenCode proxy.
+1. **Do not bypass the facade for engine APIs.** Preserve facade/DomainClient method, body, headers, query, auth, and abort signal; extend the facade rather than issuing ad-hoc engine requests from components.
+2. **Keep OMPChamber routes explicit.** The server serves the UI's core `/api` surface through the OMP adapter (`registerOmpAdapterRoutes`); there is no generic engine proxy fallback — every route must be registered intentionally.
 3. **Use runtime APIs for runtime-owned capabilities.** Components consume hooks/providers, not runtime globals.
-4. **Resolve runtime state at call time.** Do not cache runtime base URLs, resolver output, credentials, or SDK clients across endpoint switches.
+4. **Resolve runtime state at call time.** Do not cache runtime base URLs, resolver output, credentials, or clients across endpoint switches.
 5. **Let transport own auth.** HTTP uses runtime bearer handling; browser/realtime URLs use scoped short-lived URL auth where headers are impossible.
 6. **Never put long-lived client credentials in URLs.** Do not manually append URL tokens.
 7. **Define runtime parity explicitly.** Shared UI needs deliberate web, Electron, VS Code, hosted-mobile, and Capacitor behavior or stable unsupported responses.
@@ -60,31 +60,31 @@ Do not immediately fetch a URL produced by `getRuntimeUrlResolver()`. Use the re
 
 ```ts
 const iframeSrc = getRuntimeUrlResolver().authenticatedAsset('/api/preview/frame');
-const eventUrl = getRuntimeUrlResolver().sse('/api/event');
+const eventUrl = getRuntimeUrlResolver().sse('/api/global/event');
 ```
 
-Plain `fetch` is reserved for intentional external origins that are not the active OMPChamber/OpenCode runtime.
+Plain `fetch` is reserved for intentional external origins that are not the active OMPChamber runtime.
 
 ## Runtime Switch Safety
 
-Review runtime base URL, auth, SDK clients, terminal/realtime transports, stores, session memory, and caches. Key caches by runtime identity where IDs, paths, or URLs can collide. Reset or reconnect affected state through the established runtime-switch flow.
+Review runtime base URL, auth, engine clients, terminal/realtime transports, stores, session memory, and caches. Key caches by runtime identity where IDs, paths, or URLs can collide. Reset or reconnect affected state through the established runtime-switch flow.
 
 ## Common Anti-Patterns
 
 | Avoid | Use |
 |---|---|
-| Raw feature `fetch` to official OpenCode | SDK wrapper/client |
+| Raw feature `fetch` to an engine endpoint | `agentClient` facade / DomainClient wrapper |
 | Component reads runtime globals | `useRuntimeAPIs()` / provider |
 | Hardcoded runtime URL | `runtimeFetch` or runtime URL resolver |
 | Browser URL containing bearer/client token | Scoped URL-auth helper |
 | Web-only shared route | Explicit VS Code/mobile decision |
 | Returning `[]` after authoritative fetch failure | Throw or distinct failure result |
-| Rebuilding SDK `Request` from URL only | Preserve original request body/headers/signal |
+| Rebuilding a `Request` from URL only | Preserve original request body/headers/signal |
 
 ## Verification
 
-- Official calls use SDK paths or documented SDK-gap wrappers.
-- OMPChamber routes win before generic proxy fallback.
+- Engine calls use the facade or documented facade-gap wrappers.
+- Every server route is registered explicitly; no silent fallthrough.
 - Request fidelity, auth, abort, query, and body behavior are tested.
 - Browser/realtime auth uses narrow allowlists and scoped tokens.
 - Every applicable runtime has implementation or explicit unsupported behavior.

@@ -16,12 +16,12 @@ React components use `useRuntimeAPIs()` or `useRuntimeAPI()`. Non-React modules 
 | Route type | VS Code behavior |
 |---|---|
 | OMPChamber local route | Handle in the webview and bridge to extension host when needed |
-| Official OpenCode route | Forward through the generic OpenCode proxy |
-| SSE | Use the dedicated SSE bridge, never generic proxy |
+| Engine route | Forward to the bundled OMPChamber server through the extension-host proxy |
+| SSE | Use the dedicated SSE bridge, never the generic request path |
 | Session message POST | Use the dedicated session-message path |
 | Unsupported native feature | Return stable explicit unsupported behavior, normally 501 JSON |
 
-Register explicit OMPChamber handling before generic proxy fallback. Silent empty fallback is not parity.
+Register explicit OMPChamber handling before any fallback. Silent empty fallback is not parity.
 
 ## Electron Boundary
 
