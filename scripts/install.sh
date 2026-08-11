@@ -157,7 +157,7 @@ main() {
   echo "  ╭───────────────────────────────────╮"
   echo "  │                                   │"
   echo "  │   OMPChamber Installer           │"
-  echo "  │   Web interface for OpenCode      │"
+  echo "  │   Web interface for OMP           │"
   echo "  │                                   │"
   echo "  ╰───────────────────────────────────╯"
   echo ""
@@ -264,7 +264,7 @@ EOF
     fi
     echo ""
     echo "  Prerequisites:"
-    echo "    Make sure OpenCode is running: opencode serve"
+    echo "    Make sure the OMP CLI is installed: omp --version"
     echo ""
   else
     echo ""

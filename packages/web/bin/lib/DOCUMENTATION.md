@@ -15,7 +15,7 @@ Command modules implement user-facing commands and preserve output contracts acr
 
 - `commands-serve.js`
   - Implements `ompchamber serve`.
-  - Owns OpenCode CLI checks, port resolution, log rotation, PID/instance registry writes, foreground/background server launch, startup summaries, and foreground shutdown behavior.
+  - Owns OMP CLI preflight checks (via `checkOmpCLI` injected from `../cli.js`), port resolution, log rotation, PID/instance registry writes, foreground/background server launch, startup summaries, and foreground shutdown behavior.
 
 - `commands-lifecycle.js`
   - Implements `ompchamber stop` and `ompchamber restart`.
@@ -109,6 +109,7 @@ These modules hold reusable, non-presentational logic for commands.
 
 - `cli-executables.js`
   - Executable path resolution and PATH lookup helpers.
+  - Owns the OMP engine binary resolution contract (`resolveOmpBinary`): `OMP_BINARY` override first, then the deprecated `OPENCODE_BINARY` fallback, then `omp` on PATH, then `opencode` on PATH. `../cli.js` turns a successful resolution into both `OMP_BINARY` and `OPENCODE_BINARY` exports; `cli-startup.js` persists both into startup service env snapshots.
 
 - `cli-startup.js`
   - Native startup service detection, install/uninstall/status helpers, and platform-specific startup command execution.

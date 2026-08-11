@@ -32,7 +32,7 @@ import {
   findClosestMatch,
 } from './lib/cli-args.js';
 import { readDesktopLocalPortFromSettings } from './lib/cli-paths.js';
-import { resolveExplicitBinary, searchPathFor } from './lib/cli-executables.js';
+import { resolveOmpBinary } from './lib/cli-executables.js';
 import { startupCommand } from './lib/commands-startup.js';
 import { logsCommand } from './lib/commands-logs.js';
 import { statusCommand } from './lib/commands-status.js';
@@ -145,31 +145,43 @@ function getPreferredServerRuntime() {
   return isBunInstalled() ? 'bun' : 'node';
 }
 
-async function checkOpenCodeCLI(onNotice) {
-  if (process.env.OPENCODE_BINARY) {
-    const override = resolveExplicitBinary(process.env.OPENCODE_BINARY);
-    if (override) {
-      process.env.OPENCODE_BINARY = override;
-      return override;
-    }
-    const message = `OPENCODE_BINARY="${process.env.OPENCODE_BINARY}" is not an executable file. Falling back to PATH lookup.`;
+async function checkOmpCLI(onNotice) {
+  const resolution = resolveOmpBinary(process.env);
+  const emitWarning = (code, message) => {
     if (typeof onNotice === 'function') {
-      onNotice({ level: 'warning', code: 'OPENCODE_BINARY_INVALID', message });
+      onNotice({ level: 'warning', code, message });
     } else {
       console.warn(`Warning: ${message}`);
     }
+  };
+
+  for (const invalid of resolution.invalidOverrides) {
+    emitWarning(
+      `${invalid.name}_INVALID`,
+      `${invalid.name}="${invalid.value}" is not an executable file. Falling back to the next resolution source.`
+    );
   }
 
-  const resolvedFromPath = searchPathFor('opencode');
-  if (resolvedFromPath) {
-    process.env.OPENCODE_BINARY = resolvedFromPath;
-    return resolvedFromPath;
+  if (!resolution.binary) {
+    throw new Error(
+      `Unable to locate the omp CLI on PATH (${process.env.PATH || '<empty>'}). ` +
+      'Install OMP (npm package @oh-my-pi/pi-coding-agent) so `omp` is reachable on PATH, ' +
+      'or set OMP_BINARY to its full path (deprecated fallback: OPENCODE_BINARY).'
+    );
   }
 
-  throw new Error(
-    `Unable to locate the opencode CLI on PATH (${process.env.PATH || '<empty>'}). ` +
-    'Ensure the CLI is installed and reachable, or set OPENCODE_BINARY to its full path.'
-  );
+  if (resolution.source === 'OPENCODE_BINARY') {
+    emitWarning(
+      'OPENCODE_BINARY_DEPRECATED',
+      'OPENCODE_BINARY is deprecated and will be removed in a future release; set OMP_BINARY instead.'
+    );
+  }
+
+  // Export both names: the server reads OMP_BINARY to launch the engine,
+  // while legacy consumers may still read OPENCODE_BINARY.
+  process.env.OMP_BINARY = resolution.binary;
+  process.env.OPENCODE_BINARY = resolution.binary;
+  return resolution.binary;
 }
 
 const commands = {
@@ -201,7 +213,7 @@ const commands = {
 commands.serve = createServeCommand({
   serverPath: path.join(__dirname, '..', 'server', 'index.js'),
   bunBin: BUN_BIN,
-  checkOpenCodeCLI,
+  checkOmpCLI,
   getPreferredServerRuntime,
   setForegroundServerActive(value) { foregroundServerActive = value; },
   setForegroundShutdown(handler) { foregroundShutdown = handler; },
@@ -426,6 +438,7 @@ if (isCliExecution) {
 export {
   main,
   commands,
+  checkOmpCLI,
   parseArgs,
   assertAuthenticatedNetworkExposure,
   resolveServeHost,

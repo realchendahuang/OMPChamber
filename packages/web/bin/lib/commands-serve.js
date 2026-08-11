@@ -26,7 +26,7 @@ const DAEMON_READY_TIMEOUT_MS = 30000;
 function createServeCommand({
   serverPath,
   bunBin,
-  checkOpenCodeCLI,
+  checkOmpCLI,
   getPreferredServerRuntime,
   setForegroundServerActive,
   setForegroundShutdown,
@@ -100,7 +100,7 @@ async function serveCommand(options) {
       }
     }
 
-    const opencodeBinary = await checkOpenCodeCLI(emitNotice);
+    const ompBinary = await checkOmpCLI(emitNotice);
     const preferredRuntime = getPreferredServerRuntime();
     const runtimeBin = preferredRuntime === 'bun' ? bunBin : process.execPath;
 
@@ -155,8 +155,9 @@ async function serveCommand(options) {
       }
 
       // Propagate resolved values into env before importing the server module.
-      if (opencodeBinary) {
-        process.env.OPENCODE_BINARY = opencodeBinary;
+      if (ompBinary) {
+        process.env.OMP_BINARY = ompBinary;
+        process.env.OPENCODE_BINARY = ompBinary;
       }
       if (effectiveUiPassword) {
         process.env.OMPCHAMBER_UI_PASSWORD = effectiveUiPassword;
@@ -284,11 +285,11 @@ async function serveCommand(options) {
         ...process.env,
         OMPCHAMBER_PORT: String(targetPort),
         OMPCHAMBER_RUNTIME: 'web',
-        OPENCODE_BINARY: opencodeBinary,
+        OMP_BINARY: ompBinary,
+        OPENCODE_BINARY: ompBinary,
         OMPCHAMBER_HOST: effectiveHost,
         ...(effectiveUiPassword ? { OMPCHAMBER_UI_PASSWORD: effectiveUiPassword } : {}),
         ...(options.apiOnly === true ? { OMPCHAMBER_API_ONLY: 'true' } : {}),
-        ...(process.env.OPENCODE_SKIP_START ? { OMPCHAMBER_SKIP_OPENCODE_START: process.env.OPENCODE_SKIP_START } : {}),
       },
     });
 

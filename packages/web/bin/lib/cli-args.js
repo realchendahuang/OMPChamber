@@ -565,7 +565,7 @@ function parseArgs(argv = process.argv.slice(2)) {
 
 function showHelp() {
   console.log(`
- OMPChamber - Web interface for the OpenCode AI coding agent
+ OMPChamber - Web interface for the OMP AI coding agent
 
 USAGE:
   ompchamber [COMMAND] [OPTIONS]
@@ -605,10 +605,8 @@ ENVIRONMENT:
   OMPCHAMBER_UI_PASSWORD      Alternative to --ui-password flag
   OMPCHAMBER_API_ONLY         Set to true/1 to start API routes only
   OMPCHAMBER_DATA_DIR         Override OMPChamber data directory
-  OPENCODE_HOST               External OpenCode server base URL, e.g. http://hostname:4096
-  OPENCODE_PORT               Port of external OpenCode server to connect to
-  OPENCODE_SKIP_START          Skip starting OpenCode, use external server
-  OMPCHAMBER_OPENCODE_HOSTNAME  Bind hostname for managed OpenCode server (default: 127.0.0.1)
+  OMP_BINARY                  Full path to the omp binary (default: omp on PATH)
+  OPENCODE_BINARY             Deprecated alias for OMP_BINARY (legacy fallback)
 
 EXAMPLES:
   ompchamber                    # Start in daemon mode on default port 3000 (or free port)

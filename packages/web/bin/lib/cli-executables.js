@@ -36,9 +36,8 @@ function resolveExplicitBinary(candidate) {
   return null;
 }
 
-function searchPathFor(command) {
-  const pathValue = process.env.PATH || '';
-  const segments = pathValue.split(path.delimiter).filter(Boolean);
+function searchPathFor(command, pathValue = process.env.PATH) {
+  const segments = String(pathValue || '').split(path.delimiter).filter(Boolean);
   for (const dir of segments) {
     for (const ext of WINDOWS_EXTENSIONS) {
       const fileName = process.platform === 'win32' ? `${command}${ext}` : command;
@@ -51,4 +50,43 @@ function searchPathFor(command) {
   return null;
 }
 
-export { resolveExplicitBinary, searchPathFor };
+// OMP engine binary resolution contract (shared by serve preflight and
+// startup env snapshots):
+//   1. OMP_BINARY env override (primary)
+//   2. OPENCODE_BINARY env override (deprecated legacy fallback)
+//   3. `omp` on PATH
+//   4. `opencode` on PATH (legacy fallback)
+// Invalid overrides are reported (not fatal) so callers can warn and fall
+// through to the next source, matching the historical preflight behavior.
+function resolveOmpBinary(env = process.env) {
+  const invalidOverrides = [];
+
+  const ompOverride = resolveExplicitBinary(env.OMP_BINARY);
+  if (ompOverride) {
+    return { binary: ompOverride, source: 'OMP_BINARY', invalidOverrides };
+  }
+  if (typeof env.OMP_BINARY === 'string' && env.OMP_BINARY.trim().length > 0) {
+    invalidOverrides.push({ name: 'OMP_BINARY', value: env.OMP_BINARY });
+  }
+
+  const legacyOverride = resolveExplicitBinary(env.OPENCODE_BINARY);
+  if (legacyOverride) {
+    return { binary: legacyOverride, source: 'OPENCODE_BINARY', invalidOverrides };
+  }
+  if (typeof env.OPENCODE_BINARY === 'string' && env.OPENCODE_BINARY.trim().length > 0) {
+    invalidOverrides.push({ name: 'OPENCODE_BINARY', value: env.OPENCODE_BINARY });
+  }
+
+  const ompOnPath = searchPathFor('omp', env.PATH);
+  if (ompOnPath) {
+    return { binary: ompOnPath, source: 'PATH', command: 'omp', invalidOverrides };
+  }
+  const opencodeOnPath = searchPathFor('opencode', env.PATH);
+  if (opencodeOnPath) {
+    return { binary: opencodeOnPath, source: 'PATH', command: 'opencode', invalidOverrides };
+  }
+
+  return { binary: null, source: null, invalidOverrides };
+}
+
+export { resolveExplicitBinary, searchPathFor, resolveOmpBinary };
