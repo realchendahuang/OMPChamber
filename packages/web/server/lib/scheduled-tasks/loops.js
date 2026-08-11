@@ -4,7 +4,7 @@
  * Loops are git-commit-able markdown files with YAML frontmatter, discovered
  * from `.agents/loops/*.md` (project scope, including ancestor directories up
  * to the worktree root) and `~/.agents/loops/*.md` (user scope), mirroring the
- * skills discovery pattern (`packages/web/server/lib/opencode/skills.js`).
+ * skills discovery pattern (`packages/web/server/lib/ompchamber/skills.js`).
  *
  * File format:
  *
@@ -40,7 +40,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { parseMdFile, writeMdFile, getAncestors, findWorktreeRoot } from '../opencode/shared.js';
+import { parseMdFile, writeMdFile, getAncestors, findWorktreeRoot } from '../ompchamber/shared.js';
 import { MAX_TASK_NAME_LENGTH } from '../projects/project-config.js';
 
 const LOOP_DIR_NAME = 'loops';

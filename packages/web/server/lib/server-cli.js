@@ -3,7 +3,7 @@
  *
  * These are engine-agnostic: they only parse `node packages/web/server/index.js`
  * command-line flags (port/host/tunnel/ui-password) and bootstrap the server
- * when the module is executed directly. They live outside `lib/opencode/`
+ * when the module is executed directly. They live outside `lib/ompchamber/`
  * because they are not OpenCode-specific.
  */
 

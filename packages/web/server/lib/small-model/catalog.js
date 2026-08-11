@@ -1,4 +1,4 @@
-import { getModelsMetadata } from '../opencode/models-metadata.js';
+import { getModelsMetadata } from '../ompchamber/models-metadata.js';
 
 // The models.dev catalog is shared with the /api/ompchamber/models-metadata
 // route through one in-process cache — no extra fetches, no cache files.

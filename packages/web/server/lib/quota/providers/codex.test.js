@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../opencode/auth.js', () => ({
+vi.mock('../../ompchamber/auth.js', () => ({
   readAuthFile: () => ({ openai: { access: 'test-token' } }),
 }));
 

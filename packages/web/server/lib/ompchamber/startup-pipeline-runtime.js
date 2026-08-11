@@ -1,4 +1,4 @@
-import { recordStartupPerformance } from './startup-performance.js';
+import { recordStartupPerformance } from '../startup-performance.js';
 
 export const createStartupPipelineRuntime = (dependencies) => {
   const {

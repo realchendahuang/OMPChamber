@@ -11,11 +11,11 @@ import os from 'os';
 import crypto from 'crypto';
 import http2 from 'node:http2';
 import { createUiAuth } from './lib/ui-auth/ui-auth.js';
-import { createTunnelAuth } from './lib/opencode/tunnel-auth.js';
+import { createTunnelAuth } from './lib/ompchamber/tunnel-auth.js';
 import { createOmpRuntime } from './agent-runtime/omp/index.js';
 import * as pathUtils from './lib/path-utils.js';
-import { registerOmpAdapterRoutes } from './lib/opencode/omp-adapter-http.js';
-import { domainEventToSseFrames } from './lib/opencode/omp-event-bridge.js';
+import { registerOmpAdapterRoutes } from './agent-runtime/omp/omp-adapter-http.js';
+import { domainEventToSseFrames } from './agent-runtime/omp/omp-event-bridge.js';
 import { createManagedTunnelConfigRuntime } from './lib/tunnels/managed-config.js';
 import { createTunnelProviderRegistry } from './lib/tunnels/registry.js';
 import { createCloudflareTunnelProvider } from './lib/tunnels/providers/cloudflare.js';
@@ -51,39 +51,31 @@ import {
   UPSTREAM_STALL_TIMEOUT_CONCURRENT_MS,
 } from './lib/event-stream/index.js';
 import { createFsSearchRuntime as createFsSearchRuntimeFactory } from './lib/fs/search.js';
-import { createOpenCodeLifecycleRuntime } from './lib/opencode/lifecycle.js';
-import { createOpenCodeEnvRuntime } from './lib/opencode/env-runtime.js';
-import { resolveOpenCodeEnvConfig } from './lib/opencode/env-config.js';
-import { createHmrStateRuntime } from './lib/opencode/hmr-state-runtime.js';
-import { createOpenCodeNetworkRuntime } from './lib/opencode/network-runtime.js';
-import { createOpenCodeAuthStateRuntime } from './lib/opencode/auth-state-runtime.js';
-import { createProjectDirectoryRuntime } from './lib/opencode/project-directory-runtime.js';
-import { createSettingsNormalizationRuntime } from './lib/opencode/settings-normalization-runtime.js';
-import { createSettingsHelpers } from './lib/opencode/settings-helpers.js';
-import { createThemeRuntime } from './lib/opencode/theme-runtime.js';
-import { createFeatureRoutesRuntime } from './lib/opencode/feature-routes-runtime.js';
+import { createHmrStateRuntime } from './lib/ompchamber/hmr-state-runtime.js';
+import { createProjectDirectoryRuntime } from './lib/ompchamber/project-directory-runtime.js';
+import { createSettingsNormalizationRuntime } from './lib/ompchamber/settings-normalization-runtime.js';
+import { createSettingsHelpers } from './lib/ompchamber/settings-helpers.js';
+import { createThemeRuntime } from './lib/ompchamber/theme-runtime.js';
+import { createFeatureRoutesRuntime } from './lib/ompchamber/feature-routes-runtime.js';
 import { parseServeCliOptions } from './lib/server-cli.js';
 import {
   registerAuthAndAccessRoutes,
   registerCommonRequestMiddleware,
   registerServerStatusRoutes,
-} from './lib/opencode/core-routes.js';
-import { registerOMPChamberRoutes } from './lib/opencode/ompchamber-routes.js';
-import { createServerUtilsRuntime } from './lib/opencode/server-utils-runtime.js';
-import { createStaticRoutesRuntime } from './lib/opencode/static-routes-runtime.js';
-import { createSettingsRuntime } from './lib/opencode/settings-runtime.js';
-import { createOpenCodeResolutionRuntime } from './lib/opencode/opencode-resolution-runtime.js';
-import { resolveOpenCodeUpgradeCapability } from './lib/opencode/upgrade-capability.js';
-import { createBootstrapRuntime } from './lib/opencode/bootstrap-runtime.js';
-import { createSessionRuntime } from './lib/opencode/session-runtime.js';
-import { createOpenCodeWatcherRuntime } from './lib/opencode/watcher.js';
+} from './lib/ompchamber/core-routes.js';
+import { registerOMPChamberRoutes } from './lib/ompchamber/ompchamber-routes.js';
+import { createServerUtilsRuntime } from './lib/ompchamber/server-utils-runtime.js';
+import { createStaticRoutesRuntime } from './lib/ompchamber/static-routes-runtime.js';
+import { createSettingsRuntime } from './lib/ompchamber/settings-runtime.js';
+import { createBootstrapRuntime } from './lib/ompchamber/bootstrap-runtime.js';
+import { createSessionRuntime } from './lib/ompchamber/session-runtime.js';
 import { createSessionAssistRuntime } from './lib/session-assist/runtime.js';
 import { createSessionGoalRuntime } from './lib/session-goal/runtime.js';
 import { createContextObligatoryRuntime } from './lib/context-obligatory/runtime.js';
 import { createScheduledTasksRuntime } from './lib/scheduled-tasks/runtime.js';
-import { createServerStartupRuntime } from './lib/opencode/server-startup-runtime.js';
-import { createTunnelWiringRuntime } from './lib/opencode/tunnel-wiring-runtime.js';
-import { createStartupPipelineRuntime } from './lib/opencode/startup-pipeline-runtime.js';
+import { createServerStartupRuntime } from './lib/ompchamber/server-startup-runtime.js';
+import { createTunnelWiringRuntime } from './lib/ompchamber/tunnel-wiring-runtime.js';
+import { createStartupPipelineRuntime } from './lib/ompchamber/startup-pipeline-runtime.js';
 import { runCliEntryIfMain } from './lib/server-cli.js';
 import { registerNotificationRoutes } from './lib/notifications/routes.js';
 import { createNotificationEmitterRuntime } from './lib/notifications/emitter-runtime.js';
@@ -92,7 +84,7 @@ import { createPushRuntime } from './lib/notifications/push-runtime.js';
 import { createApnsRuntime } from './lib/notifications/apns-runtime.js';
 import { createNotificationTemplateRuntime } from './lib/notifications/template-runtime.js';
 import { createPermissionAutoAcceptRuntime } from './lib/permission-auto-accept/runtime.js';
-import { createGracefulShutdownRuntime } from './lib/opencode/shutdown-runtime.js';
+import { createGracefulShutdownRuntime } from './lib/ompchamber/shutdown-runtime.js';
 import { createProjectConfigRuntime } from './lib/projects/project-config.js';
 import { createRemoteClientAuthRuntime } from './lib/client-auth/remote-clients.js';
 import { createClientPairingRuntime } from './lib/client-auth/pairing.js';
@@ -966,12 +958,11 @@ const ensureGlobalWatcherStarted = async () => {};
 const bootstrapAgentEngineAtStartup = bootstrapOpenCodeAtStartup;
 
 // ---------------------------------------------------------------------------
-// OMP engine (OMPCHAMBER_AGENT_ENGINE=omp)
+// OMP engine
 //
-// When enabled, the server spawns `omp --mode rpc-ui` instead of OpenCode and
-// serves the UI's core HTTP surface through the OMP adapter. This is the
-// Strangler adapter: the OpenCode path stays intact and is still the default;
-// flipping the env var moves the agent engine to OMP without touching the UI.
+// The server spawns `omp --mode rpc-ui` and serves the UI's core HTTP surface
+// through the OMP adapter. The OpenCode runtime was removed; the adapter keeps
+// the UI-facing HTTP/SSE surface OpenCode-shaped for compatibility.
 // ---------------------------------------------------------------------------
 let ompRuntime = null;
 const ompEngineEnabled = () => true; // OMP is the only engine
@@ -1086,8 +1077,8 @@ const gracefulShutdownRuntime = createGracefulShutdownRuntime({
   sessionGoalRuntime,
   contextObligatoryRuntime,
   sessionRuntime,
-  getHealthCheckInterval: () => healthCheckInterval,
-  clearHealthCheckInterval: (value) => clearInterval(value),
+  getHealthCheckInterval: () => undefined,
+  clearHealthCheckInterval: () => {},
   getTerminalRuntime: () => terminalRuntime,
   setTerminalRuntime: (value) => {
     terminalRuntime = value;
@@ -1633,7 +1624,7 @@ async function main(options = {}) {
     }),
     isReady: () => true,
     restartOpenCode: () => restartOpenCode(),
-    getOpenCodeProcessInfo: () => ({
+    getEngineProcessInfo: () => ({
       // The OMP engine runs in-process; there is no managed OpenCode process
       // to expose. Structurally withhold pid/port so the Electron-side killer
       // has no target.

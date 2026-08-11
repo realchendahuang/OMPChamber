@@ -38,7 +38,7 @@ const CATALOG = {
   },
 };
 
-vi.mock('../../opencode/models-metadata.js', () => ({
+vi.mock('../../ompchamber/models-metadata.js', () => ({
   getModelsMetadata: vi.fn(async () => ({ metadata: CATALOG, fromCache: false })),
 }));
 

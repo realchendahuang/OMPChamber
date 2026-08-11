@@ -1,4 +1,4 @@
-import { readAuthFile, writeAuthFile } from '../../opencode/auth.js';
+import { readAuthFile, writeAuthFile } from '../../ompchamber/auth.js';
 import { buildResult, toUsageWindow } from '../utils/index.js';
 
 export const providerId = 'xai';

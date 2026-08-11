@@ -1,7 +1,7 @@
 import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import { DateTime } from 'luxon';
 import parser from 'cron-parser';
-import { expandSnippets } from '../opencode/snippets.js';
+import { expandSnippets } from '../ompchamber/snippets.js';
 import { buildGoalIntroText, createSessionGoal } from '../session-goal/create.js';
 import { discoverLoops } from './loops.js';
 

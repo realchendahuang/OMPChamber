@@ -7,8 +7,8 @@ export const createHmrStateRuntime = (dependencies) => {
   } = dependencies;
 
   const getInitialOpenCodeWorkingDirectory = () => {
-    const configured = typeof processLike.env.OMPCHAMBER_OPENCODE_CWD === 'string'
-      ? processLike.env.OMPCHAMBER_OPENCODE_CWD.trim()
+    const configured = typeof processLike.env.OMPCHAMBER_WORKING_DIRECTORY === 'string'
+      ? processLike.env.OMPCHAMBER_WORKING_DIRECTORY.trim()
       : '';
     return configured || os.homedir();
   };

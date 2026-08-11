@@ -4,7 +4,7 @@
  * consumes (session list, model list, message send, status).
  *
  * Requires a local `omp` binary with at least one configured model.
- * Run: bun test packages/web/server/lib/opencode/omp-adapter-http.test.js
+ * Run: bun test packages/web/server/agent-runtime/omp/omp-adapter-http.test.js
  */
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import express from 'express';
@@ -12,7 +12,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { createOmpRuntime } from '../../agent-runtime/omp/index.js';
+import { createOmpRuntime } from './index.js';
 import { registerOmpAdapterRoutes } from './omp-adapter-http.js';
 
 const tmpDirs = [];

@@ -19,7 +19,7 @@ import {
   normalizeTodos,
   normalizeToolFrame,
 } from './event-normalizer.js';
-import { domainEventToSseFrames } from '../../lib/opencode/omp-event-bridge.js';
+import { domainEventToSseFrames } from '../../agent-runtime/omp/omp-event-bridge.js';
 describe('OMP protocol fixtures (recorded from omp 17.2.x)', () => {
   it('normalizes a ready frame as a no-op (readiness is handled by the process manager)', () => {
     expect(normalizeSessionEvent({ type: 'ready' })).toEqual([]);

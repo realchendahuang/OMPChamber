@@ -1,7 +1,7 @@
 import express from 'express';
 import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import { createWorktree, getWorktreeBootstrapStatus } from '../git/index.js';
-import { expandSnippets } from '../opencode/snippets.js';
+import { expandSnippets } from '../ompchamber/snippets.js';
 import { expandCommandGoalObjective, parseScheduledCommandPrompt } from '../scheduled-tasks/runtime.js';
 import { buildGoalIntroText, createSessionGoal } from '../session-goal/create.js';
 import { OMPChamberControlError, asControlError } from '../ompchamber-control/error.js';

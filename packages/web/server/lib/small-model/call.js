@@ -1,8 +1,8 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { readAuthFile, writeAuthFile } from '../opencode/auth.js';
-import { readConfig, readConfigLayers } from '../opencode/shared.js';
+import { readAuthFile, writeAuthFile } from '../ompchamber/auth.js';
+import { readConfig, readConfigLayers } from '../ompchamber/shared.js';
 import { getCatalogProvider } from './catalog.js';
 import { getAuthEntryForProvider } from './resolve.js';
 

@@ -7,13 +7,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // test controls the provider config without touching the filesystem. call.js
 // imports only readConfig from shared.js, so the rest of that module is left
 // untouched for this file.
-vi.mock('../opencode/shared.js', () => ({
+vi.mock('../ompchamber/shared.js', () => ({
   readConfig: vi.fn(),
   readConfigLayers: vi.fn(),
 }));
 
 const { callSmallModel } = await import('./call.js');
-const { readConfig, readConfigLayers } = await import('../opencode/shared.js');
+const { readConfig, readConfigLayers } = await import('../ompchamber/shared.js');
 
 // Minimal catalog fragment used by the catalog-based base URL resolution case.
 const CATALOG = {

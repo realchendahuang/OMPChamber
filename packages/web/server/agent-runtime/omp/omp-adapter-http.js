@@ -11,7 +11,7 @@
  */
 
 import express from 'express';
-import { normalizeAgentMessage } from '../../agent-runtime/omp/event-normalizer.js';
+import { normalizeAgentMessage } from './event-normalizer.js';
 
 const OPENCODE_SDK_VERSION = '1.0.0';
 

@@ -9,8 +9,8 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 const TEMP_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'small-model-settings-'));
 process.env.OMPCHAMBER_DATA_DIR = TEMP_DATA_DIR;
 
-vi.mock('../opencode/auth.js', () => ({ readAuthFile: vi.fn() }));
-vi.mock('../opencode/shared.js', () => ({
+vi.mock('../ompchamber/auth.js', () => ({ readAuthFile: vi.fn() }));
+vi.mock('../ompchamber/shared.js', () => ({
   readConfig: vi.fn(),
   readConfigLayers: vi.fn(),
 }));
@@ -27,8 +27,8 @@ vi.mock('./call.js', () => ({
 }));
 
 const { generateSmallModelText, describeSmallModel } = await import('./index.js');
-const { readAuthFile } = await import('../opencode/auth.js');
-const { readConfigLayers } = await import('../opencode/shared.js');
+const { readAuthFile } = await import('../ompchamber/auth.js');
+const { readConfigLayers } = await import('../ompchamber/shared.js');
 const { getModelCatalog } = await import('./catalog.js');
 const { callSmallModel } = await import('./call.js');
 

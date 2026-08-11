@@ -36,7 +36,7 @@ export const createGracefulShutdownRuntime = (dependencies) => {
     console.log('Starting graceful shutdown...');
     const exitProcess = typeof options.exitProcess === 'boolean' ? options.exitProcess : getExitOnShutdown();
 
-    openCodeWatcherRuntime.stop();
+    openCodeWatcherRuntime?.stop?.();
     sessionRuntime.dispose();
     sessionAssistRuntime?.stop?.();
     sessionGoalRuntime?.stop?.();
