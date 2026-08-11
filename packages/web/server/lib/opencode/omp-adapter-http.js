@@ -644,4 +644,16 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
       git: { sha: '', branch: '' },
     });
   });
+  app.get('/api/global/health', (req, res, next) => {
+    if (!getOmpRuntime()) {
+      return next();
+    }
+    const runtime = getOmpRuntime();
+    const state = runtime.status;
+    const healthy = state?.status === 'ready' || state?.status === 'running';
+    return res.json({
+      healthy,
+      version: OPENCODE_SDK_VERSION,
+    });
+  });
 };

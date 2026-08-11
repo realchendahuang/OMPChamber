@@ -104,7 +104,7 @@ describe('remote client auth runtime', () => {
       expect(await runtime.hasActiveRelayClients()).toBe(false);
 
       // A tunneled request is the authoritative proof the device uses the relay.
-      const relayReq = { headers: { 'x-openchamber-relay-connection': 'conn-1' } };
+      const relayReq = { headers: { 'x-ompchamber-relay-connection': 'conn-1' } };
       const authenticated = await runtime.authenticateBearerToken(created.token, relayReq);
       expect(authenticated?.ok).toBe(true);
       expect(authenticated?.client.usesRelay).toBe(true);
