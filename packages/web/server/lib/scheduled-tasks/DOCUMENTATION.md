@@ -17,6 +17,12 @@ Server-owned scheduled task runtime and routes for OMPChamber-only automation.
   - Concurrency controls
   - Session create + prompt_async execution
   - Emits OMPChamber task-run events
+  - Execution talks to the OMP engine through the adapter's OpenCode-shaped
+    HTTP surface with plain `fetch` (no `@opencode-ai/sdk` dependency):
+    `createSession` / `listCommands` / `runSessionCommand` are injectable
+    defaults; the defaults POST `/session` and `/session/:id/prompt_async`.
+    OMP has no command surface, so slash-command prompts resolve to no
+    command and run as plain prompts.
 
 - `packages/web/server/lib/scheduled-tasks/loops.js`
   - Discovery of `.agents/loops/*.md` (project scope, ancestors up to the worktree root) and `~/.agents/loops/*.md` (user scope)
@@ -102,6 +108,29 @@ project write lock on every `syncProject` when the project path is known:
   The general task deletion API still rejects loop-sourced tasks while their
   file exists; once the file is gone, deleting an orphan task is allowed.
 
+## Execution on the OMP engine
+
+The runtime talks to the agent engine exclusively through the adapter's
+OpenCode-shaped HTTP surface with plain `fetch` — it never imports
+`@opencode-ai/sdk`. The three engine touch points are injectable so tests and
+future engines can swap them:
+
+| Hook | Default (OMP) | Notes |
+|---|---|---|
+| `createSession({ baseUrl, authHeaders, directory, title })` | `POST {baseUrl}/session?directory=…` with `{ title }`; returns the session `id` from the adapter's `toSdkSession` shape | Throws `session create failed (status)` on non-2xx and `failed to create session` when no id comes back |
+| `listCommands({ directory })` | `[]` | OMP has no command surface; the adapter degrades `/api/command` to an empty list, so slash-command prompts resolve to no command |
+| `runSessionCommand({ projectPath, sessionID, command, arguments, agent, model, variant })` | no-op | OMP has no session command RPC (adapter answers 501); a matched command would be dispatched here, but with the default it never matches |
+
+Consequences on the OMP engine:
+
+- A task whose prompt starts with `/` (e.g. `/review src/components`) runs as a
+  **plain prompt** through `prompt_async` — the slash text is sent verbatim.
+  This is intentional: failing the run would be worse than sending the text.
+- `permissionAutoAccept` enrollment and session-goal creation still run before
+  the prompt (unchanged behavior).
+- The watchdog, concurrency limits, one-time-task consumption, and run-state
+  bookkeeping are engine-agnostic and unchanged.
+
 ## Public exports (runtime.js)
 
 - `createScheduledTasksRuntime(dependencies)`
@@ -111,6 +140,11 @@ project write lock on every `syncProject` when the project path is known:
   - `syncAllProjects()`
   - `syncProject(projectId)`
   - `runNow(projectId, taskId)`
+- Injectable execution hooks (defaults use plain `fetch` against the OMP
+  adapter surface; see "Execution on the OMP engine" above):
+  - `createSession({ baseUrl, authHeaders, directory, title })` → session id
+  - `listCommands({ directory })` → command list (OMP: always `[]`)
+  - `runSessionCommand({ projectPath, sessionID, command, arguments, agent, model, variant })` (OMP: no-op)
 
 ## Public exports (routes.js)
 

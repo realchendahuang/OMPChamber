@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- **Scheduled Tasks run natively on the OMP engine.** The scheduled-tasks
+  runtime no longer depends on `@opencode-ai/sdk`; it creates sessions and
+  sends prompts through the OMP adapter's HTTP surface with plain `fetch`
+  (`POST /api/session` + `POST /api/session/:id/prompt_async`). Session
+  creation, command listing, and command dispatch are now injectable hooks
+  with OMP-aware defaults: OMP has no command surface, so slash-command
+  prompts resolve to no command and run as plain prompts instead of failing.
+  The `packages/web` SDK dependency surface shrank from four modules to three
+  (skill-routes / ompchamber-sessions / ompchamber-control remain).
+
 ## [1.0.0] - 2026-08-11
 
 - **Agent engine: OMP (Oh My Pi).** The OpenCode runtime was removed from the server; the agent engine is now the bundled OMP CLI (`omp --mode rpc-ui`), pinned at 17.2.12. The UI surface stays OpenCode-shaped through the OMP adapter, so the product experience is unchanged.
