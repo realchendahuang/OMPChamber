@@ -1,6 +1,6 @@
 {
   "name": "@ompchamber/agent-protocol",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "OMPChamber agent domain protocol types and adapters. UI and server both depend on this; neither depends on harness types.",
   "type": "module",

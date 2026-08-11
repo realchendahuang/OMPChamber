@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-12
+
+- **OpenCode naming purged across the product.** The UI package (~192 files), the VS Code extension, the documentation site (10 locales), the CLI, Docker assets, and developer tooling now use OMP/OMPChamber naming throughout — components, modules, types, i18n keys (11 locales), bridge message types, and user-facing strings. Historical references to OpenCode and OpenChamber (attribution, migration notes) are intentionally preserved.
+- **Internal HTTP contracts renamed.** The OMPChamber-internal API surface moved from `/api/opencode/*` to `/api/omp/*` (including `/api/config/omp-resolution`), request headers from `x-opencode-directory` to `x-omp-directory`, and readiness flags from `isOpenCodeReady` to `isOmpReady`, with the server, web UI, and VS Code extension updated together.
+- **CLI resolves the OMP binary.** The `ompchamber serve` preflight now resolves `OMP_BINARY` first (with `OPENCODE_BINARY` honored as a deprecated fallback) and searches PATH for `omp` before `opencode`; both variables are exported so every downstream consumer works. The dead `OPENCODE_SKIP_START`/`OPENCODE_HOST` options were removed from help and docs.
+- **Docker and release pipelines ship OMP.** The image installs the pinned `@oh-my-pi/pi-coding-agent@17.2.12` CLI and exports `OMP_BINARY`; the oh-my-opencode plugin installer was removed. Release CI builds, verifies, and caches the bundled OMP CLI, and the packaged desktop launcher now resolves its install location relative to itself instead of the build machine.
 - **VS Code extension runs the OMPChamber server natively.** The extension no
   longer spawns the removed `opencode` CLI; it bundles the OMPChamber web
   server (`dist/server.cjs`, esbuild bundle of `packages/web/server`) and

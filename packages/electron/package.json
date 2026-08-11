@@ -1,6 +1,6 @@
 {
   "name": "@ompchamber/electron",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Electron desktop runtime for OMPChamber",
   "author": "OMPChamber",
@@ -32,8 +32,8 @@
     "build:web-assets": "node ./scripts/build-web-assets.mjs",
     "build": "bun -e \"process.exit(0)\"",
     "ensure:electron": "node ./scripts/ensure-electron.mjs",
-      "prepare:omp-cli": "node ./scripts/prepare-omp-cli.mjs",
-        "verify:linux-appimage": "node ./scripts/verify-linux-appimage.mjs",
+    "prepare:omp-cli": "node ./scripts/prepare-omp-cli.mjs",
+    "verify:linux-appimage": "node ./scripts/verify-linux-appimage.mjs",
     "bundle:main": "bun ./scripts/bundle-main.mjs",
     "generate:macos-icon": "node ./scripts/generate-macos-icon-assets.cjs",
     "rebuild:native": "node ./scripts/rebuild-native.mjs",
