@@ -751,38 +751,9 @@ const processForwardedEventPayload = (payload, emitSyntheticEvent) => {
 
 
 const serverUtilsRuntime = createServerUtilsRuntime({
-  fs,
   os,
   path,
   process,
-  openCodeReadyGraceMs: OPEN_CODE_READY_GRACE_MS,
-  longRequestTimeoutMs: LONG_REQUEST_TIMEOUT_MS,
-  getRuntime: () => ({
-    openCodePort,
-    openCodeBaseUrl,
-    openCodeNotReadySince,
-    isOpenCodeReady,
-    isRestartingOpenCode,
-  }),
-  getOpenCodeAuthHeaders,
-  buildOpenCodeUrl,
-  ensureOpenCodeApiPrefix,
-  getUpstreamStallTimeoutMs,
-  getUiNotificationClients: () => uiNotificationClients,
-  getOpenCodePort: () => openCodePort,
-  setOpenCodePortState: (value) => {
-    openCodePort = value;
-  },
-  syncToHmrState,
-  markOpenCodeNotReady: () => {
-    isOpenCodeReady = false;
-  },
-  setOpenCodeNotReadySince: (value) => {
-    openCodeNotReadySince = value;
-  },
-  clearLastOpenCodeError: () => {
-    lastOpenCodeError = null;
-  },
   getLoginShellPath: () => {
     const snapshot = getLoginShellEnvSnapshot();
     if (!snapshot || typeof snapshot.PATH !== 'string' || snapshot.PATH.length === 0) {
@@ -1090,21 +1061,18 @@ const stampSessionId = (frame, sessionId) => {
   }
   return frame;
 };
-const setupProxy = (...args) => serverUtilsRuntime.setupProxy(...args);
 const setupAgentProxy = (app) => {
-  if (ompEngineEnabled()) {
-    // OMP engine: serve the UI's core HTTP surface through the OMP adapter
-    // instead of proxying to OpenCode. The remaining /api routes (git, fs,
-    // terminal, preview, ...) are OMPChamber-owned and registered elsewhere.
-    registerOmpAdapterRoutes(app, {
-      getOmpRuntime,
-      getDirectory: () => process.cwd(),
-      log: (msg) => console.log(msg),
-    });
-    return;
-  }
-  setupProxy(app);
+  // OMP engine: serve the UI's core HTTP surface through the OMP adapter
+  // instead of proxying to OpenCode. The remaining /api routes (git, fs,
+  // terminal, preview, ...) are OMPChamber-owned and registered elsewhere.
+  registerOmpAdapterRoutes(app, {
+    getOmpRuntime,
+    getDirectory: () => process.cwd(),
+    log: (msg) => console.log(msg),
+  });
 };
+// Kept as a rename-compatible alias for the startup pipeline.
+const setupProxy = setupAgentProxy;
 const gracefulShutdownRuntime = createGracefulShutdownRuntime({
   process,
   shutdownTimeoutMs: SHUTDOWN_TIMEOUT,
