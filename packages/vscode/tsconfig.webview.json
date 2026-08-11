@@ -17,7 +17,9 @@
     "paths": {
       "@/*": ["../ui/src/*"],
       "@vscode/*": ["./webview/*"],
-      "@ompchamber/ui/*": ["../ui/src/*"]
+      "@ompchamber/ui/*": ["../ui/src/*"],
+      "@ompchamber/agent-protocol": ["../agent-protocol/src/index.ts"],
+      "@ompchamber/agent-protocol/*": ["../agent-protocol/src/*"]
     }
   },
   "include": ["webview/**/*", "../ui/src/**/*"]

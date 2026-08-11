@@ -1,6 +1,6 @@
-export const resolveManagedOpenCodeCwd = ({ env, homedir }) => {
-  const configured = typeof env?.OMPCHAMBER_OPENCODE_CWD === 'string'
-    ? env.OMPCHAMBER_OPENCODE_CWD.trim()
+export const resolveManagedWorkingDirectory = ({ env, homedir }) => {
+  const configured = typeof env?.OMPCHAMBER_WORKING_DIRECTORY === 'string'
+    ? env.OMPCHAMBER_WORKING_DIRECTORY.trim()
     : '';
   if (configured) {
     return configured;

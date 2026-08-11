@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveManagedOpenCodeCwd } from './opencode-cwd.mjs';
+import { resolveManagedWorkingDirectory } from './working-directory.mjs';
 
-describe('resolveManagedOpenCodeCwd', () => {
-  it('defaults managed OpenCode cwd to the user home directory', () => {
-    expect(resolveManagedOpenCodeCwd({ env: {}, homedir: () => '/Users/example' })).toBe('/Users/example');
+describe('resolveManagedWorkingDirectory', () => {
+  it('defaults the managed working directory to the user home directory', () => {
+    expect(resolveManagedWorkingDirectory({ env: {}, homedir: () => '/Users/example' })).toBe('/Users/example');
   });
 
-  it('preserves an explicit cwd override', () => {
-    expect(resolveManagedOpenCodeCwd({
-      env: { OMPCHAMBER_OPENCODE_CWD: '/tmp/opencode-cwd' },
+  it('preserves an explicit working directory override', () => {
+    expect(resolveManagedWorkingDirectory({
+      env: { OMPCHAMBER_WORKING_DIRECTORY: '/tmp/ompchamber-cwd' },
       homedir: () => '/Users/example',
-    })).toBe('/tmp/opencode-cwd');
+    })).toBe('/tmp/ompchamber-cwd');
   });
 
-  it('ignores a blank cwd override', () => {
-    expect(resolveManagedOpenCodeCwd({
-      env: { OMPCHAMBER_OPENCODE_CWD: '   ' },
+  it('ignores a blank working directory override', () => {
+    expect(resolveManagedWorkingDirectory({
+      env: { OMPCHAMBER_WORKING_DIRECTORY: '   ' },
       homedir: () => '/Users/example',
     })).toBe('/Users/example');
   });

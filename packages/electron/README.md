@@ -25,7 +25,7 @@ The preload bridge exposes desktop-only APIs to the web UI through `window.__OMP
 | `scripts/electron-dev.mjs` | Desktop dev launcher with Vite HMR support |
 | `scripts/ensure-electron.mjs` | Verifies the installed Electron binary is complete and repairs it via the postinstall under Bun |
 | `scripts/build-web-assets.mjs` | Builds `packages/web` and stages UI assets into `resources/web-dist` |
-| `scripts/prepare-opencode-cli.mjs` | Downloads and stages the pinned OpenCode CLI into `resources/opencode-cli` |
+| `scripts/prepare-omp-cli.mjs` | Installs the pinned OMP CLI into `resources/omp-cli` |
 | `scripts/bundle-main.mjs` | Bundles Electron main code into `dist-bundle/main.mjs` for packaging |
 | `scripts/rebuild-native.mjs` | Rebuilds native modules against the Electron runtime |
 | `scripts/package.mjs` | Runs `electron-builder`, with unsigned Windows builds when signing env is missing |
@@ -73,7 +73,7 @@ bun run electron:build
 That runs, in order:
 
 1. `build:web-assets` to build the web UI and copy it into `packages/electron/resources/web-dist`.
-2. `prepare:opencode-cli` to download/cache the pinned OpenCode CLI and copy it into `packages/electron/resources/opencode-cli`.
+2. `prepare:omp-cli` to install the pinned OMP CLI into `packages/electron/resources/omp-cli`.
 3. `bundle:main` to create `packages/electron/dist-bundle/main.mjs`.
 4. `rebuild:native` to rebuild native modules for Electron.
 5. `package.mjs` to run `electron-builder`; its `afterPack` hook stages the compiled macOS icon asset catalog.
@@ -88,13 +88,13 @@ macOS packaging needs Xcode/build tools for notarized builds and icon asset comp
 
 Windows packaging needs NSIS support through `electron-builder`. If no Windows signing env is set, `package.mjs` disables code signing and builds an unsigned installer. Windows updates use `latest.yml` for x64 and the `latest-arm64.yml` channel for ARM64 so each installation resolves an architecture-matching installer.
 
-Linux AppImages must be built natively. Set `OMPCHAMBER_TARGET_ARCH=x64` or `OMPCHAMBER_TARGET_ARCH=arm64` when packaging; the build rejects a target that does not match the Linux host. The same target selects the bundled OpenCode CLI, native Electron rebuild, and Electron Builder architecture. Linux identity is stable across architectures: executable `ompchamber`, desktop file `ompchamber.desktop`, icon `ompchamber`, and `StartupWMClass=ompchamber`.
+Linux AppImages must be built natively. Set `OMPCHAMBER_TARGET_ARCH=x64` or `OMPCHAMBER_TARGET_ARCH=arm64` when packaging; the build rejects a target that does not match the Linux host. The same target selects the bundled OMP CLI, native Electron rebuild, and Electron Builder architecture. Linux identity is stable across architectures: executable `ompchamber`, desktop file `ompchamber.desktop`, icon `ompchamber`, and `StartupWMClass=ompchamber`.
 
-After packaging, run `bun run --cwd packages/electron verify:linux-appimage`. The verifier extracts the final AppImage and checks its ELF architecture, desktop identity, Electron executable, pinned OpenCode CLI version and architecture, and all packaged native `.node` modules.
+After packaging, run `bun run --cwd packages/electron verify:linux-appimage`. The verifier extracts the final AppImage and checks its ELF architecture, desktop identity, Electron executable, pinned OMP CLI version and architecture, and all packaged native `.node` modules.
 
 Running a packaged Linux AppImage requires FUSE (`libfuse.so.2`, typically `libfuse2` / `libfuse2t64` on Debian/Ubuntu). Without FUSE, start with `APPIMAGE_EXTRACT_AND_RUN=1`. Keep the AppImage on a writable path so in-app updates can replace it.
 
-Desktop clears AppImage `ARGV0` from `process.env` before probing the login shell and starting the in-process server. Leaving it set makes zsh rewrite argv[0] for integrated-terminal and managed-OpenCode child commands to the AppImage path.
+Desktop clears AppImage `ARGV0` from `process.env` before probing the login shell and starting the in-process server. Leaving it set makes zsh rewrite argv[0] for integrated-terminal and managed-OMP child commands to the AppImage path.
 
 Linux updates are supported only when the packaged app is running from a writable AppImage. Update checks, downloads, and installation report an actionable error when `APPIMAGE` is missing, invalid, or read-only; a missing release feed (`latest-linux.yml` 404 before the first Linux publish) is treated as “no update available”. macOS and Windows updater behavior is unchanged. Release builds keep `latest-linux.yml` (x64) and `latest-linux-arm64.yml` separate and validate each manifest against its AppImage before upload. Linux AppImages download full updates (no `.blockmap` differential channel yet).
 
@@ -106,20 +106,17 @@ The package supports macOS, Windows, and Linux desktop features. Linux AppImage 
 
 The macOS menu bar item is enabled by default and can be disabled in General settings. The setting applies after restart; while disabled, Desktop does not create the native tray controller or start the renderer subscriptions, polling, quota refresh, or IPC updates that feed it.
 
-## Bundled OpenCode CLI
+## Bundled OMP CLI
 
-Packaged Desktop builds include the official OpenCode CLI that matches the pinned `@opencode-ai/sdk` version in the root `package.json`. `prepare:opencode-cli` downloads the platform-specific release artifact, caches it under `packages/electron/.cache/opencode-cli`, stages `opencode` or `opencode.exe` into `resources/opencode-cli`, and verifies `opencode --version` before packaging. Re-running the step is fast when the staged binary already matches the pinned version.
+OMPChamber 1.0 pins the bundled OMP version (OMPChamber 1.0 ↔ OMP 17.2.x). `prepare:omp-cli` installs `@oh-my-pi/pi-coding-agent@<pinned>` with its full dependency tree (including the platform `@oh-my-pi/pi-natives-*` packages) into `packages/electron/resources/omp-cli`, and the packaging step stages that directory into `process.resourcesPath/omp-cli`. The pinned version is defined in `scripts/prepare-omp-cli.mjs` (`PINNED_OMP_VERSION`); do not bump it without running the compatibility suite.
 
-Managed local Desktop startup prefers OpenCode binaries in this order:
+Desktop resolves the OMP binary in this order:
 
-1. `settings.opencodeBinary`.
-2. Environment overrides: `OPENCODE_BINARY`, `OPENCODE_PATH`, `OMPCHAMBER_OPENCODE_PATH`, or `OMPCHAMBER_OPENCODE_BIN`.
-3. The bundled Desktop CLI in `process.resourcesPath/opencode-cli`.
-4. System installs discovered from PATH.
-5. Known npm/Bun/Homebrew/Scoop/Chocolatey and other standard install locations.
-6. Platform discovery through `where opencode` on Windows or a login shell on macOS/Linux.
+1. `OMP_BINARY` environment override.
+2. The bundled Desktop CLI in `process.resourcesPath/omp-cli/omp`.
+3. System `omp` on PATH.
 
-Use an explicit override when testing a different OpenCode CLI build or when a user needs to point Desktop at a custom binary. The configured path must point to the standalone CLI, not the OpenCode Desktop app executable.
+Use an explicit `OMP_BINARY` override when testing a different OMP build. The configured path must point to the standalone OMP CLI, not the OMP desktop app executable.
 
 ## Common Env Vars
 
@@ -131,12 +128,12 @@ Use an explicit override when testing a different OpenCode CLI build or when a u
 | `OMPCHAMBER_HMR_UI_PORT` | Preferred Vite UI port for desktop dev, default `5173` |
 | `OMPCHAMBER_HMR_API_PORT` | Preferred API port for desktop dev, default `3901` |
 | `OMPCHAMBER_RUNTIME=desktop` | Set by Electron before starting the web server |
-| `OMPCHAMBER_OPENCODE_CLI_VERSION` | Optional packaging override for the bundled OpenCode CLI version; defaults to the pinned root `@opencode-ai/sdk` version |
+| `OMPCHAMBER_AGENT_ENGINE` | Agent engine selector; OMP is the only engine, defaulted to `omp` by Desktop |
+| `OMP_BINARY` | Explicit path to the OMP CLI; defaults to the bundled `resources/omp-cli/omp`, then system `omp` on PATH |
 | `OMPCHAMBER_TARGET_ARCH` | Explicit desktop package architecture (`x64` or `arm64`); Linux requires it to match the native host |
 | `OMPCHAMBER_DESKTOP_NOTIFY=true` | Enables desktop notification flow in the web server |
 | `OMPCHAMBER_SKIP_API_COMPRESSION=true` | Defaulted by Desktop to reduce local CPU overhead |
 | `OMPCHAMBER_STARTUP_PERF=1` | Enables privacy-safe startup phase timings in Desktop/server logs; disabled by default |
-| `OPENCODE_HOST` / `OPENCODE_PORT` / `OPENCODE_SKIP_START` | Connect Desktop to an external OpenCode server instead of starting one locally |
 
 ## Native Features Owned Here
 
@@ -171,7 +168,7 @@ Development builds use a separate user data directory named `OMPChamber Dev`, so
 
 ## Things To Be Careful With
 
-- Keep desktop-specific code in this package. Do not move OpenCode feature backend logic into Electron.
+- Keep desktop-specific code in this package. Do not move OMP feature backend logic into Electron.
 - Use hidden Windows process launches for background helpers. Avoid visible console flashes.
 - Keep `@ompchamber/web`, `bun-pty`, `node-pty`, and native modules external in `bundle-main.mjs`; bundling them can break Electron startup.
 - Rebuild native modules after dependency or Electron version changes.

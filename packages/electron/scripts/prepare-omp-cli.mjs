@@ -1,7 +1,7 @@
 /**
  * Bundles a pinned OMP CLI into the desktop resources directory.
  *
- * OMPChamber pins the bundled OMP version (OMPChamber 0.1 ↔ OMP 17.2.x).
+ * OMPChamber pins the bundled OMP version (OMPChamber 1.0 ↔ OMP 17.2.x).
  * This script installs `@oh-my-pi/pi-coding-agent@<pinned>` into
  * resources/omp-cli (complete dependency tree, including the platform
  * `@oh-my-pi/pi-natives-*` packages) so the desktop ships a tested OMP rather

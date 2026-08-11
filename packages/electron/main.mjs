@@ -12,7 +12,7 @@ import { promisify } from 'node:util';
 import updaterPkg from 'electron-updater';
 import { ElectronSshManager } from './ssh-manager.mjs';
 import { createTrayController } from './tray.mjs';
-import { resolveManagedOpenCodeCwd } from './opencode-cwd.mjs';
+import { resolveManagedWorkingDirectory } from './working-directory.mjs';
 import { resolveStartupUrlProbePlan, shouldIgnoreLoopbackConnectionLimit } from './startup-url-selection.mjs';
 import { sanitizeRuntimeRequestHeaders } from './runtime-request-headers.mjs';
 import { assertUpdaterCapability } from './updater-capability.mjs';
@@ -130,7 +130,7 @@ log.transports.console.level = isDev ? 'debug' : 'warn';
 // The in-process web server runs in this same Node process and uses plain
 // `console.log/warn/error`. Without piping console through electron-log,
 // that output never lands in ~/Library/Logs/OMPChamber/main.log and we
-// can't diagnose issues (e.g. OpenCode lifecycle, SSE disconnects) after
+// can't diagnose issues (e.g. agent engine lifecycle, SSE disconnects) after
 // the fact. Route all console calls through electron-log so server-side
 // diagnostics are persisted.
 Object.assign(console, log.functions);
@@ -237,7 +237,7 @@ const DISCORD_INVITE_URL = 'https://discord.gg/ZYRSdnwwKA';
 const INSTALLED_APPS_CACHE_TTL_SECS = 60 * 60 * 24;
 const INSTALLED_APPS_CACHE_FILE = 'discovered-apps.json';
 const LINUX_DESKTOP_ENTRIES_CACHE_TTL_MS = 30_000;
-const OPENCODE_SHUTDOWN_GRACE_MS = 100;
+const ENGINE_SHUTDOWN_GRACE_MS = 100;
 const { autoUpdater } = updaterPkg;
 
 const state = {
@@ -415,7 +415,7 @@ const performConfirmedQuit = () => {
 
 // Hard-stop signals (`Ctrl+C` on `electron:dev`, an external `kill`/SIGTERM,
 // terminal close) bypass the normal app-quit flow — which would orphan the
-// in-process web server's managed OpenCode child. Run the same background
+// in-process web server's managed agent engine child. Run the same background
 // teardown the quit path uses (which kills the sidecar), then exit. The startup
 // reaper remains the backstop for an unhandled hard crash (SIGKILL).
 for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
@@ -1350,7 +1350,6 @@ const loadWindowsEnv = () => {
   const localAppData = process.env.LOCALAPPDATA || path.join(homeDir, 'AppData', 'Local');
   const appData = process.env.APPDATA || path.join(homeDir, 'AppData', 'Roaming');
   const commonPaths = [
-    path.join(homeDir, '.opencode', 'bin'),
     path.join(homeDir, '.bun', 'bin'),
     path.join(homeDir, '.local', 'bin'),
     path.join(localAppData, 'Programs', 'Microsoft VS Code', 'bin'),
@@ -1384,7 +1383,7 @@ const loadShellEnv = () => {
 import { pathLooksUserConfigured, mergePathValues } from '@ompchamber/web/server/lib/path-utils.js';
 import { clearAppImageArgv0FromProcessEnv } from '@ompchamber/web/server/lib/inherited-env.js';
 
-// import/start the server in-process. The server and its children (opencode
+// import/start the server in-process. The server and its children (OMP
 // CLI, git, etc.) inherit process.env directly now — there is no sidecar
 // subprocess to hand a custom env to.
 const inheritUserShellEnv = () => {
@@ -1466,7 +1465,7 @@ const spawnLocalServer = async () => {
   }
   process.env.OMPCHAMBER_DIST_DIR = resolveWebDistDir();
   process.env.OMPCHAMBER_RUNTIME = 'desktop';
-  // Agent engine: OMP is the only engine (OpenCode was removed). An explicit
+  // Agent engine: OMP is the only engine. An explicit
   // OMPCHAMBER_AGENT_ENGINE env var wins; otherwise the OMP engine is used.
   if (!process.env.OMPCHAMBER_AGENT_ENGINE) {
     process.env.OMPCHAMBER_AGENT_ENGINE = 'omp';
@@ -1479,9 +1478,9 @@ const spawnLocalServer = async () => {
       process.env.OMP_BINARY = ompBinary;
     }
   }
-  // OpenCode uses process cwd as a fallback directory; app userData would make
+  // The server uses process cwd as a fallback directory; app userData would make
   // packaged desktop look like a separate empty workspace.
-  process.env.OMPCHAMBER_OPENCODE_CWD = resolveManagedOpenCodeCwd({
+  process.env.OMPCHAMBER_WORKING_DIRECTORY = resolveManagedWorkingDirectory({
     env: process.env,
     homedir: () => os.homedir(),
   });
@@ -1528,7 +1527,7 @@ const spawnLocalServer = async () => {
   return url;
 };
 
-const launchDetachedOpenCodeKiller = (processInfo) => {
+const launchDetachedEngineKiller = (processInfo) => {
   if (!processInfo?.managed) return;
   const pid = Number(processInfo.pid);
   const port = Number(processInfo.port);
@@ -1543,7 +1542,7 @@ const launchDetachedOpenCodeKiller = (processInfo) => {
     const script = `
 $ErrorActionPreference = 'SilentlyContinue'
 $targetPid = ${normalizedPid}
-$graceMs = ${Math.max(0, Math.trunc(OPENCODE_SHUTDOWN_GRACE_MS))}
+$graceMs = ${Math.max(0, Math.trunc(ENGINE_SHUTDOWN_GRACE_MS))}
 function Stop-ProcessTree([int]$processId, [bool]$force) {
   if ($processId -le 0) { return }
   $children = Get-CimInstance Win32_Process -Filter "ParentProcessId=$processId"
@@ -1601,7 +1600,7 @@ Stop-ProcessTree $targetPid $true
     'if [ "$pid" -gt 0 ] 2>/dev/null; then kill -KILL "-$pid" 2>/dev/null; kill -KILL "$pid" 2>/dev/null; fi',
     'if [ "$port" -gt 0 ] 2>/dev/null && command -v lsof >/dev/null 2>&1; then for target in $(lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null; lsof -ti ":$port" 2>/dev/null); do [ "$target" = "$$" ] || kill -KILL "$target" 2>/dev/null; done; fi',
   ].join('; ');
-  const child = spawn('/bin/sh', ['-c', script, 'ompchamber-opencode-killer', normalizedPid, normalizedPort, String(OPENCODE_SHUTDOWN_GRACE_MS / 1000)], {
+  const child = spawn('/bin/sh', ['-c', script, 'ompchamber-engine-killer', normalizedPid, normalizedPort, String(ENGINE_SHUTDOWN_GRACE_MS / 1000)], {
     detached: true,
     stdio: 'ignore',
     windowsHide: true,
@@ -1616,9 +1615,9 @@ const killSidecar = () => {
   if (!handle) return;
 
   try {
-    launchDetachedOpenCodeKiller(handle.getOpenCodeProcessInfo?.());
+    launchDetachedEngineKiller(handle.getEngineProcessInfo?.());
   } catch (error) {
-    log.warn('[electron] failed to launch OpenCode killer:', error);
+    log.warn('[electron] failed to launch engine killer:', error);
   }
 };
 

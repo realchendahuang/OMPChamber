@@ -1,6 +1,6 @@
 {
   "name": "ompchamber-monorepo",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "OMPChamber monorepo workspace: OMP desktop client built on the OMPChamber UI",
   "private": true,
   "type": "module",

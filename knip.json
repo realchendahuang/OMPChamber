@@ -48,7 +48,7 @@
         "preload.mjs",
         "tray.mjs",
         "ssh-manager.mjs",
-        "opencode-cwd.mjs",
+        "working-directory.mjs",
         "*.{test,spec}.{js,cjs,mjs}",
         "scripts/**/*.{js,cjs,mjs}"
       ],

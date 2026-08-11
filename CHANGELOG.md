@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-11
+
+- **Agent engine: OMP (Oh My Pi).** The OpenCode runtime was removed from the server; the agent engine is now the bundled OMP CLI (`omp --mode rpc-ui`), pinned at 17.2.12. The UI surface stays OpenCode-shaped through the OMP adapter, so the product experience is unchanged.
+- **UI type convergence.** All 185 UI files now import domain types from `@ompchamber/agent-protocol` instead of `@opencode-ai/sdk`; the SDK runtime dependency was replaced by the in-repo `DomainClient` (runtime-fetch based, SSE with Last-Event-ID reconnect).
+- **Desktop bundles OMP.** `prepare:omp-cli` installs the pinned OMP CLI into `resources/omp-cli` and packaging stages it into the app resources; Desktop defaults to the bundled binary with `OMP_BINARY` override support.
+- **Version 1.0.0** across root, web, ui, electron, agent-protocol, and vscode workspaces.
+
 ## [1.18.2] - 2026-08-10
 
 - **Observability panel:** a new panel near to the chat brings the active goal, tasks, subagents, pinned context, MCP servers, and context usage into one live view. The session list also shows how long an agent has been working.

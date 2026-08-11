@@ -93,9 +93,16 @@
         "vite": "^7.1.2",
       },
     },
+    "packages/agent-protocol": {
+      "name": "@ompchamber/agent-protocol",
+      "version": "1.0.0",
+      "devDependencies": {
+        "typescript": "^5.0.0",
+      },
+    },
     "packages/electron": {
       "name": "@ompchamber/electron",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "dependencies": {
         "@ompchamber/web": "workspace:*",
         "electron-context-menu": "^4.1.2",
@@ -131,7 +138,7 @@
     },
     "packages/ui": {
       "name": "@ompchamber/ui",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "dependencies": {
         "@aparajita/capacitor-secure-storage": "^8.0.0",
         "@base-ui/react": "^1.4.0",
@@ -165,7 +172,6 @@
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@lezer/highlight": "^1.2.3",
-        "@opencode-ai/sdk": "1.18.16",
         "@pierre/diffs": "1.3.0-beta.6",
         "@replit/codemirror-vim": "^6.3.0",
         "@simplewebauthn/browser": "13.3.0",
@@ -236,10 +242,10 @@
     },
     "packages/vscode": {
       "name": "ompchamber",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "dependencies": {
         "@ompchamber/ui": "workspace:*",
-        "@opencode-ai/sdk": "1.18.15",
+        "@opencode-ai/sdk": "1.18.16",
         "adm-zip": "^0.6.0",
         "jsonc-parser": "^3.3.1",
         "react": "^19.1.1",
@@ -259,14 +265,14 @@
     },
     "packages/web": {
       "name": "@ompchamber/web",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "bin": {
         "ompchamber": "./bin/cli.js",
       },
       "dependencies": {
         "@clack/prompts": "^1.1.0",
         "@octokit/rest": "^22.0.1",
-        "@opencode-ai/sdk": "1.18.16",
+        "@opencode-ai/sdk": "1.18.15",
         "@simplewebauthn/server": "13.3.1",
         "adm-zip": "^0.6.0",
         "bun-pty": "^0.4.5",
@@ -988,6 +994,8 @@
     "@octokit/rest": ["@octokit/rest@22.0.1", "", { "dependencies": { "@octokit/core": "^7.0.6", "@octokit/plugin-paginate-rest": "^14.0.0", "@octokit/plugin-request-log": "^6.0.0", "@octokit/plugin-rest-endpoint-methods": "^17.0.0" } }, "sha512-Jzbhzl3CEexhnivb1iQ0KJ7s5vvjMWcmRtq5aUsKmKDrRW6z3r84ngmiFKFvpZjpiU/9/S6ITPFRpn5s/3uQJw=="],
 
     "@octokit/types": ["@octokit/types@16.0.0", "", { "dependencies": { "@octokit/openapi-types": "^27.0.0" } }, "sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg=="],
+
+    "@ompchamber/agent-protocol": ["@ompchamber/agent-protocol@workspace:packages/agent-protocol"],
 
     "@ompchamber/electron": ["@ompchamber/electron@workspace:packages/electron"],
 
@@ -3476,6 +3484,8 @@
     "@npmcli/agent/socks-proxy-agent": ["socks-proxy-agent@8.0.5", "", { "dependencies": { "agent-base": "^7.1.2", "debug": "^4.3.4", "socks": "^2.8.3" } }, "sha512-HehCEsotFqbPW9sJ8WVYB6UbmIMv7kUUORIF2Nncq4VQvBfNBLibW9YZR5dlYCSUhwcD628pRllm7n+E+YTzJw=="],
 
     "@npmcli/move-file/rimraf": ["rimraf@3.0.2", "", { "dependencies": { "glob": "^7.1.3" }, "bin": { "rimraf": "bin.js" } }, "sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA=="],
+
+    "@ompchamber/web/@opencode-ai/sdk": ["@opencode-ai/sdk@1.18.15", "", { "dependencies": { "cross-spawn": "7.0.6" } }, "sha512-8sfo9nGiVwesAZW9Wqkvynyn7w4wYaHx1O9qOHpYL65+Bs2XUpHP3kBbZe58gjQydFgk6I74kUF7sqCiPu2arQ=="],
 
     "@ompchamber/web/cron-parser": ["cron-parser@4.9.0", "", { "dependencies": { "luxon": "^3.2.1" } }, "sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q=="],
 

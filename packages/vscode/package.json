@@ -2,7 +2,7 @@
 "name": "ompchamber",
 "displayName": "OMPChamber",
   "description": "%extension.description%",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "publisher": "fedaykindev",
   "private": true,
   "repository": {
