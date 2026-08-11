@@ -1,11 +1,11 @@
 ---
-title: OpenCode-Server
-description: Verbinde OMPChamber mit einem lokalen oder entfernten OpenCode-Server.
+title: OMPChamber-Server
+description: Verbinde OMPChamber mit einem lokalen oder entfernten OMPChamber-Server.
 ---
 
-# OpenCode-Server
+# OMPChamber-Server
 
-OMPChamber läuft auf einem OpenCode-Server auf. Standardmäßig startet es einen für dich, sodass du nichts tun musst. Diese Seite brauchst du nur, wenn du OMPChamber auf einen Server zeigen lassen willst, den du bereits betreibst, oder den Server verwalten willst, den es startet.
+OMPChamber läuft auf einem OMPChamber-Server auf. Standardmäßig startet es einen für dich, sodass du nichts tun musst. Diese Seite brauchst du nur, wenn du OMPChamber auf einen Server zeigen lassen willst, den du bereits betreibst, oder den Server verwalten willst, den es startet.
 
 ## Wie OMPChamber einen Server findet
 
@@ -26,7 +26,7 @@ Setze diese Variablen, bevor du OMPChamber startest:
 OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
 ```
 
-- `OPENCODE_HOST` — die vollständige Adresse deines OpenCode-Servers einschließlich des Ports (ein Wert wie `http://localhost:4096`). Sie darf am Ende keinen Pfad haben.
+- `OPENCODE_HOST` — die vollständige Adresse deines OMPChamber-Servers einschließlich des Ports (ein Wert wie `http://localhost:4096`). Sie darf am Ende keinen Pfad haben.
 - `OPENCODE_SKIP_START=true` — weist OMPChamber an, keinen eigenen Server zu starten.
 
 Wenn du nur den Port ändern musst, setze `OPENCODE_PORT` statt `OPENCODE_HOST`.
@@ -87,11 +87,11 @@ ompchamber tunnel stop --port 3000
 
 Das Stoppen des Tunnels startet weder den Dienst noch die App neu.
 
-## „OpenCode wird neu gestartet“
+## „OMP wird neu gestartet“
 
-Während der Server startet oder neu startet, zeigt OMPChamber den Status „OpenCode wird neu gestartet“ an und pausiert Anfragen, bis er bereit ist. Das ist direkt nach dem Start oder einem Neustart normal. Wenn er nie verschwindet, siehe [OpenCode-Verbindung](/troubleshooting/opencode-connection/).
+Während der Server startet oder neu startet, zeigt OMPChamber den Status „OMP wird neu gestartet“ an und pausiert Anfragen, bis er bereit ist. Das ist direkt nach dem Start oder einem Neustart normal. Wenn er nie verschwindet, siehe [OMP-Verbindung](/troubleshooting/omp-connection/).
 
 ## Verwandtes
 
 - [Providers, Models & Agents](/providers/) — festlegen, womit der Server spricht
-- [OpenCode-Verbindung](/troubleshooting/opencode-connection/) — falls keine Verbindung möglich ist
+- [OMP-Verbindung](/troubleshooting/omp-connection/) — falls keine Verbindung möglich ist

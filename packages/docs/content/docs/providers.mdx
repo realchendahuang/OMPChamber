@@ -22,7 +22,7 @@ For gateways, campus LLMs, Ollama, LiteLLM, and similar OpenAI-compatible APIs:
 1. Choose **Other / Custom** in the provider list.
 2. Enter a provider ID, display name, base URL (`http://` or `https://`), API key (or `{env:VAR_NAME}`), and at least one model id/name.
 3. Optionally add request headers.
-4. Save — OMPChamber writes the provider block to OpenCode config and stores the key in OpenCode auth (literal keys) or records an `{env:VAR}` reference.
+4. Save — OMPChamber writes the provider block to OMP config and stores the key in OMP auth (literal keys) or records an `{env:VAR}` reference.
 5. To change an existing custom provider, open it and choose **Edit**.
 
 Custom providers require an API key or `{env:VAR_NAME}` before they show as fully connected. Without credentials, models may appear but chat calls will fail.
@@ -53,7 +53,7 @@ An agent is a named setup — a model, a personality, and what it's allowed to d
 
 ## Where your sign-ins live
 
-Provider sign-ins are stored by OpenCode, not OMPChamber, so they're shared with the OpenCode CLI. If you set the same provider in more than one place, the most specific setting wins: a per-project setting overrides your personal one.
+Provider sign-ins are stored by OMP, not OMPChamber, so they're shared with the `omp` CLI. If you set the same provider in more than one place, the most specific setting wins: a per-project setting overrides your personal one.
 
 ## Related
 

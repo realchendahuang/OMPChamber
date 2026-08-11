@@ -1,13 +1,13 @@
 ---
-title: OpenCode 连接
-description: 修复 OMPChamber 无法连接到它的 OpenCode 服务器的问题。
+title: OMP 连接
+description: 修复 OMPChamber 无法连接到它的 OMPChamber 服务器的问题。
 ---
 
-# OpenCode 连接
+# OMP 连接
 
-如果 OMPChamber 加载了但始终无法越过 “OpenCode is restarting”，或者聊天没有响应，那就是它所通信的服务器无法访问。请逐项排查。
+如果 OMPChamber 加载了但始终无法越过 “OMP is restarting”，或者聊天没有响应，那就是它所通信的服务器无法访问。请逐项排查。
 
-## 卡在 “OpenCode is restarting”
+## 卡在 “OMP is restarting”
 
 - 启动后稍等片刻 — 服务器启动期间出现此状态是正常的
 - 用 `ompchamber status` 检查服务器是否存活
@@ -16,7 +16,7 @@ description: 修复 OMPChamber 无法连接到它的 OpenCode 服务器的问题
 
 ## 你正在连接自己的服务器
 
-如果你设置了 OMPChamber 使用现有的服务器，请对照 [OpenCode Server](/zh-cn/opencode-server/) 仔细检查配置：
+如果你设置了 OMPChamber 使用现有的服务器，请对照 [OMPChamber Server](/zh-cn/omp-server/) 仔细检查配置：
 
 - `OPENCODE_HOST` 必须包含端口，且不带路径 — 例如 `http://localhost:4096`
 - 设置 `OPENCODE_SKIP_START=true`，这样 OMPChamber 就不会同时启动自己的服务器
@@ -30,5 +30,5 @@ description: 修复 OMPChamber 无法连接到它的 OpenCode 服务器的问题
 
 ## 相关内容
 
-- [OpenCode Server](/zh-cn/opencode-server/) — OMPChamber 如何查找和管理服务器
+- [OMPChamber Server](/zh-cn/omp-server/) — OMPChamber 如何查找和管理服务器
 - [问题排查](/zh-cn/troubleshooting/) — 其他常见问题

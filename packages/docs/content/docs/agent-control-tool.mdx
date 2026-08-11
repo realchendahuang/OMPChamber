@@ -5,7 +5,7 @@ description: Let an agent manage OMPChamber sessions, worktrees, and scheduled t
 
 # Agent Control Tool
 
-Use the `ompchamber` agent tool to manage work in the app directly from chat. It is enabled by default when OMPChamber runs its own local OpenCode server; there is no separate tool to install or shell command to run.
+Use the `ompchamber` agent tool to manage work in the app directly from chat. It is enabled by default when OMPChamber runs its own local OMPChamber server; there is no separate tool to install or shell command to run.
 
 ## What you can ask
 
@@ -28,9 +28,9 @@ The tool can list projects and model preferences, create and follow up on sessio
 
 ## Turn the tool on or off
 
-Open **Settings → General → OpenCode CLI**, change **Agent control tool**, then select **Save + Reload**. The setting applies after the managed OpenCode server restarts.
+Open **Settings → General → OMP CLI**, change **Agent control tool**, then select **Save + Reload**. The setting applies after the managed OMPChamber server restarts.
 
-The tool is not available when OMPChamber connects to an external OpenCode server through `OPENCODE_HOST` or skip-start, or inside the VS Code extension. Desktop and web installations that use OMPChamber's managed OpenCode server support it automatically.
+The tool is not available when OMPChamber connects to an external OMPChamber server through `OPENCODE_HOST` or skip-start, or inside the VS Code extension. Desktop and web installations that use OMPChamber's managed server support it automatically.
 
 ## Related
 

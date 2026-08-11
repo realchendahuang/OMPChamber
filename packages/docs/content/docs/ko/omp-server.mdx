@@ -1,11 +1,11 @@
 ---
-title: OpenCode 서버
-description: OMPChamber를 로컬 또는 원격 OpenCode 서버에 연결하세요.
+title: OMPChamber 서버
+description: OMPChamber를 로컬 또는 원격 OMPChamber 서버에 연결하세요.
 ---
 
-# OpenCode 서버
+# OMPChamber 서버
 
-OMPChamber는 OpenCode 서버 위에서 실행됩니다. 기본적으로 OMPChamber가 서버를 직접 시작하므로 따로 할 일은 없습니다. 이미 운영 중인 서버를 OMPChamber가 사용하도록 지정하거나, OMPChamber가 시작한 서버를 관리하려는 경우에만 이 페이지가 필요합니다.
+OMPChamber는 OMPChamber 서버 위에서 실행됩니다. 기본적으로 OMPChamber가 서버를 직접 시작하므로 따로 할 일은 없습니다. 이미 운영 중인 서버를 OMPChamber가 사용하도록 지정하거나, OMPChamber가 시작한 서버를 관리하려는 경우에만 이 페이지가 필요합니다.
 
 ## OMPChamber가 서버를 찾는 방법
 
@@ -26,7 +26,7 @@ OMPChamber를 시작하기 전에 다음을 설정하세요.
 OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
 ```
 
-- `OPENCODE_HOST` — 포트를 포함한 OpenCode 서버의 전체 주소(예: `http://localhost:4096`)입니다. 끝에 경로가 붙어서는 안 됩니다.
+- `OPENCODE_HOST` — 포트를 포함한 OMPChamber 서버의 전체 주소(예: `http://localhost:4096`)입니다. 끝에 경로가 붙어서는 안 됩니다.
 - `OPENCODE_SKIP_START=true` — OMPChamber가 자체 서버를 시작하지 않도록 지정합니다.
 
 포트만 변경하면 된다면 `OPENCODE_HOST` 대신 `OPENCODE_PORT`를 설정하세요.
@@ -87,11 +87,11 @@ ompchamber tunnel stop --port 3000
 
 터널을 중지해도 서비스나 앱은 재시작되지 않습니다.
 
-## "OpenCode is restarting"
+## "OMP is restarting"
 
-서버가 시작되거나 재시작되는 동안 OMPChamber는 "OpenCode is restarting" 상태를 표시하고 준비가 끝날 때까지 요청을 일시 중지합니다. 실행 직후나 재시작 직후에는 정상적인 동작입니다. 이 상태가 계속 사라지지 않으면 [OpenCode 연결](/ko/troubleshooting/opencode-connection/)을 참고하세요.
+서버가 시작되거나 재시작되는 동안 OMPChamber는 "OMP is restarting" 상태를 표시하고 준비가 끝날 때까지 요청을 일시 중지합니다. 실행 직후나 재시작 직후에는 정상적인 동작입니다. 이 상태가 계속 사라지지 않으면 [OMP 연결](/ko/troubleshooting/omp-connection/)을 참고하세요.
 
 ## 관련 항목
 
 - [Providers, Models & Agents](/ko/providers/) — 서버가 통신할 대상을 설정합니다
-- [OpenCode 연결](/ko/troubleshooting/opencode-connection/) — 연결되지 않을 때
+- [OMP 연결](/ko/troubleshooting/omp-connection/) — 연결되지 않을 때

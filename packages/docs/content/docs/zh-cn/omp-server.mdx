@@ -1,11 +1,11 @@
 ---
-title: OpenCode Server
-description: 将 OMPChamber 连接到本地或远程的 OpenCode 服务器。
+title: OMPChamber Server
+description: 将 OMPChamber 连接到本地或远程的 OMPChamber 服务器。
 ---
 
-# OpenCode Server
+# OMPChamber Server
 
-OMPChamber 运行在 OpenCode 服务器之上。默认情况下，它会为你启动一个，所以你无需做任何事。只有当你想让 OMPChamber 指向一个你已经运行的服务器，或者管理它所启动的服务器时，才需要本页内容。
+OMPChamber 运行在 OMPChamber 服务器之上。默认情况下，它会为你启动一个，所以你无需做任何事。只有当你想让 OMPChamber 指向一个你已经运行的服务器，或者管理它所启动的服务器时，才需要本页内容。
 
 ## OMPChamber 如何查找服务器
 
@@ -26,7 +26,7 @@ OMPChamber 启动时，会按以下顺序查找服务器：
 OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
 ```
 
-- `OPENCODE_HOST` — 你的 OpenCode 服务器的完整地址，包括端口（类似 `http://localhost:4096` 这样的值）。末尾不能带路径。
+- `OPENCODE_HOST` — 你的 OMPChamber 服务器的完整地址，包括端口（类似 `http://localhost:4096` 这样的值）。末尾不能带路径。
 - `OPENCODE_SKIP_START=true` — 告诉 OMPChamber 不要启动它自己的服务器。
 
 如果你只需要更改端口，请设置 `OPENCODE_PORT` 而不是 `OPENCODE_HOST`。
@@ -87,11 +87,11 @@ ompchamber tunnel stop --port 3000
 
 停止隧道不会重启服务或应用。
 
-## “OpenCode is restarting”
+## “OMP is restarting”
 
-当服务器正在启动或重启时，OMPChamber 会显示 “OpenCode is restarting” 状态，并暂停请求直到服务器就绪。这在启动或重启后立即出现是正常的。如果它一直无法消失，请参阅 [OpenCode 连接](/zh-cn/troubleshooting/opencode-connection/)。
+当服务器正在启动或重启时，OMPChamber 会显示 “OMP is restarting” 状态，并暂停请求直到服务器就绪。这在启动或重启后立即出现是正常的。如果它一直无法消失，请参阅 [OMP 连接](/zh-cn/troubleshooting/omp-connection/)。
 
 ## 相关内容
 
 - [提供商、模型与智能体](/zh-cn/providers/) — 设置服务器要与之通信的对象
-- [OpenCode 连接](/zh-cn/troubleshooting/opencode-connection/) — 如果无法连接
+- [OMP 连接](/zh-cn/troubleshooting/omp-connection/) — 如果无法连接

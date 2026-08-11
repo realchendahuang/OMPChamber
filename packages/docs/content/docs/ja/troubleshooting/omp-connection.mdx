@@ -1,13 +1,13 @@
 ---
-title: OpenCode 接続
-description: OMPChamber が OpenCode サーバーへ接続できない問題を修正します。
+title: OMP 接続
+description: OMPChamber が OMPChamber サーバーへ接続できない問題を修正します。
 ---
 
-# OpenCode 接続
+# OMP 接続
 
-OMPChamber は読み込まれるのに "OpenCode is restarting" から進まない、またはチャットが応答しない場合、接続先サーバーに到達できていません。次を順に確認してください。
+OMPChamber は読み込まれるのに "OMP is restarting" から進まない、またはチャットが応答しない場合、接続先サーバーに到達できていません。次を順に確認してください。
 
-## "OpenCode is restarting" のまま止まっている
+## "OMP is restarting" のまま止まっている
 
 - 起動直後は少し待ってください。サーバー起動中はこの状態が正常です
 - `ompchamber status` でサーバーが生きているか確認します
@@ -16,7 +16,7 @@ OMPChamber は読み込まれるのに "OpenCode is restarting" から進まな�
 
 ## 自分のサーバーへ接続している
 
-既存サーバーを使うよう OMPChamber を設定した場合は、[OpenCode サーバー](/opencode-server/) の設定を再確認してください。
+既存サーバーを使うよう OMPChamber を設定した場合は、[OMPChamber サーバー](/omp-server/) の設定を再確認してください。
 
 - `OPENCODE_HOST` はポートを含み、パスを含まない必要があります。例: `http://localhost:4096`
 - `OPENCODE_SKIP_START=true` を設定し、OMPChamber が自分のサーバーも起動しないようにします
@@ -30,5 +30,5 @@ OMPChamber は読み込まれるのに "OpenCode is restarting" から進まな�
 
 ## 関連
 
-- [OpenCode サーバー](/opencode-server/) — OMPChamber がサーバーを見つけて管理する方法
+- [OMPChamber サーバー](/omp-server/) — OMPChamber がサーバーを見つけて管理する方法
 - [トラブルシューティング](/troubleshooting/) — その他のよくある問題

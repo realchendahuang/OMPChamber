@@ -1,11 +1,11 @@
 ---
-title: OpenCode Server
-description: Conecta OMPChamber a un servidor de OpenCode local o remoto.
+title: OMPChamber Server
+description: Conecta OMPChamber a un servidor de OMPChamber local o remoto.
 ---
 
-# OpenCode Server
+# OMPChamber Server
 
-OMPChamber se ejecuta sobre un servidor de OpenCode. De forma predeterminada inicia uno por ti, así que no tienes que hacer nada. Solo necesitas esta página si quieres apuntar OMPChamber a un servidor que ya ejecutas, o gestionar el que él inicia.
+OMPChamber se ejecuta sobre un servidor de OMPChamber. De forma predeterminada inicia uno por ti, así que no tienes que hacer nada. Solo necesitas esta página si quieres apuntar OMPChamber a un servidor que ya ejecutas, o gestionar el que él inicia.
 
 ## Cómo encuentra OMPChamber un servidor
 
@@ -26,7 +26,7 @@ Define esto antes de iniciar OMPChamber:
 OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
 ```
 
-- `OPENCODE_HOST` — la dirección completa de tu servidor de OpenCode, incluido el puerto (un valor como `http://localhost:4096`). No debe tener una ruta al final.
+- `OPENCODE_HOST` — la dirección completa de tu servidor de OMPChamber, incluido el puerto (un valor como `http://localhost:4096`). No debe tener una ruta al final.
 - `OPENCODE_SKIP_START=true` — le indica a OMPChamber que no inicie su propio servidor.
 
 Si solo necesitas cambiar el puerto, define `OPENCODE_PORT` en lugar de `OPENCODE_HOST`.
@@ -87,11 +87,11 @@ ompchamber tunnel stop --port 3000
 
 Detener el túnel no reinicia el servicio ni la app.
 
-## "OpenCode is restarting"
+## "OMP is restarting"
 
-Mientras el servidor se inicia o reinicia, OMPChamber muestra un estado "OpenCode is restarting" y pausa las solicitudes hasta que esté listo. Esto es normal justo después de iniciar o reiniciar. Si nunca desaparece, consulta [Conexión de OpenCode](/es/troubleshooting/opencode-connection/).
+Mientras el servidor se inicia o reinicia, OMPChamber muestra un estado "OMP is restarting" y pausa las solicitudes hasta que esté listo. Esto es normal justo después de iniciar o reiniciar. Si nunca desaparece, consulta [Conexión de OMP](/es/troubleshooting/omp-connection/).
 
 ## Relacionado
 
 - [Proveedores, modelos y agentes](/es/providers/) — configura con qué se comunica el servidor
-- [Conexión de OpenCode](/es/troubleshooting/opencode-connection/) — si no se conecta
+- [Conexión de OMP](/es/troubleshooting/omp-connection/) — si no se conecta

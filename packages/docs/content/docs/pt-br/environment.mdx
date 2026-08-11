@@ -1,6 +1,6 @@
 ---
 title: Variáveis de ambiente
-description: Configure a integração do OMPChamber e do OpenCode com variáveis de ambiente.
+description: Configure a integração do OMPChamber e do OMP com variáveis de ambiente.
 ---
 
 # Variáveis de ambiente
@@ -45,43 +45,43 @@ Altera o endpoint de verificação de atualizações. A maioria dos usuários de
 
 Força o gerenciador de pacotes usado em atualizações quando a detecção automática estiver errada.
 
-## Servidor OpenCode
+## Servidor OMP
 
 ### `OPENCODE_HOST`
 
-Conecta o OMPChamber a um servidor OpenCode existente. O valor deve ser um origin `http` ou `https` com porta explícita e sem path, query ou hash. `OPENCODE_HOST` tem prioridade sobre `OPENCODE_PORT`.
+Conecta o OMPChamber a um servidor OMPChamber existente. O valor deve ser um origin `http` ou `https` com porta explícita e sem path, query ou hash. `OPENCODE_HOST` tem prioridade sobre `OPENCODE_PORT`.
 
 ### `OPENCODE_PORT`
 
-Define a porta do servidor OpenCode. Com OpenCode gerenciado, solicita essa porta; com `OPENCODE_SKIP_START=true`, conecta a um servidor externo nessa porta.
+Define a porta do servidor OMP. Com OMP gerenciado, solicita essa porta; com `OPENCODE_SKIP_START=true`, conecta a um servidor externo nessa porta.
 
 ### `OPENCODE_SKIP_START`
 
-Impede o OMPChamber de iniciar seu próprio servidor OpenCode quando definido como `true`.
+Impede o OMPChamber de iniciar seu próprio servidor OMP quando definido como `true`.
 
 ### `OMPCHAMBER_OPENCODE_HOSTNAME`
 
-Hostname do servidor OpenCode gerenciado pelo OMPChamber. O padrão é `127.0.0.1`.
+Hostname do servidor OMP gerenciado pelo OMPChamber. O padrão é `127.0.0.1`.
 
 ### `OPENCODE_BINARY`
 
-Caminho para o executável `opencode` que o OMPChamber deve usar.
+Caminho para o executável `omp` que o OMPChamber deve usar.
 
 ### `OPENCODE_CONFIG`
 
-Caminho para um arquivo de configuração específico do OpenCode.
+Caminho para um arquivo de configuração específico do OMP.
 
 ### `OPENCODE_CONFIG_DIR`
 
-Caminho para o diretório de configuração do OpenCode para agents, skills, snippets e descoberta de config.
+Caminho para o diretório de configuração do OMP para agents, skills, snippets e descoberta de config.
 
 ### `OPENCODE_DATA_DIR`
 
-Diretório de dados personalizado para o servidor OpenCode gerenciado.
+Diretório de dados personalizado para o servidor OMP gerenciado.
 
 ### `OPENCODE_WSL_DISTRO`
 
-Escolhe a distro WSL usada pela integração do OpenCode no Windows.
+Escolhe a distro WSL usada pela integração do OMP no Windows.
 
 ### `OMPCHAMBER_OPENCODE_WSL_DISTRO`
 

@@ -1,13 +1,13 @@
 ---
-title: OpenCode-Verbindung
-description: Beheben Sie, dass OMPChamber keine Verbindung zu seinem OpenCode-Server herstellt.
+title: OMP-Verbindung
+description: Beheben Sie, dass OMPChamber keine Verbindung zu seinem OMPChamber-Server herstellt.
 ---
 
-# OpenCode-Verbindung
+# OMP-Verbindung
 
-Wenn OMPChamber lädt, aber nie über „OpenCode is restarting“ hinauskommt, oder der Chat nicht antwortet, ist der Server, mit dem es spricht, nicht erreichbar. Gehen Sie diese Punkte durch.
+Wenn OMPChamber lädt, aber nie über „OMP is restarting“ hinauskommt, oder der Chat nicht antwortet, ist der Server, mit dem es spricht, nicht erreichbar. Gehen Sie diese Punkte durch.
 
-## Es hängt bei „OpenCode is restarting“
+## Es hängt bei „OMP is restarting“
 
 - geben Sie ihm direkt nach dem Start einen Moment — dieser Zustand ist normal, während der Server hochfährt
 - prüfen Sie mit `ompchamber status`, ob der Server noch läuft
@@ -16,7 +16,7 @@ Wenn OMPChamber lädt, aber nie über „OpenCode is restarting“ hinauskommt, 
 
 ## Sie verbinden sich mit Ihrem eigenen Server
 
-Wenn Sie OMPChamber so konfiguriert haben, dass es einen vorhandenen Server nutzt, prüfen Sie die Einrichtung aus [OpenCode Server](/opencode-server/) noch einmal:
+Wenn Sie OMPChamber so konfiguriert haben, dass es einen vorhandenen Server nutzt, prüfen Sie die Einrichtung aus [OMPChamber Server](/omp-server/) noch einmal:
 
 - `OPENCODE_HOST` muss den Port enthalten, aber keinen Pfad — zum Beispiel `http://localhost:4096`
 - setzen Sie `OPENCODE_SKIP_START=true`, damit OMPChamber nicht auch noch seinen eigenen Server startet
@@ -30,5 +30,5 @@ Wenn Sie OMPChamber so konfiguriert haben, dass es einen vorhandenen Server nutz
 
 ## Verwandt
 
-- [OpenCode Server](/opencode-server/) — wie OMPChamber den Server findet und verwaltet
+- [OMPChamber Server](/omp-server/) — wie OMPChamber den Server findet und verwaltet
 - [Fehlerbehebung](/troubleshooting/) — weitere häufige Probleme

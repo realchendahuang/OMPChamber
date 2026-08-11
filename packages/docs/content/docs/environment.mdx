@@ -1,6 +1,6 @@
 ---
 title: Environment Variables
-description: Configure OMPChamber and OpenCode integration with environment variables.
+description: Configure OMPChamber and OMP integration with environment variables.
 ---
 
 # Environment Variables
@@ -45,43 +45,43 @@ Overrides the update-check API endpoint. Most users should leave this unset.
 
 Forces the package manager used by update operations when auto-detection is wrong.
 
-## OpenCode server
+## OMP server
 
 ### `OPENCODE_HOST`
 
-Connects OMPChamber to an existing OpenCode server. The value must be an `http` or `https` origin with an explicit port and no path, query, or hash. `OPENCODE_HOST` takes precedence over `OPENCODE_PORT`.
+Connects OMPChamber to an existing OMPChamber server. The value must be an `http` or `https` origin with an explicit port and no path, query, or hash. `OPENCODE_HOST` takes precedence over `OPENCODE_PORT`.
 
 ### `OPENCODE_PORT`
 
-Sets the OpenCode server port. With managed OpenCode this requests the managed port; with `OPENCODE_SKIP_START=true` it connects to an external server on that port.
+Sets the OMP server port. With managed OMP this requests the managed port; with `OPENCODE_SKIP_START=true` it connects to an external server on that port.
 
 ### `OPENCODE_SKIP_START`
 
-Prevents OMPChamber from starting its own OpenCode server when set to `true`.
+Prevents OMPChamber from starting its own OMP server when set to `true`.
 
 ### `OMPCHAMBER_OPENCODE_HOSTNAME`
 
-Bind hostname for the OpenCode server managed by OMPChamber. The default is `127.0.0.1`.
+Bind hostname for the OMP server managed by OMPChamber. The default is `127.0.0.1`.
 
 ### `OPENCODE_BINARY`
 
-Path to the `opencode` executable OMPChamber should run.
+Path to the `omp` executable OMPChamber should run.
 
 ### `OPENCODE_CONFIG`
 
-Path to a specific OpenCode config file.
+Path to a specific OMP config file.
 
 ### `OPENCODE_CONFIG_DIR`
 
-Path to a specific OpenCode config directory for agents, skills, snippets, and config discovery.
+Path to a specific OMP config directory for agents, skills, snippets, and config discovery.
 
 ### `OPENCODE_DATA_DIR`
 
-Custom data directory for the managed OpenCode server.
+Custom data directory for the managed OMP server.
 
 ### `OPENCODE_WSL_DISTRO`
 
-Selects the WSL distro used for OpenCode integration on Windows.
+Selects the WSL distro used for OMP integration on Windows.
 
 ### `OMPCHAMBER_OPENCODE_WSL_DISTRO`
 

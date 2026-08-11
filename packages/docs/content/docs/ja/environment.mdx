@@ -1,6 +1,6 @@
 ---
 title: 環境変数
-description: 環境変数で OMPChamber と OpenCode 連携を設定します。
+description: 環境変数で OMPChamber と OMP 連携を設定します。
 ---
 
 # 環境変数
@@ -45,43 +45,43 @@ API レスポンス圧縮を制御します。`true` または `1` で強制的�
 
 自動検出が間違っている場合に、更新操作で使うパッケージマネージャーを強制します。
 
-## OpenCode サーバー
+## OMP サーバー
 
 ### `OPENCODE_HOST`
 
-OMPChamber を既存の OpenCode サーバーに接続します。値は明示的なポートを含み、パス、クエリ、ハッシュを含まない `http` または `https` の origin である必要があります。`OPENCODE_HOST` は `OPENCODE_PORT` より優先されます。
+OMPChamber を既存の OMPChamber サーバーに接続します。値は明示的なポートを含み、パス、クエリ、ハッシュを含まない `http` または `https` の origin である必要があります。`OPENCODE_HOST` は `OPENCODE_PORT` より優先されます。
 
 ### `OPENCODE_PORT`
 
-OpenCode サーバーのポートを設定します。管理対象 OpenCode では管理対象ポートの要求になり、`OPENCODE_SKIP_START=true` ではそのポートの外部サーバーに接続します。
+OMP サーバーのポートを設定します。管理対象 OMP では管理対象ポートの要求になり、`OPENCODE_SKIP_START=true` ではそのポートの外部サーバーに接続します。
 
 ### `OPENCODE_SKIP_START`
 
-`true` に設定すると、OMPChamber が独自の OpenCode サーバーを起動しません。
+`true` に設定すると、OMPChamber が独自の OMP サーバーを起動しません。
 
 ### `OMPCHAMBER_OPENCODE_HOSTNAME`
 
-OMPChamber が管理する OpenCode サーバーのバインドホスト名です。デフォルトは `127.0.0.1` です。
+OMPChamber が管理する OMP サーバーのバインドホスト名です。デフォルトは `127.0.0.1` です。
 
 ### `OPENCODE_BINARY`
 
-OMPChamber が実行する `opencode` 実行ファイルへのパスです。
+OMPChamber が実行する `omp` 実行ファイルへのパスです。
 
 ### `OPENCODE_CONFIG`
 
-特定の OpenCode 設定ファイルへのパスです。
+特定の OMP 設定ファイルへのパスです。
 
 ### `OPENCODE_CONFIG_DIR`
 
-エージェント、スキル、スニペット、設定検出に使う特定の OpenCode 設定ディレクトリへのパスです。
+エージェント、スキル、スニペット、設定検出に使う特定の OMP 設定ディレクトリへのパスです。
 
 ### `OPENCODE_DATA_DIR`
 
-管理対象 OpenCode サーバーのカスタムデータディレクトリです。
+管理対象 OMP サーバーのカスタムデータディレクトリです。
 
 ### `OPENCODE_WSL_DISTRO`
 
-Windows 上の OpenCode 連携に使う WSL ディストリビューションを選びます。
+Windows 上の OMP 連携に使う WSL ディストリビューションを選びます。
 
 ### `OMPCHAMBER_OPENCODE_WSL_DISTRO`
 

@@ -60,18 +60,18 @@
           }
         },
         {
-          "label": "OpenCode Server",
-          "link": "/opencode-server/",
+          "label": "OMPChamber Server",
+          "link": "/omp-server/",
           "translations": {
-            "uk": "Сервер OpenCode",
-            "zh-CN": "OpenCode 服务器",
-            "es": "Servidor OpenCode",
-            "pt-BR": "Servidor OpenCode",
-            "ko": "OpenCode 서버",
-            "pl": "Serwer OpenCode",
-            "fr": "Serveur OpenCode",
-            "ja": "OpenCode サーバー",
-            "de": "OpenCode-Server"
+            "uk": "Сервер OMPChamber",
+            "zh-CN": "OMPChamber 服务器",
+            "es": "Servidor OMPChamber",
+            "pt-BR": "Servidor OMPChamber",
+            "ko": "OMPChamber 서버",
+            "pl": "Serwer OMPChamber",
+            "fr": "Serveur OMPChamber",
+            "ja": "OMPChamber サーバー",
+            "de": "OMPChamber-Server"
           }
         },
         {
@@ -321,17 +321,17 @@
       ]
     },
     {
-      "label": "OpenCode setup",
+      "label": "OMP setup",
       "translations": {
-        "uk": "Налаштування OpenCode",
-        "zh-CN": "OpenCode 设置",
-        "es": "Configuración de OpenCode",
-        "pt-BR": "Configuração do OpenCode",
-        "ko": "OpenCode 설정",
-        "pl": "Konfiguracja OpenCode",
-        "fr": "Configuration OpenCode",
-        "ja": "OpenCode 設定",
-        "de": "OpenCode-Einrichtung"
+        "uk": "Налаштування OMP",
+        "zh-CN": "OMP 设置",
+        "es": "Configuración de OMP",
+        "pt-BR": "Configuração do OMP",
+        "ko": "OMP 설정",
+        "pl": "Konfiguracja OMP",
+        "fr": "Configuration OMP",
+        "ja": "OMP 設定",
+        "de": "OMP-Einrichtung"
       },
       "items": [
         {
@@ -729,18 +729,18 @@
           }
         },
         {
-          "label": "OpenCode Connection",
-          "link": "/troubleshooting/opencode-connection/",
+          "label": "OMP Connection",
+          "link": "/troubleshooting/omp-connection/",
           "translations": {
-            "uk": "Підключення до OpenCode",
-            "zh-CN": "OpenCode 连接",
-            "es": "Conexión con OpenCode",
-            "pt-BR": "Conexão com o OpenCode",
-            "ko": "OpenCode 연결",
-            "pl": "Połączenie z OpenCode",
-            "fr": "Connexion à OpenCode",
-            "ja": "OpenCode 接続",
-            "de": "OpenCode-Verbindung"
+            "uk": "Підключення до OMP",
+            "zh-CN": "OMP 连接",
+            "es": "Conexión con OMP",
+            "pt-BR": "Conexão com o OMP",
+            "ko": "OMP 연결",
+            "pl": "Połączenie z OMP",
+            "fr": "Connexion à OMP",
+            "ja": "OMP 接続",
+            "de": "OMP-Verbindung"
           }
         },
         {

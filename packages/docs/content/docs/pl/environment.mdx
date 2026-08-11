@@ -1,6 +1,6 @@
 ---
 title: Zmienne środowiskowe
-description: Skonfiguruj integrację OMPChamber i OpenCode za pomocą zmiennych środowiskowych.
+description: Skonfiguruj integrację OMPChamber i OMP za pomocą zmiennych środowiskowych.
 ---
 
 # Zmienne środowiskowe
@@ -45,43 +45,43 @@ Nadpisuje endpoint sprawdzania aktualizacji. Większość użytkowników nie pow
 
 Wymusza package manager używany do aktualizacji, gdy automatyczne wykrywanie się pomyli.
 
-## Serwer OpenCode
+## Serwer OMP
 
 ### `OPENCODE_HOST`
 
-Łączy OMPChamber z istniejącym OpenCode server. Wartość musi być origin `http` albo `https` z jawnym portem i bez path, query ani hash. `OPENCODE_HOST` ma pierwszeństwo przed `OPENCODE_PORT`.
+Łączy OMPChamber z istniejącym OMPChamber server. Wartość musi być origin `http` albo `https` z jawnym portem i bez path, query ani hash. `OPENCODE_HOST` ma pierwszeństwo przed `OPENCODE_PORT`.
 
 ### `OPENCODE_PORT`
 
-Ustawia port OpenCode server. Dla managed OpenCode prosi o ten port; z `OPENCODE_SKIP_START=true` łączy się z zewnętrznym serwerem na tym porcie.
+Ustawia port OMP server. Dla managed OMP prosi o ten port; z `OPENCODE_SKIP_START=true` łączy się z zewnętrznym serwerem na tym porcie.
 
 ### `OPENCODE_SKIP_START`
 
-Gdy ma wartość `true`, blokuje uruchamianie własnego OpenCode server przez OMPChamber.
+Gdy ma wartość `true`, blokuje uruchamianie własnego OMP server przez OMPChamber.
 
 ### `OMPCHAMBER_OPENCODE_HOSTNAME`
 
-Hostname dla OpenCode server zarządzanego przez OMPChamber. Domyślnie `127.0.0.1`.
+Hostname dla OMP server zarządzanego przez OMPChamber. Domyślnie `127.0.0.1`.
 
 ### `OPENCODE_BINARY`
 
-Ścieżka do executable `opencode`, którego ma używać OMPChamber.
+Ścieżka do executable `omp`, którego ma używać OMPChamber.
 
 ### `OPENCODE_CONFIG`
 
-Ścieżka do konkretnego pliku config OpenCode.
+Ścieżka do konkretnego pliku config OMP.
 
 ### `OPENCODE_CONFIG_DIR`
 
-Ścieżka do katalogu config OpenCode dla agents, skills, snippets i config discovery.
+Ścieżka do katalogu config OMP dla agents, skills, snippets i config discovery.
 
 ### `OPENCODE_DATA_DIR`
 
-Własny katalog danych dla managed OpenCode server.
+Własny katalog danych dla managed OMP server.
 
 ### `OPENCODE_WSL_DISTRO`
 
-Wybiera WSL distro używane do integracji OpenCode w Windows.
+Wybiera WSL distro używane do integracji OMP w Windows.
 
 ### `OMPCHAMBER_OPENCODE_WSL_DISTRO`
 

@@ -1,6 +1,6 @@
 ---
 title: Змінні середовища
-description: Налаштуйте інтеграцію OMPChamber і OpenCode через змінні середовища.
+description: Налаштуйте інтеграцію OMPChamber і OMP через змінні середовища.
 ---
 
 # Змінні середовища
@@ -45,43 +45,43 @@ OMPChamber читає ці змінні під час запуску. Для sta
 
 Примусово задає package manager для оновлень, якщо auto-detection помилився.
 
-## Сервер OpenCode
+## Сервер OMP
 
 ### `OPENCODE_HOST`
 
-Підключає OMPChamber до вже запущеного OpenCode server. Значення має бути `http` або `https` origin з явним портом і без path, query або hash. `OPENCODE_HOST` має пріоритет над `OPENCODE_PORT`.
+Підключає OMPChamber до вже запущеного OMPChamber server. Значення має бути `http` або `https` origin з явним портом і без path, query або hash. `OPENCODE_HOST` має пріоритет над `OPENCODE_PORT`.
 
 ### `OPENCODE_PORT`
 
-Задає порт OpenCode server. Для managed OpenCode це бажаний порт; з `OPENCODE_SKIP_START=true` OMPChamber підключається до зовнішнього сервера на цьому порту.
+Задає порт OMP server. Для managed OMP це бажаний порт; з `OPENCODE_SKIP_START=true` OMPChamber підключається до зовнішнього сервера на цьому порту.
 
 ### `OPENCODE_SKIP_START`
 
-Не дає OMPChamber запускати власний OpenCode server, якщо встановлено `true`.
+Не дає OMPChamber запускати власний OMP server, якщо встановлено `true`.
 
 ### `OMPCHAMBER_OPENCODE_HOSTNAME`
 
-Hostname для OpenCode server, яким керує OMPChamber. Типово `127.0.0.1`.
+Hostname для OMP server, яким керує OMPChamber. Типово `127.0.0.1`.
 
 ### `OPENCODE_BINARY`
 
-Шлях до executable `opencode`, який має запускати OMPChamber.
+Шлях до executable `omp`, який має запускати OMPChamber.
 
 ### `OPENCODE_CONFIG`
 
-Шлях до конкретного config-файлу OpenCode.
+Шлях до конкретного config-файлу OMP.
 
 ### `OPENCODE_CONFIG_DIR`
 
-Шлях до директорії config OpenCode для agents, skills, snippets і config discovery.
+Шлях до директорії config OMP для agents, skills, snippets і config discovery.
 
 ### `OPENCODE_DATA_DIR`
 
-Власна директорія даних для managed OpenCode server.
+Власна директорія даних для managed OMP server.
 
 ### `OPENCODE_WSL_DISTRO`
 
-Вибирає WSL distro для інтеграції OpenCode на Windows.
+Вибирає WSL distro для інтеграції OMP на Windows.
 
 ### `OMPCHAMBER_OPENCODE_WSL_DISTRO`
 

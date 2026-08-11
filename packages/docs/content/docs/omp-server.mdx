@@ -1,11 +1,11 @@
 ---
-title: OpenCode Server
-description: Connect OMPChamber to a local or remote OpenCode server.
+title: OMPChamber Server
+description: Connect OMPChamber to a local or remote OMPChamber server.
 ---
 
-# OpenCode Server
+# OMPChamber Server
 
-OMPChamber runs on top of an OpenCode server. By default it starts one for you, so you don't have to do anything. You only need this page if you want to point OMPChamber at a server you already run, or manage the one it starts.
+OMPChamber runs on top of an OMPChamber server. By default it starts one for you, so you don't have to do anything. You only need this page if you want to point OMPChamber at a server you already run, or manage the one it starts.
 
 ## How OMPChamber finds a server
 
@@ -26,7 +26,7 @@ Set these before starting OMPChamber:
 OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
 ```
 
-- `OPENCODE_HOST` — the full address of your OpenCode server, including the port (a value like `http://localhost:4096`). It must not have a path at the end.
+- `OPENCODE_HOST` — the full address of your OMPChamber server, including the port (a value like `http://localhost:4096`). It must not have a path at the end.
 - `OPENCODE_SKIP_START=true` — tells OMPChamber not to start its own server.
 
 If you only need to change the port, set `OPENCODE_PORT` instead of `OPENCODE_HOST`.
@@ -87,11 +87,11 @@ ompchamber tunnel stop --port 3000
 
 Stopping the tunnel does not restart the service or the app.
 
-## "OpenCode is restarting"
+## "OMP is restarting"
 
-While the server is starting or restarting, OMPChamber shows an "OpenCode is restarting" state and pauses requests until it's ready. This is normal right after launch or a restart. If it never clears, see [OpenCode connection](/troubleshooting/opencode-connection/).
+While the server is starting or restarting, OMPChamber shows an "OMP is restarting" state and pauses requests until it's ready. This is normal right after launch or a restart. If it never clears, see [OMP connection](/troubleshooting/omp-connection/).
 
 ## Related
 
 - [Providers, Models & Agents](/providers/) — set up what the server talks to
-- [OpenCode connection](/troubleshooting/opencode-connection/) — if it won't connect
+- [OMP connection](/troubleshooting/omp-connection/) — if it won't connect

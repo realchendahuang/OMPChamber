@@ -1,13 +1,13 @@
 ---
-title: Connexion à OpenCode
-description: Corrigez OMPChamber lorsqu’il ne se connecte pas à son serveur OpenCode.
+title: Connexion à OMP
+description: Corrigez OMPChamber lorsqu’il ne se connecte pas à son serveur OMPChamber.
 ---
 
-# Connexion à OpenCode
+# Connexion à OMP
 
-Si OMPChamber se charge mais reste bloqué sur « OpenCode redémarre », ou si le chat ne répond pas, le serveur auquel il parle n’est pas joignable. Suivez ces vérifications.
+Si OMPChamber se charge mais reste bloqué sur « OMP redémarre », ou si le chat ne répond pas, le serveur auquel il parle n’est pas joignable. Suivez ces vérifications.
 
-## Il reste bloqué sur « OpenCode redémarre »
+## Il reste bloqué sur « OMP redémarre »
 
 - laissez-lui un moment juste après le lancement — cet état est normal pendant le démarrage du serveur
 - vérifiez si le serveur est vivant avec `ompchamber status`
@@ -16,7 +16,7 @@ Si OMPChamber se charge mais reste bloqué sur « OpenCode redémarre », ou si 
 
 ## Vous vous connectez à votre propre serveur
 
-Si vous avez configuré OMPChamber pour utiliser un serveur existant, revérifiez la configuration depuis [Serveur OpenCode](/opencode-server/) :
+Si vous avez configuré OMPChamber pour utiliser un serveur existant, revérifiez la configuration depuis [Serveur OMPChamber](/omp-server/) :
 
 - `OPENCODE_HOST` doit inclure le port, sans chemin — par exemple `http://localhost:4096`
 - définissez `OPENCODE_SKIP_START=true` pour qu’OMPChamber ne démarre pas aussi le sien
@@ -30,5 +30,5 @@ Si vous avez configuré OMPChamber pour utiliser un serveur existant, revérifie
 
 ## Pages liées
 
-- [Serveur OpenCode](/opencode-server/) — comment OMPChamber trouve et gère le serveur
+- [Serveur OMPChamber](/omp-server/) — comment OMPChamber trouve et gère le serveur
 - [Dépannage](/troubleshooting/) — autres problèmes courants

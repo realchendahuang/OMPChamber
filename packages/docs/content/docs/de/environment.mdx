@@ -1,6 +1,6 @@
 ---
 title: Umgebungsvariablen
-description: Konfiguriere die OMPChamber- und OpenCode-Integration mit Umgebungsvariablen.
+description: Konfiguriere die OMPChamber- und OMP-Integration mit Umgebungsvariablen.
 ---
 
 # Umgebungsvariablen
@@ -45,43 +45,43 @@ Aktiviert ausführliche HTTP-Request-Logs, wenn auf `true` oder `1` gesetzt.
 
 Erzwingt den Paketmanager, den Update-Operationen verwenden, wenn die automatische Erkennung falsch liegt.
 
-## OpenCode-Server
+## OMP-Server
 
 ### `OPENCODE_HOST`
 
-Verbindet OMPChamber mit einem vorhandenen OpenCode-Server. Der Wert muss ein `http`- oder `https`-Origin mit explizitem Port und ohne Pfad, Query oder Hash sein. `OPENCODE_HOST` hat Vorrang vor `OPENCODE_PORT`.
+Verbindet OMPChamber mit einem vorhandenen OMPChamber-Server. Der Wert muss ein `http`- oder `https`-Origin mit explizitem Port und ohne Pfad, Query oder Hash sein. `OPENCODE_HOST` hat Vorrang vor `OPENCODE_PORT`.
 
 ### `OPENCODE_PORT`
 
-Legt den Port des OpenCode-Servers fest. Bei verwaltetem OpenCode fordert dies den verwalteten Port an; mit `OPENCODE_SKIP_START=true` verbindet es sich mit einem externen Server auf diesem Port.
+Legt den Port des OMP-Servers fest. Bei verwaltetem OMP fordert dies den verwalteten Port an; mit `OPENCODE_SKIP_START=true` verbindet es sich mit einem externen Server auf diesem Port.
 
 ### `OPENCODE_SKIP_START`
 
-Verhindert, dass OMPChamber einen eigenen OpenCode-Server startet, wenn auf `true` gesetzt.
+Verhindert, dass OMPChamber einen eigenen OMP-Server startet, wenn auf `true` gesetzt.
 
 ### `OMPCHAMBER_OPENCODE_HOSTNAME`
 
-Bind-Hostname für den von OMPChamber verwalteten OpenCode-Server. Standard ist `127.0.0.1`.
+Bind-Hostname für den von OMPChamber verwalteten OMP-Server. Standard ist `127.0.0.1`.
 
 ### `OPENCODE_BINARY`
 
-Pfad zur ausführbaren `opencode`-Datei, die OMPChamber ausführen soll.
+Pfad zur ausführbaren `omp`-Datei, die OMPChamber ausführen soll.
 
 ### `OPENCODE_CONFIG`
 
-Pfad zu einer bestimmten OpenCode-Konfigurationsdatei.
+Pfad zu einer bestimmten OMP-Konfigurationsdatei.
 
 ### `OPENCODE_CONFIG_DIR`
 
-Pfad zu einem bestimmten OpenCode-Konfigurationsverzeichnis für Agents, Skills, Snippets und Konfigurationssuche.
+Pfad zu einem bestimmten OMP-Konfigurationsverzeichnis für Agents, Skills, Snippets und Konfigurationssuche.
 
 ### `OPENCODE_DATA_DIR`
 
-Benutzerdefiniertes Datenverzeichnis für den verwalteten OpenCode-Server.
+Benutzerdefiniertes Datenverzeichnis für den verwalteten OMP-Server.
 
 ### `OPENCODE_WSL_DISTRO`
 
-Wählt die WSL-Distribution für die OpenCode-Integration unter Windows aus.
+Wählt die WSL-Distribution für die OMP-Integration unter Windows aus.
 
 ### `OMPCHAMBER_OPENCODE_WSL_DISTRO`
 
