@@ -18,12 +18,6 @@ export const createGracefulShutdownRuntime = (dependencies) => {
     setTerminalRuntime,
     getMessageStreamRuntime,
     setMessageStreamRuntime,
-    shouldSkipOpenCodeStop,
-    getOpenCodePort,
-    getOpenCodeProcess,
-    setOpenCodeProcess,
-    killProcessOnPort,
-    waitForPortRelease,
     getServer,
     getUiAuthController,
     setUiAuthController,
@@ -72,28 +66,6 @@ export const createGracefulShutdownRuntime = (dependencies) => {
       } finally {
         setMessageStreamRuntime(null);
       }
-    }
-
-    if (!shouldSkipOpenCodeStop()) {
-      const portToKill = getOpenCodePort();
-      const openCodeProcess = getOpenCodeProcess();
-
-      if (openCodeProcess) {
-        console.log('Stopping OpenCode process...');
-        try {
-          await openCodeProcess.close();
-        } catch (error) {
-          console.warn('Error closing OpenCode process:', error);
-        }
-        setOpenCodeProcess(null);
-      }
-
-      killProcessOnPort(portToKill);
-      if (!(await waitForPortRelease(portToKill, 5000))) {
-        console.warn(`Timed out waiting for OpenCode port ${portToKill} to be released during shutdown`);
-      }
-    } else {
-      console.log('Skipping OpenCode shutdown (external server)');
     }
 
     const server = getServer();

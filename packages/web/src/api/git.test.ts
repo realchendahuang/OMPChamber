@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@openchamber/ui/lib/gitApiHttp', () => ({
+vi.mock('@ompchamber/ui/lib/gitApiHttp', () => ({
   checkIsGitRepository: vi.fn(),
   getGitStatus: vi.fn(),
   getGitDiff: vi.fn(),
   getGitFileDiff: vi.fn(),
+  getGitRangeDiff: vi.fn(),
   revertGitFile: vi.fn(),
   stageGitFile: vi.fn(),
   stageGitFiles: vi.fn(),

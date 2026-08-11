@@ -2,7 +2,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { describe, expect, it } from 'vitest';
 
-import { pathLooksUserConfigured, mergePathValues } from './path-utils.js';
+import { pathLooksUserConfigured, mergePathValues } from '../path-utils.js';
 
 const home = os.homedir();
 const delim = path.delimiter;

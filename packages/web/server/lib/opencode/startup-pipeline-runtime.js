@@ -34,8 +34,7 @@ export const createStartupPipelineRuntime = (dependencies) => {
       terminalRebindWindowMs,
       terminalMaxRebindsPerWindow,
       setupProxy,
-      scheduleOpenCodeApiDetection,
-      bootstrapOpenCodeAtStartup,
+      bootstrapAgentEngineAtStartup,
       staticRoutesRuntime,
       process,
       crypto,
@@ -108,7 +107,6 @@ export const createStartupPipelineRuntime = (dependencies) => {
     } else {
       staticRoutesRuntime.registerStaticRoutes(app);
     }
-
     const serverStartupRuntime = createServerStartupRuntime({
       process,
       crypto,
@@ -137,8 +135,7 @@ export const createStartupPipelineRuntime = (dependencies) => {
       durationMs: performance.now() - pipelineStartedAt,
     });
     tunnelRuntimeContext.setActivePort(startupResult.activePort);
-    scheduleOpenCodeApiDetection();
-    void bootstrapOpenCodeAtStartup();
+    void bootstrapAgentEngineAtStartup();
 
     serverStartupRuntime.attachProcessHandlers({ attachSignals });
 

@@ -20,6 +20,9 @@ const createRouteRegistry = () => {
       delete(path, handler) {
         routes.set(`DELETE ${path}`, handler);
       },
+      patch(path, handler) {
+        routes.set(`PATCH ${path}`, handler);
+      },
     },
     getRoute(method, path) {
       return routes.get(`${method} ${path}`);
@@ -133,7 +136,7 @@ describe('local SSE routes', () => {
       expect(res.getHeader('connection')).toBe('keep-alive');
       expect(res.getHeader('x-accel-buffering')).toBe('no');
       expect(res.flushed).toBe(true);
-      expect(res.body).toContain('openchamber:notification-stream-ready');
+      expect(res.body).toContain('ompchamber:notification-stream-ready');
       expect(clients.has(res)).toBe(true);
       expect(vi.getTimerCount()).toBe(1);
       expect(res.bodyFlushCount).toBe(1);
@@ -154,18 +157,18 @@ describe('local SSE routes', () => {
     }
   });
 
-  it('serves OpenChamber SSE with nginx-safe headers', () => {
+  it('serves OMPChamber SSE with nginx-safe headers', () => {
     const { app, getRoute } = createRouteRegistry();
     const clients = new Set();
 
     registerScheduledTaskRoutes(app, {
-      getOpenChamberEventClients: () => clients,
+      getOMPChamberEventClients: () => clients,
       writeSseEvent(res, payload) {
         res.write(`data: ${JSON.stringify(payload)}\n\n`);
       },
     });
 
-    const handler = getRoute('GET', '/api/openchamber/events');
+    const handler = getRoute('GET', '/api/ompchamber/events');
     const req = createMockRequest();
     const res = createMockResponse();
 
@@ -177,7 +180,7 @@ describe('local SSE routes', () => {
     expect(res.getHeader('connection')).toBe('keep-alive');
     expect(res.getHeader('x-accel-buffering')).toBe('no');
     expect(res.flushed).toBe(true);
-    expect(res.body).toContain('openchamber:event-stream-ready');
+    expect(res.body).toContain('ompchamber:event-stream-ready');
     expect(clients.has(res)).toBe(true);
 
     req.emit('close');

@@ -21,6 +21,9 @@ export function createGlobalMessageStreamHub({
   let connected = false;
   let everConnected = false;
   let buildUrlFailed = false;
+  // Set when an external engine (OMP) drives events via publishEvent, so
+  // start() does not spawn an upstream OpenCode SSE reader.
+  let externallyConnected = false;
 
   const notifySubscriber = (kind, subscriber, payload) => {
     try {
@@ -55,6 +58,13 @@ export function createGlobalMessageStreamHub({
 
   const start = () => {
     if (reader) {
+      return;
+    }
+
+    // When the hub is externally driven (OMP engine markConnected), there is no
+    // upstream OpenCode SSE to read. Do not spawn an upstream reader that would
+    // fail building an OpenCode URL.
+    if (externallyConnected) {
       return;
     }
 
@@ -123,6 +133,7 @@ export function createGlobalMessageStreamHub({
     controller = null;
     everConnected = false;
     buildUrlFailed = false;
+    externallyConnected = false;
   };
 
   return {
@@ -133,6 +144,40 @@ export function createGlobalMessageStreamHub({
     },
     hasConnected() {
       return everConnected;
+    },
+    /**
+     * Mark the hub connected without an upstream SSE reader. Used by the OMP
+     * engine: the event source is OMP's own domain events (publishEvent), not
+     * OpenCode SSE, so no upstream URL is built or fetched.
+     */
+    markConnected() {
+      if (connected) return;
+      connected = true;
+      everConnected = true;
+      externallyConnected = true;
+      notifyStatus({ type: 'connect', wasReady: false });
+    },
+    /**
+     * Inject a synthetic event into the hub without an upstream SSE reader.
+     * Used by the OMP engine (OMPCHAMBER_AGENT_ENGINE=omp) to feed the UI
+     * event stream from normalized OMP domain events instead of OpenCode SSE.
+     */
+    publishEvent({ payload, directory = 'global', eventId }) {
+      const normalized = {
+        envelope: { directory, ...(eventId ? { eventId } : {}) },
+        payload,
+        directory,
+        eventId,
+      };
+      if (eventId) {
+        replay.push(normalized);
+        if (replay.length > replayLimit) {
+          replay.splice(0, replay.length - replayLimit);
+        }
+      }
+      for (const subscriber of Array.from(eventSubscribers)) {
+        notifySubscriber('event', subscriber, normalized);
+      }
     },
     subscribeEvent(subscriber) {
       eventSubscribers.add(subscriber);
