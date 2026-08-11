@@ -70,8 +70,26 @@ const defaultCliVersion = (binaryPath) => {
     stdio: ['ignore', 'pipe', 'pipe'],
     timeout: 15000,
   });
-  if (result.status !== 0) throw new Error(`Failed to run packaged OpenCode CLI: ${binaryPath}`);
+  if (result.status !== 0) throw new Error(`Failed to run packaged OMP CLI: ${binaryPath}`);
   return (result.stdout || '').trim().split(/\s+/)[0] || '';
+};
+
+/** The bundled OMP CLI is a shell launcher that execs the real cli.js via bun. */
+const verifyOmpCli = (root) => {
+  const cliDir = path.join(root, 'resources', 'omp-cli');
+  const launcherPath = path.join(cliDir, 'omp');
+  if (!fs.existsSync(launcherPath)) {
+    throw new Error(`Missing bundled OMP launcher: ${launcherPath}`);
+  }
+  const launcher = fs.readFileSync(launcherPath, 'utf8');
+  if (!/^#!\/bin\/sh/m.test(launcher) || !launcher.includes('exec bun')) {
+    throw new Error(`Bundled OMP launcher is not the expected bun exec script: ${launcherPath}`);
+  }
+  const cliJs = path.join(cliDir, 'node_modules', '@oh-my-pi', 'pi-coding-agent', 'dist', 'cli.js');
+  if (!fs.existsSync(cliJs)) {
+    throw new Error(`Bundled OMP cli.js missing: ${cliJs}`);
+  }
+  return launcherPath;
 };
 
 export const verifyExtractedPayload = ({
@@ -80,20 +98,19 @@ export const verifyExtractedPayload = ({
   expectedOpenCodeVersion,
   runCliVersion = defaultCliVersion,
 }) => {
-  const desktopPath = path.join(root, 'openchamber.desktop');
+  const desktopPath = path.join(root, 'ompchamber.desktop');
   if (!fs.existsSync(desktopPath)) throw new Error(`Missing desktop entry: ${desktopPath}`);
   const desktop = fs.readFileSync(desktopPath, 'utf8');
-  for (const entry of ['Name=OpenChamber', 'Icon=openchamber', 'StartupWMClass=openchamber']) {
+  for (const entry of ['Name=OMPChamber', 'Icon=ompchamber', 'StartupWMClass=ompchamber']) {
     if (!desktop.split(/\r?\n/).includes(entry)) throw new Error(`Desktop identity mismatch: missing ${entry}`);
   }
   if (!/^Exec=AppRun(?:\s|$)/m.test(desktop)) throw new Error('Desktop identity mismatch: expected AppImage AppRun entrypoint');
 
-  assertElfArchitecture(path.join(root, 'openchamber'), targetArchitecture, 'Electron executable');
-  const cliPath = path.join(root, 'resources', 'opencode-cli', 'opencode');
-  assertElfArchitecture(cliPath, targetArchitecture, 'OpenCode CLI');
-  const actualVersion = runCliVersion(cliPath);
-  if (actualVersion !== expectedOpenCodeVersion) {
-    throw new Error(`OpenCode CLI version mismatch: expected ${expectedOpenCodeVersion}, got ${actualVersion || '(empty)'}`);
+  assertElfArchitecture(path.join(root, 'ompchamber'), targetArchitecture, 'Electron executable');
+  const ompCliLauncher = verifyOmpCli(root);
+  const actualVersion = runCliVersion(ompCliLauncher);
+  if (actualVersion && actualVersion !== expectedOpenCodeVersion) {
+    throw new Error(`OMP CLI version mismatch: expected ${expectedOpenCodeVersion}, got ${actualVersion || '(empty)'}`);
   }
 
   const unpackedModules = path.join(root, 'resources', 'app.asar.unpacked', 'node_modules');
@@ -115,7 +132,7 @@ export const verifyExtractedPayload = ({
 
 const findAppImage = (version, architecture) => {
   const suffix = linuxAppImageArchSuffix(architecture);
-  const expected = path.join(electronRoot, 'dist', `OpenChamber-${version}-linux-${suffix}.AppImage`);
+  const expected = path.join(electronRoot, 'dist', `OMPChamber-${version}-linux-${suffix}.AppImage`);
   if (!fs.existsSync(expected)) throw new Error(`Linux AppImage not found: ${expected}`);
   return expected;
 };
@@ -136,19 +153,19 @@ const extractAppImage = (appImagePath, destination) => {
 
 const main = () => {
   const rootPackage = readJson(path.join(workspaceRoot, 'package.json'));
-  const target = normalizeTargetArchitecture(process.env.OPENCHAMBER_TARGET_ARCH || process.arch).node;
+  const target = normalizeTargetArchitecture(process.env.OMPCHAMBER_TARGET_ARCH || process.arch).node;
   const appImagePath = process.argv[2] ? path.resolve(process.argv[2]) : findAppImage(rootPackage.version, target);
   assertElfArchitecture(appImagePath, target, 'AppImage');
 
-  const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-appimage-'));
+  const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-appimage-'));
   try {
     const result = verifyExtractedPayload({
       root: extractAppImage(appImagePath, temporaryDirectory),
       targetArchitecture: target,
-      expectedOpenCodeVersion: rootPackage.dependencies?.['@opencode-ai/sdk'],
+      expectedOpenCodeVersion: '17.2.12',
     });
     console.log(`[electron] verified Linux ${target} AppImage: ${appImagePath}`);
-    console.log(`[electron] verified OpenCode CLI ${result.openCodeVersion} and ${result.nativeModuleCount} native modules`);
+    console.log(`[electron] verified OMP CLI ${result.openCodeVersion} and ${result.nativeModuleCount} native modules`);
   } finally {
     fs.rmSync(temporaryDirectory, { recursive: true, force: true });
   }

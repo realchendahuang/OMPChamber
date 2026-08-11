@@ -2,12 +2,10 @@ const ARCHITECTURES = {
   x64: {
     node: 'x64',
     electronBuilder: 'x64',
-    opencode: 'x64',
   },
   arm64: {
     node: 'arm64',
     electronBuilder: 'arm64',
-    opencode: 'arm64',
   },
 };
 
@@ -55,7 +53,7 @@ export const resolveTargetArchitecture = ({
   const host = normalizeTargetArchitecture(hostArchitecture, 'host architecture');
   const builderArchitecture = readElectronBuilderArchitecture(builderArgs);
   const requestedValues = [
-    environment.OPENCHAMBER_TARGET_ARCH,
+    environment.OMPCHAMBER_TARGET_ARCH,
     environment.ELECTRON_BUILDER_ARCH,
     builderArchitecture,
   ].filter(Boolean);
