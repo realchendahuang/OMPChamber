@@ -248,3 +248,30 @@ Phase 6  browser/lsp/mcp/skills/extensions/memory/github/debug
 - [ ] OMP session 文件格式与 OpenChamber `session.list` / sidebar 全局缓存的对接（一次性列出 vs 增量）。
 - [ ] OMP host tools（`set_host_tools`）能否承载 OpenChamber 未来注入能力。
 - [x] `omp --mode rpc-ui` 子代理事件（subagent_*）与 Task UI 映射——**已闭环（2026-08-11，见 Phase 6c）**：`omp-event-bridge` 投影 `ompchamber:subagent` SSE 事件 → UI `event-reducer` 按 sessionID upsert 到 `state.subagent` 快照 → `WorkStatusSubagentsSection` 渲染 OMP 子代理卡片（label/status，store 快照优先 + liveSessions parentID 兼容路径）。
+
+## 9. Phase 7：命名清除（2026-08-12）
+
+引擎替换（Phase 0–6e）完成后，全仓执行 OpenCode→OMP 命名清除，原则是「内部契约全部改名、外部契约刻意保留」。
+
+**已改名（内部契约，server/UI/VS Code 三端同步）**：
+- HTTP 路径：`/api/opencode/*` → `/api/omp/*`、`/api/config/opencode-resolution` → `/api/config/omp-resolution`、probe 路径 → `/omp/health`、`/omp/directory`。
+- Headers：`x-opencode-directory(-encoding)` → `x-omp-directory(-encoding)`（含 CORS allow-list）。
+- `/health` payload keys：`openCodePort/Running/...` → `ompPort/ompRunning/...`，`isOpenCodeReady` → `isOmpReady`，`lastOpenCodeError` → `lastOmpError` 等。
+- Server 辅助函数：`buildOpenCodeUrl` → `buildOmpUrl`、`getOpenCodeAuthHeaders` → `getOmpAuthHeaders`、`waitForOpenCodeReady` → `waitForOmpReady`、`restartOpenCode` → `restartOmp` 等约 20 个模块。
+- UI 包：`lib/opencode/` → `lib/agent/`、`OpencodeClient` → `AgentClient`/`agentClient`、OpenCode* 组件 → Omp*、i18n key 与 11 语言文案。
+- VS Code：模块/符号/bridge 消息类型（`api:opencode/*` → `api:server/*`、`api:config/omp-resolution:get`）/命令 ID（`ompchamber.showOmpStatus`）；死的 `ompchamber.opencodeBinary` 设置删除。
+- CLI：`ompchamber serve` 预检改为解析 `OMP_BINARY`（`OPENCODE_BINARY` 作 deprecated fallback），PATH 查找顺序 `omp` → `opencode`，两个变量都会导出给下游；删除死的 `OPENCODE_SKIP_START`/`OPENCODE_HOST` 链。
+- 部署面：Docker 镜像安装 `@oh-my-pi/pi-coding-agent@17.2.12` 并导出 `OMP_BINARY`，移除 oh-my-opencode 插件安装器；release CI 全链路构建/校验/缓存 bundled OMP CLI；Electron 打包启动器改为 `$SCRIPT_DIR` 相对定位。
+- 文档：docs 站 10 语言术语重写（`omp-server.mdx` 等）、根 README、AGENTS/CLAUDE/CONTRIBUTING、项目技能文档、onboarding 12 语言文案（OMP_BINARY 优先）。
+
+**已删除**：
+- 上游 bot 自动化（`opencode.yml`/`oc-integration.yml`/`pr-review.yml`/`triage.yml`/`bot-summarize.yml`/`reproduce-issue.yml` + `.opencode/` 代理定义）——无 OMP 版 Action 可替代，且所需 secrets 未配置，留着只会失败。
+- `scripts/repro/issue-2638/`（引用已迁移模块的坏 repro）。
+
+**刻意保留（兼容契约，改动会破坏用户数据或外部集成）**：
+- 持久化 settings key / localStorage key（`opencodeBinary`、`showOpenCodeUpdateNotifications` 等）。
+- 磁盘路径默认值：`~/.config/opencode`、`~/.local/share/opencode`、`.opencode/`、`opencode.json(c)`、`getOpenCodeDataPath` 等（镜像上游数据布局；容器侧挂载点也保持 legacy 路径）。
+- 环境变量名：`OPENCODE_CONFIG_DIR`、`OPENCODE_SERVER_USERNAME/PASSWORD`、`VITE_OPENCODE_URL`、`OPENCODE_BINARY`（deprecated fallback）。
+- opencode-go 配额集成（外部第三方服务）；skill `source: 'opencode'` 数据契约；OpenCode-shaped SSE schema（`processOpenCodeSsePayload`，UI sync 层形状名）；`OPENCODE_UPGRADE_*` payload codes 与外部 release-feed URL（升级检查仍读上游 feed 的形状）。
+
+**验证基线（2026-08-12）**：web vitest 全量 130 files / 1179 pass / 1 skip；web/ui/vscode type-check 全绿；vscode `bun test --isolate` 96 pass/0 fail；ui `bun test` 1588 pass / 257 fail（与上游基线完全一致）。注意：packages/web 下**禁止直接 `bun test`**（bun 运行器跨文件假定时器泄漏会挂起，官方路径是 `bun run test` 即 vitest）。
