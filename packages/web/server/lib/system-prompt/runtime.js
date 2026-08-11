@@ -9,7 +9,7 @@ const PROVIDER_PROMPT_BOUNDARY = ${JSON.stringify(PROVIDER_PROMPT_BOUNDARY)}
 const MINIMAL_IDENTITY = ${JSON.stringify(MINIMAL_IDENTITY)}
 const optimizedSessions = new Map()
 
-export const OpenChamberSystemPromptPlugin = async () => ({
+export const OMPChamberSystemPromptPlugin = async () => ({
   "chat.message": async (input, output) => {
     if (!input.sessionID) return
     const agent = output?.message?.agent ?? input.agent
@@ -39,10 +39,10 @@ const mergePluginConfig = (rawConfig, pluginUrl) => {
     ? parseJsonc(rawConfig, errors, { allowTrailingComma: true })
     : {};
   if (errors.length > 0 || !parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('OPENCODE_CONFIG_CONTENT must contain a valid JSON object before OpenChamber can inject its system prompt optimizer');
+    throw new Error('OPENCODE_CONFIG_CONTENT must contain a valid JSON object before OMPChamber can inject its system prompt optimizer');
   }
   if (parsed.plugin !== undefined && !Array.isArray(parsed.plugin)) {
-    throw new Error('OPENCODE_CONFIG_CONTENT plugin must be an array before OpenChamber can inject its system prompt optimizer');
+    throw new Error('OPENCODE_CONFIG_CONTENT plugin must be an array before OMPChamber can inject its system prompt optimizer');
   }
   const configured = Array.isArray(parsed.plugin) ? parsed.plugin : [];
   parsed.plugin = [
@@ -54,7 +54,7 @@ const mergePluginConfig = (rawConfig, pluginUrl) => {
 
 export const createSystemPromptRuntime = ({ fsPromises, path, dataDir }) => {
   const pluginDirectory = path.join(dataDir, 'system-prompt');
-  const pluginPath = path.join(pluginDirectory, 'openchamber-system-prompt-plugin.js');
+  const pluginPath = path.join(pluginDirectory, 'ompchamber-system-prompt-plugin.js');
 
   const prepareManagedOpenCodeEnv = async (rawConfig) => {
     await fsPromises.mkdir(pluginDirectory, { recursive: true });

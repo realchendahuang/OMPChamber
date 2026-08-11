@@ -449,7 +449,7 @@ const decorateLinks = (root: HTMLElement, ctx: DecorateContext): void => {
   const anchors = root.querySelectorAll<HTMLAnchorElement>('a[href]');
   for (const anchor of Array.from(anchors)) {
     if (anchor.getAttribute('data-md-link-decorated') === 'true') continue;
-    if (anchor.getAttribute('data-openchamber-file-link') === 'true') continue;
+    if (anchor.getAttribute('data-ompchamber-file-link') === 'true') continue;
     const href = anchor.getAttribute('href') ?? '';
     if (!isExternalHttpUrl(href)) continue;
     anchor.setAttribute('data-md-link-decorated', 'true');

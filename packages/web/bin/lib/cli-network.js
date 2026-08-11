@@ -26,8 +26,8 @@ function isUnsafeBrowserPort(port) {
 function resolveConfiguredBindHost(hostOverride) {
   const configured = typeof hostOverride === 'string' && hostOverride.trim()
     ? hostOverride.trim()
-    : typeof process.env.OPENCHAMBER_HOST === 'string'
-      ? process.env.OPENCHAMBER_HOST.trim()
+    : typeof process.env.OMPCHAMBER_HOST === 'string'
+      ? process.env.OMPCHAMBER_HOST.trim()
       : '';
   return configured || '127.0.0.1';
 }
@@ -108,7 +108,7 @@ async function detectLanIPv4Address() {
 
 
 function formatUnsafePortWarning(port) {
-  return `Port ${port} is browser-unsafe (ERR_UNSAFE_PORT) and is not supported for OpenChamber UI at ${buildLocalUrl(port, '/')}.`;
+  return `Port ${port} is browser-unsafe (ERR_UNSAFE_PORT) and is not supported for OMPChamber UI at ${buildLocalUrl(port, '/')}.`;
 }
 
 function assertSafeBrowserPort(port, { context = 'This action' } = {}) {

@@ -11,14 +11,14 @@ describe('JsonSummaryView', () => {
                 data={{
                     id: 'OPE-266',
                     title: 'Refresh git status',
-                    url: 'https://linear.app/openchamber/issue/OPE-266',
+                    url: 'https://linear.app/ompchamber/issue/OPE-266',
                     relations: { blocks: [] },
                 }}
             />,
         );
 
         expect(html).toContain('OPE-266 · Refresh git status');
-        expect(html).toContain('href="https://linear.app/openchamber/issue/OPE-266"');
+        expect(html).toContain('href="https://linear.app/ompchamber/issue/OPE-266"');
         expect(html).toContain('Relations');
         expect(html).not.toContain('surface-elevated');
     });

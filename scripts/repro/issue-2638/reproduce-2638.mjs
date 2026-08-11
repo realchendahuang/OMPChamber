@@ -37,7 +37,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Repository root (override with REPO=/path/to/openchamber if needed). Default:
+// Repository root (override with REPO=/path/to/ompchamber if needed). Default:
 // walk up from this script until we find the repo root (AGENTS.md + package.json).
 const findRepoRoot = () => {
   let dir = __dirname;

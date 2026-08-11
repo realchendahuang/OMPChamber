@@ -36,7 +36,7 @@ export const resolveControlTimeoutMs = (input, options) => {
 
 export const requestControlAction = async (port, action, input, options = {}) => {
   const timeoutMs = resolveControlTimeoutMs(input, options);
-  const { response, body } = await requestJson(port, '/api/openchamber/control', {
+  const { response, body } = await requestJson(port, '/api/ompchamber/control', {
     ...options,
     ...(timeoutMs ? { timeoutMs } : {}),
     method: 'POST',

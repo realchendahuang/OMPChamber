@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>OpenChamber</string>
+	<string>OMPChamber</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -32,21 +32,21 @@
 		<true/>
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>OpenChamber connects to OpenChamber servers on your local network.</string>
+	<string>OMPChamber connects to OMPChamber servers on your local network.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>OpenChamber uses the camera to scan a server's pairing QR code.</string>
+	<string>OMPChamber uses the camera to scan a server's pairing QR code.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>OpenChamber uses the microphone for voice dictation in the chat composer.</string>
+	<string>OMPChamber uses the microphone for voice dictation in the chat composer.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.openchamber.app.deeplink</string>
+			<string>com.ompchamber.app.deeplink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>openchamber</string>
+				<string>ompchamber</string>
 			</array>
 		</dict>
 	</array>

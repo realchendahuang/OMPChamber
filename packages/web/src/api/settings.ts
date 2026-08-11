@@ -1,5 +1,5 @@
-import type { SettingsAPI, SettingsLoadResult, SettingsPayload } from '@openchamber/ui/lib/api/types';
-import { runtimeFetch } from '@openchamber/ui/lib/runtime-fetch';
+import type { SettingsAPI, SettingsLoadResult, SettingsPayload } from '@ompchamber/ui/lib/api/types';
+import { runtimeFetch } from '@ompchamber/ui/lib/runtime-fetch';
 
 const SETTINGS_ENDPOINT = '/api/config/settings';
 const RELOAD_ENDPOINT = '/api/config/reload';

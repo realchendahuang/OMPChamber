@@ -45,8 +45,8 @@ describe('prepareUserMarkdownContent', () => {
             skillNames: new Set(['skill-name']),
         });
 
-        expect(content).toContain('[@agent](#openchamber-agent:build-agent)');
-        expect(content).toContain('[/skill-name](#openchamber-skill:skill-name)');
+        expect(content).toContain('[@agent](#ompchamber-agent:build-agent)');
+        expect(content).toContain('[/skill-name](#ompchamber-skill:skill-name)');
         expect(content).toContain('hello  \n[/skill-name]');
     });
 });

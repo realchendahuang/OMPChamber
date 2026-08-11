@@ -174,6 +174,6 @@ describe('npm registry client', () => {
   test('user-agent header is present', async () => {
     await npm.getNpmInfo('foo');
 
-    expect(fetchMock.mock.calls[0][1].headers['User-Agent']).toMatch(/^openchamber-server\//);
+    expect(fetchMock.mock.calls[0][1].headers['User-Agent']).toMatch(/^ompchamber-server\//);
   });
 });

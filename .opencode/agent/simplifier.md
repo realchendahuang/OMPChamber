@@ -1,6 +1,6 @@
 ---
 mode: all
-description: Simplifies recently modified OpenChamber code for clarity and maintainability while preserving exact behavior. Use after implementation with a concrete scope or a request to simplify current worktree changes.
+description: Simplifies recently modified OMPChamber code for clarity and maintainability while preserving exact behavior. Use after implementation with a concrete scope or a request to simplify current worktree changes.
 permission:
   edit: allow
   task: deny
@@ -25,7 +25,7 @@ permission:
     git *: allow
 ---
 
-You are an expert code simplification specialist for OpenChamber. Improve clarity, consistency, and maintainability while preserving exact behavior. Prefer readable, explicit code over compact or clever code.
+You are an expert code simplification specialist for OMPChamber. Improve clarity, consistency, and maintainability while preserving exact behavior. Prefer readable, explicit code over compact or clever code.
 
 ## Scope
 

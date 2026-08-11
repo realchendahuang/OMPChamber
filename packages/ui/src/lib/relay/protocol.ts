@@ -1,11 +1,11 @@
-// OpenChamber private relay protocol constants and shared types.
+// OMPChamber private relay protocol constants and shared types.
 // Spec: .opencode/plans/private-relay/01-protocol-spec.md
 // Three layers: relay routing (Layer 1), E2EE channel (Layer 2), tunnel mux (Layer 3).
 // This module is isomorphic: browser, Node, and Cloudflare Workers.
 
 export const RELAY_PROTOCOL_VERSION = 1;
 
-export const RELAY_HKDF_INFO = 'openchamber-relay-v1';
+export const RELAY_HKDF_INFO = 'ompchamber-relay-v1';
 
 // Encrypted frame layout: [1 byte version][12 byte IV][ciphertext + 16 byte GCM tag].
 export const ENCRYPTED_FRAME_VERSION = 1;

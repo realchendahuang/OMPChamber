@@ -42,7 +42,7 @@ export const fetchOpenCodeGoUsage = async (credential, fetchImpl = fetch) => {
     headers: {
       Accept: 'text/html,application/xhtml+xml',
       Cookie: `auth=${credential.authCookie}`,
-      'User-Agent': 'OpenChamber quota provider',
+      'User-Agent': 'OMPChamber quota provider',
     },
     redirect: 'manual',
     signal: AbortSignal.timeout(15_000),

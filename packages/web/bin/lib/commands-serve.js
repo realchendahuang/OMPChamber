@@ -7,7 +7,7 @@ import { fetchSystemInfoFromPort } from './cli-http.js';
 import { isPortAvailable, resolveAvailablePort } from './cli-ports.js';
 import { ensureLogsDir, getLogFilePath } from './cli-paths.js';
 import { rotateLogFile } from './cli-log-files.js';
-import { discoverOpenChamberInstanceOnPort, isDesktopRuntimeForPort } from './cli-lifecycle.js';
+import { discoverOMPChamberInstanceOnPort, isDesktopRuntimeForPort } from './cli-lifecycle.js';
 import { getPidFilePath, getInstanceFilePath, writePidFile, writeInstanceOptions, removePidFile, removeInstanceFile, isProcessRunning, terminateProcessTree } from './cli-process.js';
 import { isNetworkExposedBindHost } from '../../server/lib/security/bind-host.js';
 import {
@@ -67,34 +67,34 @@ async function serveCommand(options) {
     const targetPort = await resolveAvailablePort(options.port, explicitPort, emitNotice);
 
     if (targetPort !== 0 && !options.suppressUnsafePortWarning) {
-      assertSafeBrowserPort(targetPort, { context: 'OpenChamber serve' });
+      assertSafeBrowserPort(targetPort, { context: 'OMPChamber serve' });
     }
 
     if (targetPort !== 0) {
-      const existingInstance = await discoverOpenChamberInstanceOnPort(targetPort, { host: effectiveHost });
+      const existingInstance = await discoverOMPChamberInstanceOnPort(targetPort, { host: effectiveHost });
       if (existingInstance?.runtime === 'desktop') {
         throw new Error(
-          `Port ${targetPort} is used by OpenChamber Desktop app. Choose another port or stop the desktop app.`
+          `Port ${targetPort} is used by OMPChamber Desktop app. Choose another port or stop the desktop app.`
         );
       }
       if (existingInstance) {
         const pidSuffix = Number.isFinite(existingInstance.pid) ? ` (PID: ${existingInstance.pid})` : '';
         if (existingInstance.source === 'probe') {
-          throw new Error(`OpenChamber is already running on port ${targetPort}. Use \`openchamber status\` or \`openchamber stop --port ${targetPort}\`.`);
+          throw new Error(`OMPChamber is already running on port ${targetPort}. Use \`ompchamber status\` or \`ompchamber stop --port ${targetPort}\`.`);
         }
-        throw new Error(`OpenChamber is already running on port ${targetPort}${pidSuffix}`);
+        throw new Error(`OMPChamber is already running on port ${targetPort}${pidSuffix}`);
       }
 
       if (explicitPort && !(await isPortAvailable(targetPort, effectiveHost))) {
         const systemInfo = await fetchSystemInfoFromPort(targetPort, globalThis.fetch, effectiveHost);
         if (isDesktopRuntimeForPort(systemInfo, targetPort)) {
           throw new Error(
-            `Port ${targetPort} is used by OpenChamber Desktop app. Choose another port or stop the desktop app.`
+            `Port ${targetPort} is used by OMPChamber Desktop app. Choose another port or stop the desktop app.`
           );
         }
         const systemInfoRuntimeMatchesPort = systemInfo?.runtime !== 'desktop' || isDesktopRuntimeForPort(systemInfo, targetPort);
         if (systemInfo?.runtime && systemInfoRuntimeMatchesPort) {
-          throw new Error(`OpenChamber is already running on port ${targetPort}. Use \`openchamber status\` or \`openchamber stop --port ${targetPort}\`.`);
+          throw new Error(`OMPChamber is already running on port ${targetPort}. Use \`ompchamber status\` or \`ompchamber stop --port ${targetPort}\`.`);
         }
         throw new Error(`Port ${targetPort} is already in use by another process.`);
       }
@@ -124,11 +124,11 @@ async function serveCommand(options) {
     if (!effectiveUiPassword && !options.suppressUiPasswordWarning) {
       const bindHost = effectiveHost;
       const networkExposed = isNetworkExposedBindHost(bindHost);
-      const warningLine = 'OPENCHAMBER_UI_PASSWORD is not set';
+      const warningLine = 'OMPCHAMBER_UI_PASSWORD is not set';
       const warningDetail = networkExposed
         ? `server is bound to ${bindHost} and reachable on your network with no UI auth. `
-          + 'Set --ui-password or OPENCHAMBER_UI_PASSWORD before exposing it over LAN.'
-        : 'browser UI is unsecured. Use --ui-password or OPENCHAMBER_UI_PASSWORD.';
+          + 'Set --ui-password or OMPCHAMBER_UI_PASSWORD before exposing it over LAN.'
+        : 'browser UI is unsecured. Use --ui-password or OMPCHAMBER_UI_PASSWORD.';
       if (showOutput) {
         logStatus('warning', warningLine, warningDetail);
       } else if (isJsonMode(options)) {
@@ -159,10 +159,10 @@ async function serveCommand(options) {
         process.env.OPENCODE_BINARY = opencodeBinary;
       }
       if (effectiveUiPassword) {
-        process.env.OPENCHAMBER_UI_PASSWORD = effectiveUiPassword;
+        process.env.OMPCHAMBER_UI_PASSWORD = effectiveUiPassword;
       }
-      process.env.OPENCHAMBER_HOST = effectiveHost;
-      process.env.OPENCHAMBER_RUNTIME = 'web';
+      process.env.OMPCHAMBER_HOST = effectiveHost;
+      process.env.OMPCHAMBER_RUNTIME = 'web';
 
       // In --quiet mode, redirect stdout/stderr to the log file so that
       // server runtime output (console.log calls) does not pollute the
@@ -190,7 +190,7 @@ async function serveCommand(options) {
       }
 
       if (!isQuietMode(options)) {
-        console.log(`Starting OpenChamber on port ${targetPort === 0 ? 'auto' : targetPort} (foreground)`);
+        console.log(`Starting OMPChamber on port ${targetPort === 0 ? 'auto' : targetPort} (foreground)`);
       }
 
       const { startWebUiServer } = await import(pathToFileURL(serverPath).href);
@@ -282,18 +282,18 @@ async function serveCommand(options) {
       stdio: ['ignore', logFd, logFd, 'ipc'],
       env: {
         ...process.env,
-        OPENCHAMBER_PORT: String(targetPort),
-        OPENCHAMBER_RUNTIME: 'web',
+        OMPCHAMBER_PORT: String(targetPort),
+        OMPCHAMBER_RUNTIME: 'web',
         OPENCODE_BINARY: opencodeBinary,
-        OPENCHAMBER_HOST: effectiveHost,
-        ...(effectiveUiPassword ? { OPENCHAMBER_UI_PASSWORD: effectiveUiPassword } : {}),
-        ...(options.apiOnly === true ? { OPENCHAMBER_API_ONLY: 'true' } : {}),
-        ...(process.env.OPENCODE_SKIP_START ? { OPENCHAMBER_SKIP_OPENCODE_START: process.env.OPENCODE_SKIP_START } : {}),
+        OMPCHAMBER_HOST: effectiveHost,
+        ...(effectiveUiPassword ? { OMPCHAMBER_UI_PASSWORD: effectiveUiPassword } : {}),
+        ...(options.apiOnly === true ? { OMPCHAMBER_API_ONLY: 'true' } : {}),
+        ...(process.env.OPENCODE_SKIP_START ? { OMPCHAMBER_SKIP_OPENCODE_START: process.env.OPENCODE_SKIP_START } : {}),
       },
     });
 
     child.unref();
-    serveSpin?.start(`Starting OpenChamber on port ${targetPort === 0 ? 'auto' : targetPort}...`);
+    serveSpin?.start(`Starting OMPChamber on port ${targetPort === 0 ? 'auto' : targetPort}...`);
 
     let resolvedPort;
     try {
@@ -302,12 +302,12 @@ async function serveCommand(options) {
         const timeout = setTimeout(() => {
           if (settled) return;
           settled = true;
-          reject(new Error(`OpenChamber daemon did not report ready within ${DAEMON_READY_TIMEOUT_MS / 1000}s`));
+          reject(new Error(`OMPChamber daemon did not report ready within ${DAEMON_READY_TIMEOUT_MS / 1000}s`));
         }, DAEMON_READY_TIMEOUT_MS);
 
         child.on('message', (msg) => {
           if (settled) return;
-          if (msg && msg.type === 'openchamber:ready' && typeof msg.port === 'number') {
+          if (msg && msg.type === 'ompchamber:ready' && typeof msg.port === 'number') {
             settled = true;
             clearTimeout(timeout);
             resolve(msg.port);
@@ -325,7 +325,7 @@ async function serveCommand(options) {
           if (settled) return;
           settled = true;
           clearTimeout(timeout);
-          reject(new Error(`OpenChamber daemon exited before reporting ready${signal ? ` (${signal})` : ` (code ${code ?? 'unknown'})`}`));
+          reject(new Error(`OMPChamber daemon exited before reporting ready${signal ? ` (${signal})` : ` (code ${code ?? 'unknown'})`}`));
         });
       });
     } catch (error) {
@@ -354,7 +354,7 @@ async function serveCommand(options) {
     }
 
     if (!isProcessRunning(child.pid)) {
-      serveSpin?.error('Failed to start OpenChamber');
+      serveSpin?.error('Failed to start OMPChamber');
       throw new Error('Failed to start server in daemon mode');
     }
 
@@ -373,7 +373,7 @@ async function serveCommand(options) {
       port: resolvedPort,
       pid: child.pid,
       url: buildLocalUrl(resolvedPort, '/'),
-      logs: `openchamber logs -p ${resolvedPort}`,
+      logs: `ompchamber logs -p ${resolvedPort}`,
       launchMode: 'daemon',
     };
 
@@ -391,7 +391,7 @@ async function serveCommand(options) {
         return resolvedPort;
       }
       // A generated password is essential result data for scripts: include it
-      // in the same compact `pass:` token form `openchamber status --quiet`
+      // in the same compact `pass:` token form `ompchamber status --quiet`
       // already emits. Configured passwords are never echoed.
       process.stdout.write(
         autoGeneratedUiPassword
@@ -404,7 +404,7 @@ async function serveCommand(options) {
     serveSpin?.clear();
 
     if (!options.suppressStartupSummary && showOutput) {
-      clackIntro('OpenChamber Started');
+      clackIntro('OMPChamber Started');
       logStatus('success', `port ${serveResult.port} (PID: ${serveResult.pid})`);
       if (autoGeneratedUiPassword) {
         logStatus('success', 'UI password', effectiveUiPassword);

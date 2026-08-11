@@ -32,7 +32,7 @@ describe('VS Code skill discovery parity', () => {
       content: '# Customize opencode\n\nUse for config work.',
     };
 
-    const sources = getSkillSources('customize-opencode', '/tmp/openchamber-vscode-skills-test', discoveredSkill);
+    const sources = getSkillSources('customize-opencode', '/tmp/ompchamber-vscode-skills-test', discoveredSkill);
 
     expect(sources.md.exists).toBe(true);
     expect(sources.md.path).toBeNull();

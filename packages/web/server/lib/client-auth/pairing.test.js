@@ -7,7 +7,7 @@ import crypto from 'node:crypto';
 import { createClientPairingRuntime } from './pairing.js';
 
 const makeRuntime = async (options = {}) => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openchamber-pairing-test-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-pairing-test-'));
   const createdClients = [];
   const remoteClientAuthRuntime = options.remoteClientAuthRuntime || {
     createClient: vi.fn(async (input) => {

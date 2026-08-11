@@ -1,4 +1,4 @@
-import type { RuntimeAPIs, TerminalAPI } from '@openchamber/ui/lib/api/types';
+import type { RuntimeAPIs, TerminalAPI } from '@ompchamber/ui/lib/api/types';
 import { createVSCodeFilesAPI } from './files';
 import { createVSCodeSettingsAPI } from './settings';
 import { createVSCodePermissionsAPI } from './permissions';

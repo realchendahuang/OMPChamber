@@ -3,7 +3,7 @@ const DEFAULT_TTL_MS = 10 * 60 * 1000;
 const DEFAULT_TIMEOUT_MS = 8000;
 
 // Shared in-process cache of the models.dev catalog. Used by the
-// /api/openchamber/models-metadata route and the small-model resolver so the
+// /api/ompchamber/models-metadata route and the small-model resolver so the
 // server fetches the catalog once, not per consumer.
 let cachedMetadata = null;
 let cachedAt = 0;

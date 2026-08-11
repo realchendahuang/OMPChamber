@@ -121,7 +121,7 @@ const startLoopbackOrigin = () =>
         res.end(JSON.stringify({
           ok: true,
           service: 'stub',
-          relayConn: req.headers['x-openchamber-relay-connection'] || null,
+          relayConn: req.headers['x-ompchamber-relay-connection'] || null,
           origin: req.headers.origin,
         }));
         return;

@@ -1,4 +1,4 @@
-const STORAGE_KEY = "openchamber_session_load_perf"
+const STORAGE_KEY = "ompchamber_session_load_perf"
 const MAX_EVENTS = 1_000
 const ALLOWED_OPERATIONS = new Set([
   "bootstrap.directory",
@@ -59,7 +59,7 @@ type SessionLoadPerformanceState = {
 
 declare global {
   interface Window {
-    __openchamberSessionLoadPerformance?: SessionLoadPerformanceState
+    __ompchamberSessionLoadPerformance?: SessionLoadPerformanceState
   }
 }
 
@@ -95,7 +95,7 @@ export function startSessionLoadPerformanceEvent(input: Omit<SessionLoadPerforma
     details?: Partial<Pick<SessionLoadPerformanceEvent, "retryCount" | "recordCount">>,
   ) => {
     if (typeof window === "undefined" || !ALLOWED_OUTCOMES.has(outcome)) return
-    const state = window.__openchamberSessionLoadPerformance ?? { events: [] }
+    const state = window.__ompchamberSessionLoadPerformance ?? { events: [] }
     const queuedMs = nonNegativeNumber(input.queuedMs)
     const requestLimit = nonNegativeInteger(input.requestLimit)
     const retryCount = nonNegativeInteger(details?.retryCount ?? input.retryCount)
@@ -113,7 +113,7 @@ export function startSessionLoadPerformanceEvent(input: Omit<SessionLoadPerforma
       at: Date.now(),
     })
     if (state.events.length > MAX_EVENTS) state.events.splice(0, state.events.length - MAX_EVENTS)
-    window.__openchamberSessionLoadPerformance = state
+    window.__ompchamberSessionLoadPerformance = state
   }
 }
 
@@ -125,7 +125,7 @@ type FirstVisibleSessionPerformanceDependencies = {
   startEvent: typeof startSessionLoadPerformanceEvent
 }
 
-const FIRST_VISIBLE_MARK = "openchamber.chat.first_message_visible"
+const FIRST_VISIBLE_MARK = "ompchamber.chat.first_message_visible"
 
 export function createFirstVisibleSessionPerformanceTracker(
   dependencies?: Partial<FirstVisibleSessionPerformanceDependencies>,

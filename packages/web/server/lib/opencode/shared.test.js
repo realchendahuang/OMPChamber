@@ -6,7 +6,7 @@ import path from 'path';
 import { parseMdFile, writeMdFile } from './shared.js';
 import { updateAgent } from './agents.js';
 
-const FIXTURE_DIR = path.join(os.tmpdir(), `openchamber-shared-test-${process.pid}`);
+const FIXTURE_DIR = path.join(os.tmpdir(), `ompchamber-shared-test-${process.pid}`);
 
 const STANDARD_MD = [
   '---',
@@ -48,7 +48,7 @@ describe('parseMdFile', () => {
   });
 
   it('parses frontmatter whose closing --- is at end-of-file without a trailing newline', () => {
-    // gray-matter (used by OpenCode) accepts this shape; OpenChamber must too,
+    // gray-matter (used by OpenCode) accepts this shape; OMPChamber must too,
     // otherwise a later save duplicates the YAML block.
     const file = writeFixture('eof-close.md', [
       '---',
@@ -146,7 +146,7 @@ describe('updateAgent frontmatter preservation', () => {
 
   it('updates the model in place without duplicating YAML for a file with EOF-closed frontmatter', () => {
     // Repro of OPE-178: the file's closing --- sits at EOF (no trailing
-    // newline). OpenCode parses it; OpenChamber previously treated the whole
+    // newline). OpenCode parses it; OMPChamber previously treated the whole
     // file as the prompt body and prepended a second frontmatter block on save.
     const projectDir = path.join(FIXTURE_DIR, 'project');
     const agentPath = path.join(projectDir, '.opencode', 'agents', 'strateg.md');

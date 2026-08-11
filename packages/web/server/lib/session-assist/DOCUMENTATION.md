@@ -3,7 +3,7 @@
 Server-side watcher that generates a short recap of the agent's last reply
 and one suggested user follow-up with the small model
 (`lib/small-model`), storing both on the session's metadata under
-`metadata.openchamber.assist`.
+`metadata.ompchamber.assist`.
 
 ## Flow
 
@@ -33,7 +33,7 @@ and one suggested user follow-up with the small model
 
 ## Settings gate
 
-`sessionRecapEnabled` and `sessionSuggestionEnabled` in OpenChamber settings
+`sessionRecapEnabled` and `sessionSuggestionEnabled` in OMPChamber settings
 (Settings → Chat, default on) are hard generation switches checked at fire
 time. When both are off, no small-model calls run and nothing is written. When
 one is on, the runtime still makes at most one small-model call and asks only

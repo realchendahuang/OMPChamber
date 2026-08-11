@@ -1,4 +1,4 @@
-// Generate a social changelog card for OpenChamber.
+// Generate a social changelog card for OMPChamber.
 //
 //   bun run scripts/changelog-card/generate.mjs "v0.42.0" \
 //     "Sessions now *stream responses* token-by-token across every device."
@@ -9,7 +9,7 @@
 //   1  title     — short heading, typically a version number (e.g. v0.42.0)
 //   2  sentence   — the feature blurb. Word-wraps to fit the card width.
 //                   Wrap a phrase in *asterisks* to highlight it in the
-//                   site's serif-italic accent (matches openchamber.dev).
+//                   site's serif-italic accent (matches ompchamber.dev).
 //
 // Options:
 //   --out <path>   output PNG (default: ./changelog-<title>.png in cwd)
@@ -36,7 +36,7 @@ const FONTS = [
   },
 ];
 
-// ---- palette (mirrors openchamber.dev) -------------------------------------
+// ---- palette (mirrors ompchamber.dev) -------------------------------------
 const CREAM = '#F4ECE0'; // primary text
 const AMBER = '#E8C98A'; // accent / highlight / version label
 const SCRIM = '#07070A'; // scrim ink

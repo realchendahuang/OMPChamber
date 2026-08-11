@@ -12,7 +12,7 @@ import { getRuntimeKey } from '@/lib/runtime-switch';
 /**
  * Builds the lightweight session overview the native iOS widgets render (home medium,
  * lock-screen, Control Center). The widget process can't see the WebView, so the native
- * shell pulls this snapshot via `window.__OPENCHAMBER_WIDGET_SNAPSHOT__()` on
+ * shell pulls this snapshot via `window.__OMPCHAMBER_WIDGET_SNAPSHOT__()` on
  * background/activate, writes it to the shared App Group, and reloads the widget timelines
  * (see SceneDelegate.writeWidgetSnapshot). Mirrors the sidebar's attention logic so the
  * widget's "needs attention" mark matches the in-app unread dot exactly:
@@ -105,7 +105,7 @@ export const buildMobileWidgetSnapshot = (): MobileWidgetSnapshot => {
   return { runtimeKey: getRuntimeKey(), attentionCount, recentSessions };
 };
 
-const SNAPSHOT_GLOBAL_KEY = '__OPENCHAMBER_WIDGET_SNAPSHOT__';
+const SNAPSHOT_GLOBAL_KEY = '__OMPCHAMBER_WIDGET_SNAPSHOT__';
 
 /**
  * Exposes the snapshot builder on `window` so the native shell can read it synchronously via

@@ -12,11 +12,11 @@ import {
 } from './service.js';
 
 // ---------------------------------------------------------------------------
-// Regression for https://github.com/openchamber/openchamber/issues/2746
+// Regression for https://github.com/realchendahuang/OMPChamber/issues/2746
 //
 // "[Bug] new worktree， Filename too long"
 //
-// OpenChamber places worktrees under:
+// OMPChamber places worktrees under:
 //   <XDG_DATA_HOME>/opencode/worktree/<40-char root commit hash>/<worktree name>
 // and populates them with `git reset --hard`. On Windows, that deep prefix plus
 // a deeply nested repo file (e.g. yudao ~173 chars) exceeds MAX_PATH (260) and
@@ -26,7 +26,7 @@ import {
 const tempDirs = [];
 
 const createTempDir = () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-git-issue2746-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-git-issue2746-'));
   tempDirs.push(dir);
   return dir;
 };
@@ -95,7 +95,7 @@ describe('issue #2746 - worktree long path support', () => {
       const created = await createWorktree(repo, {
         mode: 'new',
         worktreeName: 'issue-2746',
-        branchName: 'openchamber/issue-2746',
+        branchName: 'ompchamber/issue-2746',
       });
       expect(created.directoryCreated).toBe(true);
 
@@ -162,7 +162,7 @@ describe('issue #2746 - worktree long path support', () => {
       const created = await createWorktree(repo, {
         mode: 'new',
         worktreeName: 'issue-2746-namemax',
-        branchName: 'openchamber/issue-2746-namemax',
+        branchName: 'ompchamber/issue-2746-namemax',
       });
       expect(created.directoryCreated).toBe(true);
 

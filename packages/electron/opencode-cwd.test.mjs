@@ -9,14 +9,14 @@ describe('resolveManagedOpenCodeCwd', () => {
 
   it('preserves an explicit cwd override', () => {
     expect(resolveManagedOpenCodeCwd({
-      env: { OPENCHAMBER_OPENCODE_CWD: '/tmp/opencode-cwd' },
+      env: { OMPCHAMBER_OPENCODE_CWD: '/tmp/opencode-cwd' },
       homedir: () => '/Users/example',
     })).toBe('/tmp/opencode-cwd');
   });
 
   it('ignores a blank cwd override', () => {
     expect(resolveManagedOpenCodeCwd({
-      env: { OPENCHAMBER_OPENCODE_CWD: '   ' },
+      env: { OMPCHAMBER_OPENCODE_CWD: '   ' },
       homedir: () => '/Users/example',
     })).toBe('/Users/example');
   });

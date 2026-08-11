@@ -3,7 +3,7 @@
 Server-side direct LLM calls that reuse the user's existing OpenCode provider
 logins (`~/.local/share/opencode/auth.json`). OpenCode uses a "small model"
 internally (titles, summaries) but does not expose it through the SDK or
-plugins — this module replicates that mechanism as an OpenChamber runtime API.
+plugins — this module replicates that mechanism as an OMPChamber runtime API.
 
 ## Security boundary
 
@@ -16,7 +16,7 @@ other runtime API.
 
 - `index.js` — orchestration: `generateSmallModelText()` / `describeSmallModel()`.
 - `resolve.js` — model selection, mirroring OpenCode's `getSmallModel` chain:
-  0. OpenChamber's own settings override (Settings → Sessions → Small Model):
+  0. OMPChamber's own settings override (Settings → Sessions → Small Model):
      when `smallModelUseDefault` is `false`, `smallModelOverride`
      (`provider/model`) outranks everything below. Sanitized in
      `settings-helpers.js` (server), `persistence.ts` (client), and
@@ -110,7 +110,7 @@ other runtime API.
     `[session-goal:diagnostic]` structural verdict metadata.
 - `catalog.js` — models.dev catalog via the shared in-process cache
   (`../opencode/models-metadata.js`, also serving
-  `/api/openchamber/models-metadata`).
+  `/api/ompchamber/models-metadata`).
 - `routes.js` — `GET /api/small-model` (resolution preview) and
   `POST /api/small-model/generate` (`{ prompt, system?, maxOutputTokens?,
   model?, directory? }` → `{ text, providerID, modelID, source }`).

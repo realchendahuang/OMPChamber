@@ -1,6 +1,6 @@
 type UpgradeCapability = {
   supported: boolean;
-  manager: 'opencode' | 'external' | 'openchamber' | null;
+  manager: 'opencode' | 'external' | 'ompchamber' | null;
   reason: 'external' | 'unavailable' | 'windows-arm64-workaround' | null;
 };
 
@@ -45,7 +45,7 @@ const compareVersions = (left: unknown, right: unknown): number => {
 };
 
 const getCapability = (manager?: OpenCodeUpgradeManager): UpgradeCapability => {
-  if (isWindowsArm64()) return { supported: false, manager: 'openchamber', reason: 'windows-arm64-workaround' };
+  if (isWindowsArm64()) return { supported: false, manager: 'ompchamber', reason: 'windows-arm64-workaround' };
   if (!manager) return { supported: false, manager: null, reason: 'unavailable' };
   if (manager.getDebugInfo().mode !== 'managed') return { supported: false, manager: 'external', reason: 'external' };
   if (!manager.getApiUrl()) return { supported: false, manager: null, reason: 'unavailable' };
@@ -102,7 +102,7 @@ export const upgradeManagedOpenCode = async (manager: OpenCodeUpgradeManager | u
   const upgrade = getCapability(manager);
   const apiUrl = getApiUrl(manager);
   if (!upgrade.supported || !apiUrl || !manager) {
-    return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_UNSUPPORTED', error: 'This OpenCode runtime cannot be upgraded by OpenChamber.' } };
+    return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_UNSUPPORTED', error: 'This OpenCode runtime cannot be upgraded by OMPChamber.' } };
   }
   if (openCodeUpgradePromise) {
     return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_IN_PROGRESS', error: 'An OpenCode upgrade is already in progress.' } };

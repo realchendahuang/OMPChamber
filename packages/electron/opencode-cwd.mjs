@@ -1,6 +1,6 @@
 export const resolveManagedOpenCodeCwd = ({ env, homedir }) => {
-  const configured = typeof env?.OPENCHAMBER_OPENCODE_CWD === 'string'
-    ? env.OPENCHAMBER_OPENCODE_CWD.trim()
+  const configured = typeof env?.OMPCHAMBER_OPENCODE_CWD === 'string'
+    ? env.OMPCHAMBER_OPENCODE_CWD.trim()
     : '';
   if (configured) {
     return configured;

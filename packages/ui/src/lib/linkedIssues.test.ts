@@ -14,7 +14,7 @@ const issue = (overrides: Partial<LinkedIssue> = {}): LinkedIssue => ({
 });
 
 const sessionWith = (linked: unknown): Session =>
-  ({ metadata: { openchamber: { linked_issues: linked } } } as unknown as Session);
+  ({ metadata: { ompchamber: { linked_issues: linked } } } as unknown as Session);
 
 describe('buildLinkedIssueId', () => {
   test('is stable per repository and number', () => {
@@ -103,20 +103,20 @@ describe('getLinkedIssues', () => {
 describe('withLinkedIssue', () => {
   test('adds a link and preserves unrelated metadata', () => {
     const next = withLinkedIssue(
-      { openchamber: { kind: 'review' }, other: 1 },
+      { ompchamber: { kind: 'review' }, other: 1 },
       issue(),
       true,
     );
     expect(next.other).toBe(1);
-    expect((next.openchamber as Record<string, unknown>).kind).toBe('review');
-    expect((next.openchamber as { linked_issues: LinkedIssue[] }).linked_issues).toEqual([issue()]);
+    expect((next.ompchamber as Record<string, unknown>).kind).toBe('review');
+    expect((next.ompchamber as { linked_issues: LinkedIssue[] }).linked_issues).toEqual([issue()]);
   });
 
   test('re-linking replaces the entry rather than duplicating it', () => {
     // Linking again is how a drifted title gets refreshed.
     const first = withLinkedIssue({}, issue({ title: 'Old' }), true);
     const second = withLinkedIssue(first, issue({ title: 'New' }), true);
-    const stored = (second.openchamber as { linked_issues: LinkedIssue[] }).linked_issues;
+    const stored = (second.ompchamber as { linked_issues: LinkedIssue[] }).linked_issues;
     expect(stored).toHaveLength(1);
     expect(stored[0].title).toBe('New');
   });
@@ -125,21 +125,21 @@ describe('withLinkedIssue', () => {
     const other = issue({ id: 'owner/repo#99', number: 99 });
     const both = withLinkedIssue(withLinkedIssue({}, issue(), true), other, true);
     const next = withLinkedIssue(both, issue(), false);
-    const stored = (next.openchamber as { linked_issues: LinkedIssue[] }).linked_issues;
+    const stored = (next.ompchamber as { linked_issues: LinkedIssue[] }).linked_issues;
     expect(stored).toEqual([other]);
   });
 
   test('unlinking something absent is a no-op, not an error', () => {
     const next = withLinkedIssue({}, issue(), false);
-    expect((next.openchamber as { linked_issues: LinkedIssue[] }).linked_issues).toEqual([]);
+    expect((next.ompchamber as { linked_issues: LinkedIssue[] }).linked_issues).toEqual([]);
   });
 
   test('does not carry malformed stored entries forward', () => {
     const next = withLinkedIssue(
-      { openchamber: { linked_issues: [{ id: 'broken' }] } },
+      { ompchamber: { linked_issues: [{ id: 'broken' }] } },
       issue(),
       true,
     );
-    expect((next.openchamber as { linked_issues: LinkedIssue[] }).linked_issues).toEqual([issue()]);
+    expect((next.ompchamber as { linked_issues: LinkedIssue[] }).linked_issues).toEqual([issue()]);
   });
 });

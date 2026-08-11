@@ -2,7 +2,7 @@ import React from 'react';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useSessionUIStore } from '@/sync/session-ui-store';
 import { useSession } from '@/sync/sync-context';
-import type { ProjectRef } from '@/lib/openchamberConfig';
+import type { ProjectRef } from '@/lib/ompchamberConfig';
 
 export interface ProjectActionsContext {
   projectRef: ProjectRef;

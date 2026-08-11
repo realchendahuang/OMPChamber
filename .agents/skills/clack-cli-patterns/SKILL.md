@@ -1,13 +1,13 @@
 ---
 name: clack-cli-patterns
-description: Use when creating or modifying OpenChamber CLI commands, prompts, terminal output, non-TTY behavior, `--quiet`, or `--json` behavior.
+description: Use when creating or modifying OMPChamber CLI commands, prompts, terminal output, non-TTY behavior, `--quiet`, or `--json` behavior.
 license: MIT
 compatibility: opencode
 ---
 
 ## Overview
 
-OpenChamber terminal CLI uses `@clack/prompts` for interactive UX, but command policy and validation must be mode-agnostic.
+OMPChamber terminal CLI uses `@clack/prompts` for interactive UX, but command policy and validation must be mode-agnostic.
 
 **Core principle:** policy-first, UX-second. Clack is presentation, not enforcement.
 

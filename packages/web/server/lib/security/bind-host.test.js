@@ -25,7 +25,7 @@ describe('bind host exposure classification', () => {
       '::ffff:192.168.1.10',
       'fe80::1',
       'fc00::1',
-      'openchamber.local',
+      'ompchamber.local',
       'example.com',
       '',
     ]) {

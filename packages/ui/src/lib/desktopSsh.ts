@@ -40,7 +40,7 @@ export type DesktopSshInstance = {
     args: string[];
   };
   connectionTimeoutSec: number;
-  remoteOpenchamber: {
+  remoteOMPChamber: {
     mode: DesktopSshRemoteMode;
     keepRunning: boolean;
     preferredPort?: number;
@@ -53,7 +53,7 @@ export type DesktopSshInstance = {
   };
   auth: {
     sshPassword?: DesktopSshStoredSecret;
-    openchamberPassword?: DesktopSshStoredSecret;
+    ompchamberPassword?: DesktopSshStoredSecret;
   };
   portForwards: DesktopSshPortForward[];
 };
@@ -179,10 +179,10 @@ const parseInstance = (value: unknown): DesktopSshInstance | null => {
       }
     : undefined;
 
-  const remoteRaw = isRecord(value.remoteOpenchamber)
-    ? value.remoteOpenchamber
-    : isRecord(value.remote_openchamber)
-      ? value.remote_openchamber
+  const remoteRaw = isRecord(value.remoteOMPChamber)
+    ? value.remoteOMPChamber
+    : isRecord(value.remote_ompchamber)
+      ? value.remote_ompchamber
       : {};
 
   const localRaw = isRecord(value.localForward)
@@ -225,7 +225,7 @@ const parseInstance = (value: unknown): DesktopSshInstance | null => {
   const preferredLocalPort =
     readNumber(localRaw, 'preferredLocalPort') ?? readNumber(localRaw, 'preferred_local_port');
   const sshPassword = parseStoredSecret(authRaw.sshPassword || authRaw.ssh_password);
-  const openchamberPassword = parseStoredSecret(authRaw.openchamberPassword || authRaw.openchamber_password);
+  const ompchamberPassword = parseStoredSecret(authRaw.ompchamberPassword || authRaw.ompchamber_password);
 
   return {
     id,
@@ -236,7 +236,7 @@ const parseInstance = (value: unknown): DesktopSshInstance | null => {
       readNumber(value, 'connectionTimeoutSec') ??
       readNumber(value, 'connection_timeout_sec') ??
       60,
-    remoteOpenchamber: {
+    remoteOMPChamber: {
       mode,
       keepRunning: readBoolean(remoteRaw, 'keepRunning') ?? readBoolean(remoteRaw, 'keep_running') ?? true,
       ...(preferredPort ? { preferredPort } : {}),
@@ -252,7 +252,7 @@ const parseInstance = (value: unknown): DesktopSshInstance | null => {
     },
     auth: {
       ...(sshPassword ? { sshPassword } : {}),
-      ...(openchamberPassword ? { openchamberPassword } : {}),
+      ...(ompchamberPassword ? { ompchamberPassword } : {}),
     },
     portForwards,
   };
@@ -324,7 +324,7 @@ export const createDesktopSshInstance = (id: string, sshCommand: string): Deskto
     id,
     sshCommand,
     connectionTimeoutSec: 60,
-    remoteOpenchamber: {
+    remoteOMPChamber: {
       mode: 'managed',
       keepRunning: true,
       installMethod: 'bun',
@@ -430,13 +430,13 @@ export const listenDesktopSshStatus = async (
     return async () => {};
   }
 
-  const desktop = (window as unknown as { __OPENCHAMBER_DESKTOP__?: DesktopBridgeGlobal }).__OPENCHAMBER_DESKTOP__;
+  const desktop = (window as unknown as { __OMPCHAMBER_DESKTOP__?: DesktopBridgeGlobal }).__OMPCHAMBER_DESKTOP__;
   const listen = desktop?.listen;
   if (typeof listen !== 'function') {
     return async () => {};
   }
 
-  const unlisten = await listen('openchamber:ssh-instance-status', (event) => {
+  const unlisten = await listen('ompchamber:ssh-instance-status', (event) => {
     const status = parseStatus(event?.payload);
     if (!status) return;
     listener(status);

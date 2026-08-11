@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { RuntimeUrlQuery, RuntimeUrlResolver } from '@openchamber/ui/lib/runtime-url';
+import type { RuntimeUrlQuery, RuntimeUrlResolver } from '@ompchamber/ui/lib/runtime-url';
 
 const runtimeFetchMock = vi.fn();
 
-vi.mock('@openchamber/ui/lib/runtime-fetch', () => ({
+vi.mock('@ompchamber/ui/lib/runtime-fetch', () => ({
   runtimeFetch: runtimeFetchMock,
 }));
 

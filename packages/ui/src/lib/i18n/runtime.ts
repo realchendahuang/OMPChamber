@@ -18,7 +18,7 @@ export const LOCALE_LABEL_KEYS: Record<Locale, 'common.language.english' | 'comm
   ja: 'common.language.japanese',
 };
 
-export const LOCALE_STORAGE_KEY = 'openchamber.i18n.v1';
+export const LOCALE_STORAGE_KEY = 'ompchamber.i18n.v1';
 
 type StoredLocale = {
   locale?: unknown;

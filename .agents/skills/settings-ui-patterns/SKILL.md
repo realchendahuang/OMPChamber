@@ -1,6 +1,6 @@
 ---
 name: settings-ui-patterns
-description: Use when creating or modifying OpenChamber Settings pages, dialogs, controls, configuration surfaces, responsive Settings layouts, or Settings search behavior.
+description: Use when creating or modifying OMPChamber Settings pages, dialogs, controls, configuration surfaces, responsive Settings layouts, or Settings search behavior.
 ---
 
 # Settings UI Patterns

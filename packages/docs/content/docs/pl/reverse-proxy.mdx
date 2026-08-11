@@ -1,15 +1,15 @@
 ---
 title: Reverse proxy
-description: Skonfiguruj OpenChamber poprawnie za Nginx, Nginx Proxy Manager lub innym reverse proxy.
+description: Skonfiguruj OMPChamber poprawnie za Nginx, Nginx Proxy Manager lub innym reverse proxy.
 ---
 
 # Reverse proxy
 
-Skorzystaj z tej strony, jeśli uruchamiasz OpenChamber za Nginx, Nginx Proxy Manager, Caddy, Cloudflare lub innym reverse proxy.
+Skorzystaj z tej strony, jeśli uruchamiasz OMPChamber za Nginx, Nginx Proxy Manager, Caddy, Cloudflare lub innym reverse proxy.
 
 ## Zanim ustawisz proxy
 
-1. Najpierw potwierdź, że OpenChamber działa bezpośrednio.
+1. Najpierw potwierdź, że OMPChamber działa bezpośrednio.
 2. Otwórz `http://<server-ip>:3000` lub swój własny port z tej samej sieci.
 3. Dodaj reverse proxy dopiero, gdy połączenie bezpośrednie działa.
 
@@ -23,7 +23,7 @@ Skorzystaj z tej strony, jeśli uruchamiasz OpenChamber za Nginx, Nginx Proxy Ma
   - `/api/event`
   - `/api/global/event`
   - `/api/notifications/stream`
-  - `/api/openchamber/events`
+  - `/api/ompchamber/events`
   - `/api/terminal/:sessionId/stream`
 - Duże treści żądań dla załączników i operacji na plikach
 - Długie limity czasu odczytu dla strumieni na żywo i sesji terminala
@@ -32,14 +32,14 @@ Skorzystaj z tej strony, jeśli uruchamiasz OpenChamber za Nginx, Nginx Proxy Ma
 
 - Włącz proxy WebSocket.
 - Wyłącz buforowanie na trasach SSE.
-- Wyłącz gzip na proxy, jeśli OpenChamber już kompresuje odpowiedzi.
+- Wyłącz gzip na proxy, jeśli OMPChamber już kompresuje odpowiedzi.
 - Utrzymuj kompresję włączoną tylko w jednej warstwie.
 - Przekazuj zwykłe nagłówki proxy, takie jak `Host`, `X-Forwarded-For` i `X-Forwarded-Proto`.
 - Zwiększ limity rozmiaru treści, jeśli użytkownicy przesyłają pliki.
 
 ## Szybka lista kontrolna
 
-- OpenChamber dostępny bezpośrednio w LAN
+- OMPChamber dostępny bezpośrednio w LAN
 - WebSockets włączone w proxy
 - trasy SSE mają wyłączone buforowanie
 - `gzip off` na hoście proxy lub kompresja proxy wyłączona w inny sposób
@@ -96,7 +96,7 @@ location = /api/event/ws {
     proxy_send_timeout 3600s;
 }
 
-location ~ ^/api/(event|global/event|notifications/stream|openchamber/events)$ {
+location ~ ^/api/(event|global/event|notifications/stream|ompchamber/events)$ {
     proxy_pass http://127.0.0.1:3000;
     proxy_set_header Accept "text/event-stream";
     proxy_set_header Cache-Control "no-cache";
@@ -230,7 +230,7 @@ location = /api/notifications/stream {
     proxy_connect_timeout 30s;
 }
 
-location = /api/openchamber/events {
+location = /api/ompchamber/events {
     proxy_pass http://127.0.0.1:3000;
     proxy_set_header Accept "text/event-stream";
     proxy_set_header Cache-Control "no-cache";
@@ -329,7 +329,7 @@ Caddy obsługuje uaktualnienia WebSocket automatycznie — żadna dodatkowa konf
 
 Jeśli umieścisz CDN (np. Cloudflare) przed swoim reverse proxy, pamiętaj o podwójnej kompresji:
 
-- OpenChamber kompresuje odpowiedzi HTTP za pomocą gzip (próg 1 KB).
+- OMPChamber kompresuje odpowiedzi HTTP za pomocą gzip (próg 1 KB).
 - Cloudflare i inne CDN-y również domyślnie kompresują odpowiedzi.
 - Może to powodować podwójnie skompresowane odpowiedzi lub nieprawidłowe nagłówki `Content-Encoding`.
 
@@ -339,7 +339,7 @@ Aby tego uniknąć, wyłącz kompresję w **jednej** warstwie:
 - **Nginx:** `gzip off` (już pokazane w przykładach powyżej).
 - **Caddy:** Caddy domyślnie nie kompresuje ponownie, jeśli upstream już wysyła skompresowaną treść.
 
-Trasy strumieniowania SSE są wyłączone z kompresji przez OpenChamber, ale CDN może je nadal buforować. Sprawdź dokumentację swojego CDN, jak wyłączyć buforowanie na ścieżkach SSE.
+Trasy strumieniowania SSE są wyłączone z kompresji przez OMPChamber, ale CDN może je nadal buforować. Sprawdź dokumentację swojego CDN, jak wyłączyć buforowanie na ścieżkach SSE.
 
 ## Powiązane
 

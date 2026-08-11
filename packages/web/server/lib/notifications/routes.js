@@ -272,7 +272,7 @@ export const registerNotificationRoutes = (app, dependencies) => {
 
     try {
       writeSseEvent(res, {
-        type: 'openchamber:notification-stream-ready',
+        type: 'ompchamber:notification-stream-ready',
         properties: { uiToken },
       });
       flushSse();

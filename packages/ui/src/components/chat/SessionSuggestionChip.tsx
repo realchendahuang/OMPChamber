@@ -33,11 +33,11 @@ export const SessionSuggestionChip: React.FC<SessionSuggestionChipProps> = React
     setDismissing(true);
     try {
       await patchSessionMetadata(sessionId, undefined, (metadata) => {
-        const namespace = isRecord(metadata.openchamber) ? metadata.openchamber : {};
+        const namespace = isRecord(metadata.ompchamber) ? metadata.ompchamber : {};
         const assist = isRecord(namespace.assist) ? namespace.assist : {};
         const nextAssist = { ...assist };
         delete nextAssist.suggestion;
-        return { ...metadata, openchamber: { ...namespace, assist: nextAssist } };
+        return { ...metadata, ompchamber: { ...namespace, assist: nextAssist } };
       });
     } catch (error) {
       console.warn('Failed to dismiss suggestion:', error);

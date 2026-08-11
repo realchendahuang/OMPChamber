@@ -22,7 +22,7 @@ const readJson = (filePath: string) => JSON.parse(fs.readFileSync(filePath, 'utf
 
 describe('custom provider config persistence (VS Code parity)', () => {
   beforeEach(() => {
-    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-provider-'));
+    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-provider-'));
   });
 
   afterEach(() => {

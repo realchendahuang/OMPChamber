@@ -81,9 +81,9 @@ async function stopChildTree(child) {
   }
 }
 
-const uiPort = process.env.OPENCHAMBER_HMR_UI_PORT || '5180';
-const backendPort = process.env.OPENCHAMBER_HMR_API_PORT || '3902';
-const hmrHost = process.env.OPENCHAMBER_HMR_HOST || '127.0.0.1';
+const uiPort = process.env.OMPCHAMBER_HMR_UI_PORT || '5180';
+const backendPort = process.env.OMPCHAMBER_HMR_API_PORT || '3902';
+const hmrHost = process.env.OMPCHAMBER_HMR_HOST || '127.0.0.1';
 
 function getLanAddresses() {
   const addresses = [];
@@ -113,15 +113,15 @@ function clearViteCache() {
 clearViteCache();
 
 const api = run('api', 'bun', ['run', '--cwd', 'packages/web', 'dev:server:watch'], {
-  OPENCHAMBER_PORT: backendPort,
+  OMPCHAMBER_PORT: backendPort,
 });
 const vite = run(
   'vite',
   'bun',
   ['x', 'vite', '--force', '--host', hmrHost, '--port', uiPort, '--strictPort'],
   {
-    OPENCHAMBER_PORT: backendPort,
-    OPENCHAMBER_DISABLE_PWA_DEV: '1',
+    OMPCHAMBER_PORT: backendPort,
+    OMPCHAMBER_DISABLE_PWA_DEV: '1',
   },
   { cwd: webRoot },
 );

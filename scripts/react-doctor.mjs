@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const PROJECT_NAME = "openchamber-monorepo";
+const PROJECT_NAME = "ompchamber-monorepo";
 const RUNS_DIR = join(process.cwd(), ".tmp", "react-doctor", "runs");
 
 const PRIORITY_RULES = new Map([

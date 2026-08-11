@@ -25,7 +25,7 @@ export function useSessionGoal(sessionId: string, directory?: string): SessionGo
 // Effective objective text for display. Inline goals return the metadata
 // text directly; file-backed goals fetch the server-side file once per
 // goal edit (keyed by id + updatedAt). Display-only: a failed fetch yields
-// null and callers degrade gracefully (e.g. VS Code, where the OpenChamber
+// null and callers degrade gracefully (e.g. VS Code, where the OMPChamber
 // route is unavailable — the strip then shows only the audit note).
 export function useGoalObjectiveContent(sessionId: string, goal: SessionGoalPayload | null): string | null {
   const [fetched, setFetched] = React.useState<string | null>(null);

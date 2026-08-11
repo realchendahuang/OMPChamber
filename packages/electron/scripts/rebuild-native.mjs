@@ -112,8 +112,8 @@ const ensureWindowsNodeAddonApiForNodePty = async (rebuildRootPath) => {
   const nodePtyPackagePath = require.resolve('node-pty/package.json');
   const nodePtyDir = path.dirname(nodePtyPackagePath);
   const rootNodeAddonApiDir = path.dirname(require.resolve('node-addon-api/package.json'));
-  const tempNodeAddonApiDir = path.join(repoRoot, 'node_modules', '.openchamber-node-addon-api-7.1.1');
-  const exportedTempNodeAddonApiDir = path.join(rebuildRootPath, 'node_modules', '.openchamber-node-addon-api-7.1.1');
+  const tempNodeAddonApiDir = path.join(repoRoot, 'node_modules', '.ompchamber-node-addon-api-7.1.1');
+  const exportedTempNodeAddonApiDir = path.join(rebuildRootPath, 'node_modules', '.ompchamber-node-addon-api-7.1.1');
   const localNodeAddonApiDir = path.join(nodePtyDir, 'node_modules', 'node-addon-api');
 
   await fsp.rm(tempNodeAddonApiDir, { recursive: true, force: true });

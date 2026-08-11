@@ -1,6 +1,6 @@
 # Reproduction: Chat UI stops updating until the desktop app is restarted (#2638)
 
-Reproduces https://github.com/openchamber/openchamber/issues/2638 using the
+Reproduces https://github.com/realchendahuang/OMPChamber/issues/2638 using the
 real server modules (`lifecycle.js`, `global-hub.js`, `network-runtime.js`),
 real processes, and real ports — no mocks.
 

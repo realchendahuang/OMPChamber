@@ -221,7 +221,7 @@ describe("createEventPipeline", () => {
     })).toEqual(["updated:a", "delta:b", "updated:ab", "delta:c"])
   })
 
-  test("normalizes openchamber session status events", async () => {
+  test("normalizes ompchamber session status events", async () => {
     let resolveStreamFinished!: () => void
     const streamFinished = new Promise<void>((resolve) => {
       resolveStreamFinished = resolve
@@ -233,7 +233,7 @@ describe("createEventPipeline", () => {
     const pipeline = createEventPipeline({
       sdk: createSdk([
         {
-          type: "openchamber:session-status",
+          type: "ompchamber:session-status",
           properties: {
             sessionID: "ses_1",
             status: "idle",

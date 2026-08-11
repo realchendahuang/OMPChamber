@@ -208,7 +208,7 @@ and extend them when a scenario is missing rather than measuring by hand.
 | Command | Answers |
 |---|---|
 | `bun run profile:idle` | What the app does while nobody interacts with it. Supports `--session`, `--tab`, `--then-tab`, `--panel`, `--expand-projects` to reach a specific mounted state, plus `--baseline` and `--budget-*` for regression gating. |
-| `bun run profile:session` | What a streaming assistant response costs. Creates a session, dispatches a prompt through the `openchamber session` CLI, and records until the session reports idle. Reports the long-task distribution, a timeline-trace breakdown, running animations, and output-normalised metrics. |
+| `bun run profile:session` | What a streaming assistant response costs. Creates a session, dispatches a prompt through the `ompchamber session` CLI, and records until the session reports idle. Reports the long-task distribution, a timeline-trace breakdown, running animations, and output-normalised metrics. |
 | `bun run profile:animation` | What a CSS animation costs, isolated from the app. Animate only `transform` and `opacity`; everything else recalculates style every frame. |
 | `bun run profile:browser` | A manually driven capture when the interaction cannot be scripted. |
 

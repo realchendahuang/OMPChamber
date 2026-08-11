@@ -1,18 +1,18 @@
 apply plugin: 'com.android.application'
 
-def ciVersionCode = System.getenv('OPENCHAMBER_ANDROID_VERSION_CODE')
-def ciVersionName = System.getenv('OPENCHAMBER_ANDROID_VERSION_NAME')
-def ciKeystorePath = System.getenv('OPENCHAMBER_ANDROID_KEYSTORE_PATH')
-def ciKeystorePassword = System.getenv('OPENCHAMBER_ANDROID_KEYSTORE_PASSWORD')
-def ciKeyAlias = System.getenv('OPENCHAMBER_ANDROID_KEY_ALIAS')
-def ciKeyPassword = System.getenv('OPENCHAMBER_ANDROID_KEY_PASSWORD')
+def ciVersionCode = System.getenv('OMPCHAMBER_ANDROID_VERSION_CODE')
+def ciVersionName = System.getenv('OMPCHAMBER_ANDROID_VERSION_NAME')
+def ciKeystorePath = System.getenv('OMPCHAMBER_ANDROID_KEYSTORE_PATH')
+def ciKeystorePassword = System.getenv('OMPCHAMBER_ANDROID_KEYSTORE_PASSWORD')
+def ciKeyAlias = System.getenv('OMPCHAMBER_ANDROID_KEY_ALIAS')
+def ciKeyPassword = System.getenv('OMPCHAMBER_ANDROID_KEY_PASSWORD')
 def hasCiSigning = ciKeystorePath && ciKeystorePassword && ciKeyAlias && ciKeyPassword
 
 android {
-    namespace "com.openchamber.app"
+    namespace "com.ompchamber.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.openchamber.app"
+        applicationId "com.ompchamber.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode ciVersionCode ? ciVersionCode.toInteger() : 1

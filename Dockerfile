@@ -19,7 +19,7 @@ COPY . .
 RUN bun run build:web
 
 FROM oven/bun:1.3.14 AS runtime
-WORKDIR /home/openchamber
+WORKDIR /home/ompchamber
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   bash \
@@ -32,21 +32,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   python3 \
   && rm -rf /var/lib/apt/lists/*
 
-# Replace the base image's 'bun' user (UID 1000) with 'openchamber'
+# Replace the base image's 'bun' user (UID 1000) with 'ompchamber'
 # so mounted volumes with 1000:1000 ownership work correctly.
 RUN userdel bun \
-  && groupadd -g 1000 openchamber \
-  && useradd -u 1000 -g 1000 -m -s /bin/bash openchamber \
-  && chown -R openchamber:openchamber /home/openchamber
+  && groupadd -g 1000 ompchamber \
+  && useradd -u 1000 -g 1000 -m -s /bin/bash ompchamber \
+  && chown -R ompchamber:ompchamber /home/ompchamber
 
-# Switch to openchamber user
-USER openchamber
+# Switch to ompchamber user
+USER ompchamber
 
-ENV NPM_CONFIG_PREFIX=/home/openchamber/.npm-global
+ENV NPM_CONFIG_PREFIX=/home/ompchamber/.npm-global
 ENV PATH=${NPM_CONFIG_PREFIX}/bin:${PATH}
 
-RUN npm config set prefix /home/openchamber/.npm-global && mkdir -p /home/openchamber/.npm-global && \
-  mkdir -p /home/openchamber/.local /home/openchamber/.config /home/openchamber/.ssh && \
+RUN npm config set prefix /home/ompchamber/.npm-global && mkdir -p /home/ompchamber/.npm-global && \
+  mkdir -p /home/ompchamber/.local /home/ompchamber/.config /home/ompchamber/.ssh && \
   npm install -g opencode-ai
 
 # cloudflared 2026.3.0 - update digest explicitly when upgrading
@@ -54,7 +54,7 @@ COPY --from=cloudflare/cloudflared@sha256:6d91c121b803126f7a5344005d17a9324788fc
 
 ENV NODE_ENV=production
 
-COPY scripts/docker-entrypoint.sh /home/openchamber/openchamber-entrypoint.sh
+COPY scripts/docker-entrypoint.sh /home/ompchamber/ompchamber-entrypoint.sh
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/web/node_modules ./packages/web/node_modules
@@ -66,4 +66,4 @@ COPY --from=builder /app/packages/web/dist ./packages/web/dist
 
 EXPOSE 3000
 
-ENTRYPOINT ["sh", "/home/openchamber/openchamber-entrypoint.sh"]
+ENTRYPOINT ["sh", "/home/ompchamber/ompchamber-entrypoint.sh"]

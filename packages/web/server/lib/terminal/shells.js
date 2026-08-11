@@ -35,7 +35,7 @@ export const createTerminalShellResolver = ({ fs, path, searchPathFor, isExecuta
 
   const defaultCandidates = () => platform === 'win32'
     ? [
-        env.OPENCHAMBER_TERMINAL_SHELL,
+        env.OMPCHAMBER_TERMINAL_SHELL,
         env.SHELL,
         env.ComSpec,
         path.join(env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
@@ -43,7 +43,7 @@ export const createTerminalShellResolver = ({ fs, path, searchPathFor, isExecuta
         'powershell.exe',
         'cmd.exe',
       ]
-    : [env.OPENCHAMBER_TERMINAL_SHELL, env.SHELL, '/bin/zsh', '/bin/bash', '/bin/sh', 'zsh', 'bash', 'sh'];
+    : [env.OMPCHAMBER_TERMINAL_SHELL, env.SHELL, '/bin/zsh', '/bin/bash', '/bin/sh', 'zsh', 'bash', 'sh'];
 
   const resolveCandidates = (candidates) => {
     const seen = new Set();
@@ -68,7 +68,7 @@ export const createTerminalShellResolver = ({ fs, path, searchPathFor, isExecuta
 
     const candidates = platform === 'win32'
       ? [...defaultCandidates(), ...TERMINAL_SHELL_IDS]
-      : [env.OPENCHAMBER_TERMINAL_SHELL, env.SHELL, ...configuredShells, ...TERMINAL_SHELL_IDS, '/bin/zsh', '/bin/bash', '/bin/sh'];
+      : [env.OMPCHAMBER_TERMINAL_SHELL, env.SHELL, ...configuredShells, ...TERMINAL_SHELL_IDS, '/bin/zsh', '/bin/bash', '/bin/sh'];
     const autoExecutable = resolveCandidates(defaultCandidates())[0] ?? null;
     const byId = new Map([
       ['auto', {

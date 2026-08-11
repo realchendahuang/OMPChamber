@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { OpenChamberControlError } from '../openchamber-control/error.js';
+import { OMPChamberControlError } from '../ompchamber-control/error.js';
 import { setLoopFileEnabled } from './loops.js';
 
 const asNonEmptyString = (value) => {
@@ -24,10 +24,10 @@ export const createScheduledTaskService = (dependencies) => {
 
   const findProjectByID = async (projectID) => {
     const normalized = asNonEmptyString(projectID);
-    if (!normalized) throw new OpenChamberControlError('projectId is required', 400);
+    if (!normalized) throw new OMPChamberControlError('projectId is required', 400);
     const projects = await listProjects();
     const project = projects.find((entry) => entry.id === normalized) || null;
-    if (!project) throw new OpenChamberControlError('Project not found', 404);
+    if (!project) throw new OMPChamberControlError('Project not found', 404);
     return project;
   };
 
@@ -35,17 +35,17 @@ export const createScheduledTaskService = (dependencies) => {
     const requestedProjectID = asNonEmptyString(projectId);
     const requestedDirectory = asNonEmptyString(directory);
     if (requestedProjectID && requestedDirectory) {
-      throw new OpenChamberControlError('Provide only one of projectId or directory', 400);
+      throw new OMPChamberControlError('Provide only one of projectId or directory', 400);
     }
     if (requestedProjectID) {
       await findProjectByID(requestedProjectID);
       return requestedProjectID;
     }
-    if (!requestedDirectory) throw new OpenChamberControlError('projectId or directory is required', 400);
+    if (!requestedDirectory) throw new OMPChamberControlError('projectId or directory is required', 400);
     const resolvedDirectory = path.resolve(requestedDirectory);
     const projects = await listProjects();
     const project = projects.find((entry) => path.resolve(entry.path) === resolvedDirectory);
-    if (!project) throw new OpenChamberControlError(`Project not found for directory: ${resolvedDirectory}`, 404);
+    if (!project) throw new OMPChamberControlError(`Project not found for directory: ${resolvedDirectory}`, 404);
     return project.id;
   };
 
@@ -57,28 +57,28 @@ export const createScheduledTaskService = (dependencies) => {
   const findLoopTask = async (projectID, taskID) => {
     await findProjectByID(projectID);
     const normalizedTaskID = asNonEmptyString(taskID);
-    if (!normalizedTaskID) throw new OpenChamberControlError('taskId is required', 400);
+    if (!normalizedTaskID) throw new OMPChamberControlError('taskId is required', 400);
     const tasks = await scheduledTasksRuntime.syncProject(projectID);
     const task = tasks.find((entry) => entry?.id === normalizedTaskID) || null;
-    if (!task) throw new OpenChamberControlError('Task not found', 404);
-    if (!task.loopFile) throw new OpenChamberControlError('Task is not managed by a loop file', 400);
-    if (!fs.existsSync(task.loopFile)) throw new OpenChamberControlError('Loop file not found', 404);
+    if (!task) throw new OMPChamberControlError('Task not found', 404);
+    if (!task.loopFile) throw new OMPChamberControlError('Task is not managed by a loop file', 400);
+    if (!fs.existsSync(task.loopFile)) throw new OMPChamberControlError('Loop file not found', 404);
     return task;
   };
 
   const setLoopEnabled = async (projectID, taskID, enabled) => {
     if (typeof enabled !== 'boolean') {
-      throw new OpenChamberControlError('enabled must be a boolean', 400);
+      throw new OMPChamberControlError('enabled must be a boolean', 400);
     }
     const task = await findLoopTask(projectID, taskID);
     try {
       if (!setLoopFileEnabled(task.loopFile, enabled)) {
-        throw new OpenChamberControlError('Loop file must be valid before changing its enabled state', 400);
+        throw new OMPChamberControlError('Loop file must be valid before changing its enabled state', 400);
       }
     } catch (error) {
-      if (error instanceof OpenChamberControlError) throw error;
+      if (error instanceof OMPChamberControlError) throw error;
       const message = error instanceof Error ? error.message : 'Failed to update loop file';
-      throw new OpenChamberControlError(message, 500);
+      throw new OMPChamberControlError(message, 500);
     }
     const tasks = await scheduledTasksRuntime.syncProject(projectID);
     return tasks.find((entry) => entry.id === taskID) || null;
@@ -90,7 +90,7 @@ export const createScheduledTaskService = (dependencies) => {
       fs.unlinkSync(task.loopFile);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete loop file';
-      throw new OpenChamberControlError(message, 500);
+      throw new OMPChamberControlError(message, 500);
     }
     return scheduledTasksRuntime.syncProject(projectID);
   };
@@ -98,7 +98,7 @@ export const createScheduledTaskService = (dependencies) => {
   const upsert = async (projectID, taskInput) => {
     await findProjectByID(projectID);
     if (!taskInput || typeof taskInput !== 'object') {
-      throw new OpenChamberControlError('task payload is required', 400);
+      throw new OMPChamberControlError('task payload is required', 400);
     }
     let upserted;
     try {
@@ -106,7 +106,7 @@ export const createScheduledTaskService = (dependencies) => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to save scheduled task';
       const invalid = message.toLowerCase().includes('required') || message.toLowerCase().includes('invalid');
-      throw new OpenChamberControlError(message, invalid ? 400 : 500);
+      throw new OMPChamberControlError(message, invalid ? 400 : 500);
     }
     await scheduledTasksRuntime.syncProject(projectID);
     const tasks = await projectConfigRuntime.listScheduledTasks(projectID);
@@ -120,7 +120,7 @@ export const createScheduledTaskService = (dependencies) => {
   const remove = async (projectID, taskID) => {
     await findProjectByID(projectID);
     const normalizedTaskID = asNonEmptyString(taskID);
-    if (!normalizedTaskID) throw new OpenChamberControlError('taskId is required', 400);
+    if (!normalizedTaskID) throw new OMPChamberControlError('taskId is required', 400);
     const current = await projectConfigRuntime.listScheduledTasks(projectID);
     const existing = current.find((task) => task.id === normalizedTaskID) || null;
     if (existing?.loopFile && fs.existsSync(existing.loopFile)) {
@@ -129,13 +129,13 @@ export const createScheduledTaskService = (dependencies) => {
       // file exists. The file itself is the removal surface. Once the file is
       // gone (the task is an orphan that the next sync would remove anyway),
       // deleting the row is safe and allowed.
-      throw new OpenChamberControlError(
+      throw new OMPChamberControlError(
         'Loop task is managed by its .agents/loops markdown file; delete the file to remove the task',
         400,
       );
     }
     const result = await projectConfigRuntime.deleteScheduledTask(projectID, normalizedTaskID);
-    if (!result.deleted) throw new OpenChamberControlError('Task not found', 404);
+    if (!result.deleted) throw new OMPChamberControlError('Task not found', 404);
     await scheduledTasksRuntime.syncProject(projectID);
     return projectConfigRuntime.listScheduledTasks(projectID);
   };
@@ -143,14 +143,14 @@ export const createScheduledTaskService = (dependencies) => {
   const run = async (projectID, taskID) => {
     await findProjectByID(projectID);
     const normalizedTaskID = asNonEmptyString(taskID);
-    if (!normalizedTaskID) throw new OpenChamberControlError('taskId is required', 400);
+    if (!normalizedTaskID) throw new OMPChamberControlError('taskId is required', 400);
     const result = await scheduledTasksRuntime.runNow(projectID, normalizedTaskID);
     if (result.running || result.queued) {
-      throw new OpenChamberControlError(result.error || 'Task already running', 409);
+      throw new OMPChamberControlError(result.error || 'Task already running', 409);
     }
-    if (result.skipped) throw new OpenChamberControlError('Task not found or disabled', 404);
+    if (result.skipped) throw new OMPChamberControlError('Task not found or disabled', 404);
     if (!result.ok) {
-      throw new OpenChamberControlError(result.error || 'Task run failed', 500, { task: result.task });
+      throw new OMPChamberControlError(result.error || 'Task run failed', 500, { task: result.task });
     }
     return { task: result.task, sessionId: result.sessionID };
   };
@@ -158,7 +158,7 @@ export const createScheduledTaskService = (dependencies) => {
   const setEnabled = async (projectID, taskID, enabled) => {
     const tasks = await list(projectID);
     const task = tasks.find((entry) => entry?.id === taskID);
-    if (!task) throw new OpenChamberControlError('Task not found', 404);
+    if (!task) throw new OMPChamberControlError('Task not found', 404);
     const result = await upsert(projectID, { ...task, enabled });
     return result.task;
   };

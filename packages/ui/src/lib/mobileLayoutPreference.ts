@@ -1,6 +1,6 @@
 export type MobileLayoutPreference = 'default' | 'new';
 
-const MOBILE_LAYOUT_PREFERENCE_KEY = 'openchamber-mobile-layout';
+const MOBILE_LAYOUT_PREFERENCE_KEY = 'ompchamber-mobile-layout';
 
 const normalizeMobileLayoutPreference = (value: unknown): MobileLayoutPreference => {
   // 'new' is the default; only an explicit 'default' (the legacy/"Old" layout)

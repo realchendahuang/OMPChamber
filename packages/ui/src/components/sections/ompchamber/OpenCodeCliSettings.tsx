@@ -1,0 +1,187 @@
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Icon } from "@/components/icon/Icon";
+import {
+  SettingsSection,
+  SettingsFieldRow,
+  SettingsCheckboxRow,
+  SettingsInset,
+  SETTINGS_ICON_BUTTON_CLASS,
+  SETTINGS_OPTION_STACK_CLASS,
+} from '@/components/sections/shared/SettingsSection';
+import { isDesktopShell, requestFileAccess } from '@/lib/desktop';
+import { updateDesktopSettings } from '@/lib/persistence';
+import { recordDeferredOpenCodeRestart } from '@/lib/opencode/deferredRestart';
+import { useUIStore } from '@/stores/useUIStore';
+import { useI18n } from '@/lib/i18n';
+import { runtimeFetch } from '@/lib/runtime-fetch';
+import { isWindowsArm64 } from '@/lib/platform';
+import { toast } from '@/components/ui';
+
+export const OpenCodeCliSettings: React.FC = () => {
+  const { t } = useI18n();
+  const [value, setValue] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const showOpenCodeUpdateNotifications = useUIStore((state) => state.showOpenCodeUpdateNotifications);
+  const setShowOpenCodeUpdateNotifications = useUIStore((state) => state.setShowOpenCodeUpdateNotifications);
+  const agentControlToolEnabled = useUIStore((state) => state.agentControlToolEnabled);
+  const setAgentControlToolEnabled = useUIStore((state) => state.setAgentControlToolEnabled);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await runtimeFetch('/api/config/settings', {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+        });
+        if (!response.ok) {
+          return;
+        }
+        const data = (await response.json().catch(() => null)) as null | { opencodeBinary?: unknown };
+        if (cancelled || !data) {
+          return;
+        }
+        const next = typeof data.opencodeBinary === 'string' ? data.opencodeBinary.trim() : '';
+        setValue(next);
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleBrowse = React.useCallback(async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (!isDesktopShell()) {
+      return;
+    }
+
+    try {
+      const selected = await requestFileAccess();
+      if (selected.success && selected.path && selected.path.trim().length > 0) {
+        setValue(selected.path.trim());
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleSaveAndReload = React.useCallback(async () => {
+    setIsSaving(true);
+    try {
+      // Strip a wrapping quote pair (Windows "Copy as path" pastes) — literal
+      // quotes are never part of a real path.
+      const trimmed = value.trim();
+      const unquoted = trimmed.length >= 2
+        && ((trimmed.startsWith('"') && trimmed.endsWith('"'))
+          || (trimmed.startsWith("'") && trimmed.endsWith("'")))
+        ? trimmed.slice(1, -1).trim()
+        : trimmed;
+      await updateDesktopSettings({ opencodeBinary: unquoted });
+      recordDeferredOpenCodeRestart('cli', { id: 'opencode-binary' });
+      toast.success(t('settings.view.pendingRestart.saved'));
+    } finally {
+      setIsSaving(false);
+    }
+  }, [t, value]);
+
+  const handleShowUpdateNotificationsChange = React.useCallback((enabled: boolean) => {
+    setShowOpenCodeUpdateNotifications(enabled);
+    void updateDesktopSettings({ showOpenCodeUpdateNotifications: enabled });
+  }, [setShowOpenCodeUpdateNotifications]);
+
+  const handleAgentControlToolChange = React.useCallback((enabled: boolean) => {
+    setAgentControlToolEnabled(enabled);
+    void updateDesktopSettings({ agentControlToolEnabled: enabled });
+  }, [setAgentControlToolEnabled]);
+
+  return (
+    <SettingsSection title={t('settings.ompchamber.opencodeCli.title')}>
+      <div className="space-y-0.5">
+        <SettingsFieldRow
+          settingsItem="sessions.opencode-binary"
+          label={t('settings.ompchamber.opencodeCli.field.binaryPath')}
+          info={(
+            <>
+              {t('settings.ompchamber.opencodeCli.tipPrefix')}
+              {' '}
+              <span className="font-mono">OPENCODE_BINARY</span>
+              {' '}
+              {t('settings.ompchamber.opencodeCli.tipMiddle')}
+              {' '}
+              <span className="font-mono">~/.config/ompchamber/settings.json</span>
+              {'.'}
+            </>
+          )}
+          alignEnd={false}
+          controlClassName="@xl:w-[20rem]"
+        >
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={t('settings.ompchamber.opencodeCli.field.binaryPathPlaceholder')}
+            disabled={isLoading || isSaving}
+            className="h-8 min-w-0 flex-1 font-mono text-xs"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            onClick={handleBrowse}
+            disabled={isLoading || isSaving || !isDesktopShell()}
+            className={SETTINGS_ICON_BUTTON_CLASS}
+            aria-label={t('settings.ompchamber.opencodeCli.actions.browseAria')}
+            title={t('settings.ompchamber.opencodeCli.actions.browse')}
+          >
+            <Icon name="folder" className="h-4 w-4" />
+          </Button>
+        </SettingsFieldRow>
+
+        <SettingsInset className={SETTINGS_OPTION_STACK_CLASS}>
+          {!isWindowsArm64() && (
+            <SettingsCheckboxRow
+              settingsItem="sessions.opencode-update-notifications"
+              checked={showOpenCodeUpdateNotifications}
+              onChange={handleShowUpdateNotificationsChange}
+              label={t('settings.ompchamber.opencodeCli.field.showUpdateNotifications')}
+              ariaLabel={t('settings.ompchamber.opencodeCli.field.showUpdateNotificationsAria')}
+            />
+          )}
+
+          <SettingsCheckboxRow
+            settingsItem="sessions.agent-control-tool"
+            checked={agentControlToolEnabled}
+            onChange={handleAgentControlToolChange}
+            label={t('settings.ompchamber.opencodeCli.field.agentControlTool')}
+            ariaLabel={t('settings.ompchamber.opencodeCli.field.agentControlToolAria')}
+            info={t('settings.ompchamber.opencodeCli.field.agentControlToolInfo')}
+          />
+
+          <div className="flex justify-start py-1.5">
+            <Button
+              type="button"
+              size="xs"
+              onClick={handleSaveAndReload}
+              disabled={isLoading || isSaving}
+              className="shrink-0 !font-normal"
+            >
+              {isSaving ? t('settings.common.actions.saving') : t('settings.common.actions.saveChanges')}
+            </Button>
+          </div>
+        </SettingsInset>
+      </div>
+    </SettingsSection>
+  );
+};

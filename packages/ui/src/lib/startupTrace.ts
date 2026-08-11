@@ -6,8 +6,8 @@ type StartupTraceEvent = {
 
 declare global {
   interface Window {
-    __OPENCHAMBER_STARTUP_TRACE__?: StartupTraceEvent[];
-    __OPENCHAMBER_STARTUP_TRACE_START__?: number;
+    __OMPCHAMBER_STARTUP_TRACE__?: StartupTraceEvent[];
+    __OMPCHAMBER_STARTUP_TRACE_START__?: number;
   }
 }
 
@@ -17,7 +17,7 @@ const enabled = () => {
   if (typeof window === 'undefined') return false;
   try {
     const params = new URLSearchParams(window.location.search);
-    return params.get('startupTrace') === '1' || window.localStorage?.getItem('OPENCHAMBER_STARTUP_TRACE') === '1';
+    return params.get('startupTrace') === '1' || window.localStorage?.getItem('OMPCHAMBER_STARTUP_TRACE') === '1';
   } catch {
     return false;
   }
@@ -28,23 +28,23 @@ export const startupTraceEnabled = () => enabled();
 export const markStartupTrace = (name: string, data?: Record<string, unknown>) => {
   if (!enabled()) return;
   const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  window.__OPENCHAMBER_STARTUP_TRACE_START__ ??= now;
-  window.__OPENCHAMBER_STARTUP_TRACE__ ??= [];
-  window.__OPENCHAMBER_STARTUP_TRACE__.push({
-    t: Math.round(now - window.__OPENCHAMBER_STARTUP_TRACE_START__),
+  window.__OMPCHAMBER_STARTUP_TRACE_START__ ??= now;
+  window.__OMPCHAMBER_STARTUP_TRACE__ ??= [];
+  window.__OMPCHAMBER_STARTUP_TRACE__.push({
+    t: Math.round(now - window.__OMPCHAMBER_STARTUP_TRACE_START__),
     name,
     ...(data ? { data } : {}),
   });
-  if (window.__OPENCHAMBER_STARTUP_TRACE__.length > MAX_STARTUP_TRACE_EVENTS) {
-    window.__OPENCHAMBER_STARTUP_TRACE__.splice(
+  if (window.__OMPCHAMBER_STARTUP_TRACE__.length > MAX_STARTUP_TRACE_EVENTS) {
+    window.__OMPCHAMBER_STARTUP_TRACE__.splice(
       0,
-      window.__OPENCHAMBER_STARTUP_TRACE__.length - MAX_STARTUP_TRACE_EVENTS,
+      window.__OMPCHAMBER_STARTUP_TRACE__.length - MAX_STARTUP_TRACE_EVENTS,
     );
   }
 };
 
 const getStartupTraceSummary = () => {
-  const trace = typeof window !== 'undefined' ? window.__OPENCHAMBER_STARTUP_TRACE__ ?? [] : [];
+  const trace = typeof window !== 'undefined' ? window.__OMPCHAMBER_STARTUP_TRACE__ ?? [] : [];
   const readyIndex = trace.findIndex((event) => event.name === 'ModelControls:ready');
   const endIndex = readyIndex >= 0 ? Math.min(trace.length, readyIndex + 8) : trace.length;
   return trace.slice(0, endIndex).filter((event) => (
@@ -63,8 +63,8 @@ const getStartupTraceSummary = () => {
 };
 
 if (typeof window !== 'undefined') {
-  (window as typeof window & { __OPENCHAMBER_STARTUP_TRACE_SUMMARY__?: typeof getStartupTraceSummary })
-    .__OPENCHAMBER_STARTUP_TRACE_SUMMARY__ = getStartupTraceSummary;
+  (window as typeof window & { __OMPCHAMBER_STARTUP_TRACE_SUMMARY__?: typeof getStartupTraceSummary })
+    .__OMPCHAMBER_STARTUP_TRACE_SUMMARY__ = getStartupTraceSummary;
 }
 
 export const measureStartupTrace = async <T>(

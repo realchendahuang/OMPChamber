@@ -47,13 +47,13 @@ const normalizeBearerToken = (token: string | null | undefined): string => {
 
 const readInjectedBearerToken = (): string => {
   if (typeof window === 'undefined') return '';
-  const injected = (window as typeof window & { __OPENCHAMBER_CLIENT_TOKEN__?: string }).__OPENCHAMBER_CLIENT_TOKEN__;
+  const injected = (window as typeof window & { __OMPCHAMBER_CLIENT_TOKEN__?: string }).__OMPCHAMBER_CLIENT_TOKEN__;
   return normalizeBearerToken(injected);
 };
 
 const readInjectedApiBaseUrl = (): string => {
   if (typeof window === 'undefined') return '';
-  const injected = (window as typeof window & { __OPENCHAMBER_API_BASE_URL__?: string }).__OPENCHAMBER_API_BASE_URL__;
+  const injected = (window as typeof window & { __OMPCHAMBER_API_BASE_URL__?: string }).__OMPCHAMBER_API_BASE_URL__;
   return typeof injected === 'string' ? injected.trim() : '';
 };
 
@@ -131,7 +131,7 @@ export const setRuntimeExtraHeaders = (headers: Record<string, string> | null | 
 export const getRuntimeExtraHeadersSync = (): Record<string, string> => {
   if (Object.keys(runtimeExtraHeaders).length > 0) return runtimeExtraHeaders;
   if (typeof window === 'undefined') return {};
-  const injected = (window as typeof window & { __OPENCHAMBER_RUNTIME_HEADERS__?: Record<string, string> }).__OPENCHAMBER_RUNTIME_HEADERS__;
+  const injected = (window as typeof window & { __OMPCHAMBER_RUNTIME_HEADERS__?: Record<string, string> }).__OMPCHAMBER_RUNTIME_HEADERS__;
   return injected && typeof injected === 'object' ? sanitizeRuntimeExtraHeaders(injected) : {};
 };
 

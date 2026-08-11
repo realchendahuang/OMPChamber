@@ -24,8 +24,8 @@ describe('getPullRequestDiff', () => {
     // wrapper made every repository look remote-less, which is what this suite
     // exists to prevent.
     resolveGitHubRepoFromDirectory.mockResolvedValue({
-      repo: { owner: 'openchamber', repo: 'openchamber' },
-      remoteUrl: 'git@github.com:openchamber/openchamber.git',
+      repo: { owner: 'ompchamber', repo: 'ompchamber' },
+      remoteUrl: 'git@github.com:realchendahuang/OMPChamber.git',
     });
   });
 
@@ -37,10 +37,10 @@ describe('getPullRequestDiff', () => {
     const result = await getPullRequestDiff('/repo', 2122);
 
     expect(result.patch).toBe(PATCH);
-    expect(result.meta).toEqual({ owner: 'openchamber', repo: 'openchamber', number: 2122 });
+    expect(result.meta).toEqual({ owner: 'ompchamber', repo: 'ompchamber', number: 2122 });
     expect(request).toHaveBeenCalledWith('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-      owner: 'openchamber',
-      repo: 'openchamber',
+      owner: 'ompchamber',
+      repo: 'ompchamber',
       pull_number: 2122,
       headers: { accept: 'application/vnd.github.v3.diff' },
     });

@@ -23,7 +23,7 @@ function readJson(filePath) {
 
 describe('custom provider config persistence', () => {
   beforeEach(() => {
-    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-provider-'));
+    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-provider-'));
   });
 
   afterEach(() => {

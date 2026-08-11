@@ -18,8 +18,8 @@ import {
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { useGitIdentitiesStore, type GitIdentityProfile, type DiscoveredGitCredential } from '@/stores/useGitIdentitiesStore';
 import { useShallow } from 'zustand/react/shallow';
-import { GitSettings } from '@/components/sections/openchamber/GitSettings';
-import { GitHubSettings } from '@/components/sections/openchamber/GitHubSettings';
+import { GitSettings } from '@/components/sections/ompchamber/GitSettings';
+import { GitHubSettings } from '@/components/sections/ompchamber/GitHubSettings';
 import { GitIdentityEditorDialog } from './GitIdentityEditorDialog';
 import { Icon } from "@/components/icon/Icon";
 import type { IconName } from "@/components/icon/icons";

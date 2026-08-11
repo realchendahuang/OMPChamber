@@ -104,8 +104,8 @@ class BridgeViewController: CAPBridgeViewController {
         // what actually settles it once the page exists.
         let attached = GCKeyboard.coalesced != nil
         let source = """
-        window.__OPENCHAMBER_APNS_ENV__ = '\(apnsEnvironment)';
-        window.__OPENCHAMBER_HARDWARE_KEYBOARD__ = \(attached ? "true" : "false");
+        window.__OMPCHAMBER_APNS_ENV__ = '\(apnsEnvironment)';
+        window.__OMPCHAMBER_HARDWARE_KEYBOARD__ = \(attached ? "true" : "false");
         """
         webView?.configuration.userContentController.addUserScript(
             WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true)
@@ -155,7 +155,7 @@ class BridgeViewController: CAPBridgeViewController {
     private func publishHardwareKeyboardState(_ attached: Bool) {
         let value = attached ? "true" : "false"
         webView?.evaluateJavaScript("""
-        window.__OPENCHAMBER_HARDWARE_KEYBOARD__ = \(value);
+        window.__OMPCHAMBER_HARDWARE_KEYBOARD__ = \(value);
         window.dispatchEvent(new CustomEvent('oc:hardware-keyboard', { detail: { attached: \(value) } }));
         """)
     }
@@ -221,17 +221,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         writeWidgetSnapshot()
     }
 
-    private static let widgetAppGroup = "group.com.openchamber.app"
+    private static let widgetAppGroup = "group.com.ompchamber.app"
     private static let widgetSnapshotKey = "widgetSnapshot"
 
-    /// Pulls the session overview JSON from the web layer (window.__OPENCHAMBER_WIDGET_SNAPSHOT__),
+    /// Pulls the session overview JSON from the web layer (window.__OMPCHAMBER_WIDGET_SNAPSHOT__),
     /// stores it in the shared App Group, and reloads the widget timelines. localStorage/stores
     /// aren't reachable from the widget process, so this is how the bundled UI feeds the widgets —
     /// no server involved. Failures are ignored so a transient read never clobbers a good snapshot.
     private func writeWidgetSnapshot() {
         guard let bridge = window?.rootViewController as? CAPBridgeViewController,
               let webView = bridge.webView else { return }
-        let js = "(typeof window.__OPENCHAMBER_WIDGET_SNAPSHOT__ === 'function') ? window.__OPENCHAMBER_WIDGET_SNAPSHOT__() : null"
+        let js = "(typeof window.__OMPCHAMBER_WIDGET_SNAPSHOT__ === 'function') ? window.__OMPCHAMBER_WIDGET_SNAPSHOT__() : null"
         webView.evaluateJavaScript(js) { result, _ in
             guard let json = result as? String, !json.isEmpty,
                   let defaults = UserDefaults(suiteName: SceneDelegate.widgetAppGroup) else { return }

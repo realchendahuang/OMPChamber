@@ -8,7 +8,7 @@ import request from 'supertest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createAgentToolRuntime } from './runtime.js';
-import { OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS, OPENCHAMBER_CONTROL_ACTION_DEFINITIONS } from '../openchamber-control/actions.js';
+import { OMPCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS, OMPCHAMBER_CONTROL_ACTION_DEFINITIONS } from '../ompchamber-control/actions.js';
 
 const temporaryDirectories = [];
 
@@ -17,7 +17,7 @@ afterEach(async () => {
 });
 
 const createRuntime = async (overrides = {}) => {
-  const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openchamber-agent-tool-'));
+  const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-agent-tool-'));
   temporaryDirectories.push(dataDir);
   const executeAction = vi.fn(async () => ({ projects: [] }));
   const env = {};
@@ -36,7 +36,7 @@ const createRuntime = async (overrides = {}) => {
 
 describe('agent tool action allowlist', () => {
   it('defines a short title and agent description for every action', () => {
-    expect(OPENCHAMBER_CONTROL_ACTION_DEFINITIONS.every(({ action, title, description }) => action && title && description)).toBe(true);
+    expect(OMPCHAMBER_CONTROL_ACTION_DEFINITIONS.every(({ action, title, description }) => action && title && description)).toBe(true);
   });
 
   it.each([
@@ -81,37 +81,37 @@ describe('managed agent tool runtime', () => {
 
     const preparedEnv = await runtime.prepareManagedOpenCodeEnv();
     const config = JSON.parse(preparedEnv.OPENCODE_CONFIG_CONTENT);
-    const pluginPath = path.join(dataDir, 'agent-tool', 'openchamber-plugin.js');
+    const pluginPath = path.join(dataDir, 'agent-tool', 'ompchamber-plugin.js');
     const source = await fs.readFile(pluginPath, 'utf8');
 
     expect(config.model).toBe('test/model');
     expect(config.plugin).toEqual([
       'file:///existing.js',
       ['example-plugin', { flag: true }],
-      expect.stringContaining('/agent-tool/openchamber-plugin.js'),
+      expect.stringContaining('/agent-tool/ompchamber-plugin.js'),
     ]);
-    expect(preparedEnv.OPENCHAMBER_AGENT_TOOL_URL).toBe('http://127.0.0.1:3901/api/openchamber/agent-tool');
-    expect(preparedEnv.OPENCHAMBER_AGENT_TOOL_TOKEN).toMatch(/^[A-Za-z0-9_-]+$/);
-    expect(source).toContain('openchamber: {');
-    for (const { action, description } of OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS) {
+    expect(preparedEnv.OMPCHAMBER_AGENT_TOOL_URL).toBe('http://127.0.0.1:3901/api/ompchamber/agent-tool');
+    expect(preparedEnv.OMPCHAMBER_AGENT_TOOL_TOKEN).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(source).toContain('ompchamber: {');
+    for (const { action, description } of OMPCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS) {
       expect(source).toContain(JSON.stringify({ const: action, description }));
     }
     expect(source).not.toContain('"schedule.status"');
     const pluginModule = await import(`${pathToFileURL(pluginPath).href}?schema=${Date.now()}`);
-    const hooks = await pluginModule.OpenChamberPlugin();
-    expect(hooks.tool.openchamber.description).toContain('Session dispatches return immediately by default');
-    expect(hooks.tool.openchamber.description).toContain('Set wait only when the user asks or the next step requires the completed result');
-    expect(hooks.tool.openchamber.args.action.oneOf).toContainEqual({
+    const hooks = await pluginModule.OMPChamberPlugin();
+    expect(hooks.tool.ompchamber.description).toContain('Session dispatches return immediately by default');
+    expect(hooks.tool.ompchamber.description).toContain('Set wait only when the user asks or the next step requires the completed result');
+    expect(hooks.tool.ompchamber.args.action.oneOf).toContainEqual({
       const: 'session.messages',
       description: 'Read text-only messages and current sessionStatus for sessionId; directory and limit 10 are defaults',
     });
-    expect(hooks.tool.openchamber.args.parameters.properties.wait.description).toBe(
+    expect(hooks.tool.ompchamber.args.parameters.properties.wait.description).toBe(
       'Wait for current session activity to become idle. Omit by default; use only when the user asks or the next step requires the completed result',
     );
-    expect(hooks.tool.openchamber.args.parameters.properties.sessionId).toEqual({ type: 'string' });
-    expect(source).not.toContain('title: "OpenChamber"');
+    expect(hooks.tool.ompchamber.args.parameters.properties.sessionId).toEqual({ type: 'string' });
+    expect(source).not.toContain('title: "OMPChamber"');
     expect(source).not.toContain('@opencode-ai/plugin');
-    expect(source).not.toContain(preparedEnv.OPENCHAMBER_AGENT_TOOL_TOKEN);
+    expect(source).not.toContain(preparedEnv.OMPCHAMBER_AGENT_TOOL_TOKEN);
   });
 
   it('executes actions through the shared control service', async () => {
@@ -149,7 +149,7 @@ describe('managed agent tool runtime', () => {
   it('forwards cancellation to the shared control service', async () => {
     const executeAction = vi.fn(async (_action, _input, _directory, options) => {
       await new Promise((resolve, reject) => {
-        options.signal.addEventListener('abort', () => reject(Object.assign(new Error('OpenChamber action was cancelled'), { statusCode: 499 })), { once: true });
+        options.signal.addEventListener('abort', () => reject(Object.assign(new Error('OMPChamber action was cancelled'), { statusCode: 499 })), { once: true });
       });
     });
     const { runtime } = await createRuntime({ executeAction });
@@ -161,7 +161,7 @@ describe('managed agent tool runtime', () => {
     await expect(pending).resolves.toEqual(expect.objectContaining({
       ok: false,
       action: 'projects.list',
-      error: { message: 'OpenChamber action was cancelled', kind: 'runtime' },
+      error: { message: 'OMPChamber action was cancelled', kind: 'runtime' },
     }));
     expect(executeAction).toHaveBeenCalledWith('projects.list', { action: 'projects.list' }, undefined, { signal: controller.signal });
   });
@@ -173,13 +173,13 @@ describe('managed agent tool runtime', () => {
     runtime.registerRoutes(app, express);
 
     await request(app)
-      .post('/api/openchamber/agent-tool')
+      .post('/api/ompchamber/agent-tool')
       .send({ input: { action: 'projects.list' } })
       .expect(401);
 
     const response = await request(app)
-      .post('/api/openchamber/agent-tool')
-      .set('authorization', `Bearer ${env.OPENCHAMBER_AGENT_TOOL_TOKEN}`)
+      .post('/api/ompchamber/agent-tool')
+      .set('authorization', `Bearer ${env.OMPCHAMBER_AGENT_TOOL_TOKEN}`)
       .send({ input: { action: 'projects.list' } })
       .expect(200);
     expect(response.body).toEqual(expect.objectContaining({ ok: true, action: 'projects.list' }));
@@ -195,18 +195,18 @@ describe('managed agent tool runtime', () => {
     });
     activePort = server.address().port;
 
-    const previousUrl = process.env.OPENCHAMBER_AGENT_TOOL_URL;
-    const previousToken = process.env.OPENCHAMBER_AGENT_TOOL_TOKEN;
+    const previousUrl = process.env.OMPCHAMBER_AGENT_TOOL_URL;
+    const previousToken = process.env.OMPCHAMBER_AGENT_TOOL_TOKEN;
     try {
       const env = await runtime.prepareManagedOpenCodeEnv();
-      process.env.OPENCHAMBER_AGENT_TOOL_URL = env.OPENCHAMBER_AGENT_TOOL_URL;
-      process.env.OPENCHAMBER_AGENT_TOOL_TOKEN = env.OPENCHAMBER_AGENT_TOOL_TOKEN;
-      const pluginPath = path.join(dataDir, 'agent-tool', 'openchamber-plugin.js');
+      process.env.OMPCHAMBER_AGENT_TOOL_URL = env.OMPCHAMBER_AGENT_TOOL_URL;
+      process.env.OMPCHAMBER_AGENT_TOOL_TOKEN = env.OMPCHAMBER_AGENT_TOOL_TOKEN;
+      const pluginPath = path.join(dataDir, 'agent-tool', 'ompchamber-plugin.js');
       const pluginModule = await import(`${pathToFileURL(pluginPath).href}?test=${Date.now()}`);
-      const hooks = await pluginModule.OpenChamberPlugin();
+      const hooks = await pluginModule.OMPChamberPlugin();
       const metadata = vi.fn();
 
-      const result = await hooks.tool.openchamber.execute(
+      const result = await hooks.tool.ompchamber.execute(
         { action: 'projects.list', parameters: {} },
         { directory: '/work/project', abort: new AbortController().signal, metadata },
       );
@@ -218,18 +218,18 @@ describe('managed agent tool runtime', () => {
         data: { projects: [] },
       });
       expect(result.title).toBe('List configured projects');
-      expect(result.metadata.openchamber.description).toBe('List configured projects');
+      expect(result.metadata.ompchamber.description).toBe('List configured projects');
       expect(metadata).toHaveBeenCalledWith(expect.objectContaining({
         title: 'List configured projects',
         metadata: expect.objectContaining({
-          openchamber: expect.objectContaining({ description: 'List configured projects' }),
+          ompchamber: expect.objectContaining({ description: 'List configured projects' }),
         }),
       }));
     } finally {
-      if (previousUrl === undefined) delete process.env.OPENCHAMBER_AGENT_TOOL_URL;
-      else process.env.OPENCHAMBER_AGENT_TOOL_URL = previousUrl;
-      if (previousToken === undefined) delete process.env.OPENCHAMBER_AGENT_TOOL_TOKEN;
-      else process.env.OPENCHAMBER_AGENT_TOOL_TOKEN = previousToken;
+      if (previousUrl === undefined) delete process.env.OMPCHAMBER_AGENT_TOOL_URL;
+      else process.env.OMPCHAMBER_AGENT_TOOL_URL = previousUrl;
+      if (previousToken === undefined) delete process.env.OMPCHAMBER_AGENT_TOOL_TOKEN;
+      else process.env.OMPCHAMBER_AGENT_TOOL_TOKEN = previousToken;
       await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
     }
   });

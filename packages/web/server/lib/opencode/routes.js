@@ -160,11 +160,11 @@ export const registerOpenCodeRoutes = (app, dependencies) => {
         return res.status(409).json({
           success: false,
           code: capability.reason === 'bundled'
-            ? 'OPENCODE_UPGRADE_MANAGED_BY_OPENCHAMBER'
+            ? 'OPENCODE_UPGRADE_MANAGED_BY_OMPCHAMBER'
             : 'OPENCODE_UPGRADE_UNSUPPORTED',
           error: capability.reason === 'bundled'
-            ? 'OpenCode is bundled with OpenChamber Desktop and updates with the app.'
-            : 'This OpenCode runtime cannot be upgraded by OpenChamber.',
+            ? 'OpenCode is bundled with OMPChamber Desktop and updates with the app.'
+            : 'This OpenCode runtime cannot be upgraded by OMPChamber.',
         });
       }
       if (openCodeUpgradePromise) {

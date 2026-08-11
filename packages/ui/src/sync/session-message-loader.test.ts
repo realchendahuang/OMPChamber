@@ -360,7 +360,7 @@ describe("SessionMessageLoader", () => {
     const diagnosticWindow = {
       location: { search: "" },
       localStorage: {
-        getItem: (key: string) => key === "openchamber_session_load_perf" ? "1" : null,
+        getItem: (key: string) => key === "ompchamber_session_load_perf" ? "1" : null,
       },
     } as unknown as Window
     Object.defineProperty(globalThis, "window", { configurable: true, value: diagnosticWindow })
@@ -381,7 +381,7 @@ describe("SessionMessageLoader", () => {
     try {
       await loader.ensure(target)
 
-      const events = diagnosticWindow.__openchamberSessionLoadPerformance?.events ?? []
+      const events = diagnosticWindow.__ompchamberSessionLoadPerformance?.events ?? []
       const initialEvent = events.find((event) => event.operation === "session-messages.initial")
       const pageEvents = events.filter((event) => event.operation === "session-messages.page")
       expect(calls).toBe(3)
@@ -408,7 +408,7 @@ describe("session load performance diagnostics", () => {
     const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window")
     const diagnosticWindow = {
       localStorage: {
-        getItem: (key: string) => key === "openchamber_session_load_perf" ? "1" : null,
+        getItem: (key: string) => key === "ompchamber_session_load_perf" ? "1" : null,
       },
     } as unknown as Window
     Object.defineProperty(globalThis, "window", { configurable: true, value: diagnosticWindow })
@@ -427,12 +427,12 @@ describe("session load performance diagnostics", () => {
       })
       finishVisible("complete")
 
-      expect(diagnosticWindow.__openchamberSessionLoadPerformance?.events).toHaveLength(1)
-      const event = diagnosticWindow.__openchamberSessionLoadPerformance?.events[0]
+      expect(diagnosticWindow.__ompchamberSessionLoadPerformance?.events).toHaveLength(1)
+      const event = diagnosticWindow.__ompchamberSessionLoadPerformance?.events[0]
       expect(event?.operation).toBe("session-messages.visible")
       expect(event?.caller).toBe("selected-session")
       expect(event?.recordCount).toBe(30)
-      expect(JSON.stringify(diagnosticWindow.__openchamberSessionLoadPerformance)).not.toContain("secret")
+      expect(JSON.stringify(diagnosticWindow.__ompchamberSessionLoadPerformance)).not.toContain("secret")
     } finally {
       if (originalWindow) Object.defineProperty(globalThis, "window", originalWindow)
       else Reflect.deleteProperty(globalThis, "window")

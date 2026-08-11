@@ -8,11 +8,11 @@
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
 	<!-- Data collection is declared in the App Store Connect privacy nutrition label. The app
-	     talks only to the user's own OpenChamber server; it does not embed analytics/ad SDKs. -->
+	     talks only to the user's own OMPChamber server; it does not embed analytics/ad SDKs. -->
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array/>
 	<!-- Required-reason APIs used by the app's own code. UserDefaults backs the App Group snapshot
-	     shared with the widget + notification service extension (group.com.openchamber.app).
+	     shared with the widget + notification service extension (group.com.ompchamber.app).
 	     Bundled third-party SDKs ship their own privacy manifests. -->
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>

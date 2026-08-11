@@ -16,7 +16,7 @@ let registered = false;
  * NOTE: markdown code highlighting now runs through the dedicated Shiki worker
  * (`markdown-worker`), which uses the raw theme definition directly. This
  * registration remains only for any `@pierre/diffs`-based consumer of the
- * `openchamber-md` theme name.
+ * `ompchamber-md` theme name.
  */
 export const ensureMarkdownShikiTheme = (): void => {
   if (registered) return;

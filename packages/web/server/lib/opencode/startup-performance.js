@@ -21,7 +21,7 @@ const finiteNonNegative = (value) => Number.isFinite(value) && value >= 0 ? valu
 const nonNegativeInteger = (value) => Number.isInteger(value) && value >= 0 ? value : undefined;
 
 const isStartupPerformanceEnabled = () => (
-  ENABLED_VALUES.has(String(process.env.OPENCHAMBER_STARTUP_PERF ?? '').toLowerCase())
+  ENABLED_VALUES.has(String(process.env.OMPCHAMBER_STARTUP_PERF ?? '').toLowerCase())
 );
 
 export const recordStartupPerformance = (phase, details = {}) => {

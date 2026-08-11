@@ -4,7 +4,7 @@
 <dict>
 	<!-- APNs environment for the build's provisioning profile. `development` matches a
 	     dev/side-load build; switch to `production` for TestFlight/App Store (and set the
-	     relay/server OPENCHAMBER_APNS_ENVIRONMENT to match). -->
+	     relay/server OMPCHAMBER_APNS_ENVIRONMENT to match). -->
 	<key>aps-environment</key>
 	<string>development</string>
 	<!-- Shared container so the home-screen / lock-screen / Control Center widgets can read
@@ -12,7 +12,7 @@
 	     The widget extension target must declare the same App Group. -->
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.openchamber.app</string>
+		<string>group.com.ompchamber.app</string>
 	</array>
 </dict>
 </plist>

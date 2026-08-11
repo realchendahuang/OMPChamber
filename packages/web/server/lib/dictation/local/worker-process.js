@@ -2,7 +2,7 @@
  * Dictation local-speech worker process.
  *
  * Hosts the sherpa-onnx native inference (Parakeet STT) in a separate process
- * so ONNX decoding never blocks the main OpenChamber server. Communicates
+ * so ONNX decoding never blocks the main OMPChamber server. Communicates
  * with the parent over child_process IPC (advanced serialization, so Buffers
  * survive the trip as Uint8Array).
  *
@@ -24,7 +24,7 @@ import { getLocalSttModelDir, getLocalSttModelSpec } from './model-catalog.js';
 import { pcm16ToWav } from '../audio.js';
 import path from 'path';
 
-process.title = 'OpenChamber Dictation';
+process.title = 'OMPChamber Dictation';
 
 const engines = new Map();
 const ttsEngines = new Map();

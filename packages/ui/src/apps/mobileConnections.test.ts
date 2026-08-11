@@ -31,7 +31,7 @@ const restoreGlobals = () => {
   Object.defineProperty(globalThis, 'window', { configurable: true, value: originalWindow });
 };
 
-const STORAGE_KEY = 'openchamber.mobile.connections.v1';
+const STORAGE_KEY = 'ompchamber.mobile.connections.v1';
 
 const testRelay: MobileRelayConfig = {
   relayUrl: 'wss://relay.example/tunnel',

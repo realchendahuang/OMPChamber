@@ -1,17 +1,17 @@
 import { createConfiguredWebAPIs } from './runtimeConfig';
-import type { RuntimeAPIs } from '@openchamber/ui/lib/api/types';
-import '@openchamber/ui/index.css';
-import '@openchamber/ui/styles/fonts';
+import type { RuntimeAPIs } from '@ompchamber/ui/lib/api/types';
+import '@ompchamber/ui/index.css';
+import '@ompchamber/ui/styles/fonts';
 
 declare global {
   interface Window {
-    __OPENCHAMBER_RUNTIME_APIS__?: RuntimeAPIs;
+    __OMPCHAMBER_RUNTIME_APIS__?: RuntimeAPIs;
   }
 }
 
-window.__OPENCHAMBER_RUNTIME_APIS__ = createConfiguredWebAPIs();
+window.__OMPCHAMBER_RUNTIME_APIS__ = createConfiguredWebAPIs();
 
-void import('@openchamber/ui/apps/renderMobileApp')
+void import('@ompchamber/ui/apps/renderMobileApp')
   .then(({ renderMobileApp }) => {
-    renderMobileApp(window.__OPENCHAMBER_RUNTIME_APIS__ ?? createConfiguredWebAPIs());
+    renderMobileApp(window.__OMPCHAMBER_RUNTIME_APIS__ ?? createConfiguredWebAPIs());
   });

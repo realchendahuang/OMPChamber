@@ -18,7 +18,7 @@ const noopVSCodeApi: VSCodeAPI = {
     // of throwing TypeError: Cannot read properties of undefined (reading 'postMessage').
     if (!noopWarned) {
       noopWarned = true;
-      console.warn('[openchamber] VS Code API unavailable; dropping postMessage', message);
+      console.warn('[ompchamber] VS Code API unavailable; dropping postMessage', message);
     }
   },
 };

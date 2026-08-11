@@ -60,4 +60,4 @@ openaiCompatible?: { baseUrl, model, apiKey } }`.
   expected to retain unacked segments for retry/replay.
 - Silence-only segments (peak < 300) are cleared, never committed, so
   Whisper-style providers do not hallucinate on silence.
-- Model files live under `~/.config/openchamber/speech-models`.
+- Model files live under `~/.config/ompchamber/speech-models`.

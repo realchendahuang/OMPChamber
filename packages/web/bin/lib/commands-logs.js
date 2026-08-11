@@ -19,18 +19,18 @@ async function logsCommand(options) {
   if (options.all) {
     targets = running;
     if (targets.length === 0) {
-      throw new Error('No running OpenChamber instance found.');
+      throw new Error('No running OMPChamber instance found.');
     }
   } else if (options.explicitPort) {
     const found = running.find((entry) => entry.port === options.port);
     if (!found) {
-      throw new Error(`No running OpenChamber instance found on port ${options.port}.`);
+      throw new Error(`No running OMPChamber instance found on port ${options.port}.`);
     }
     targets = [found];
   } else {
     const latest = getLatestInstance(running);
     if (!latest) {
-      throw new Error('No running OpenChamber instance found.');
+      throw new Error('No running OMPChamber instance found.');
     }
     targets = [latest];
     if (shouldRenderHumanOutput(options)) {
@@ -40,7 +40,7 @@ async function logsCommand(options) {
 
   if (isJsonMode(options)) {
     if (options.follow) {
-      throw new Error('`openchamber logs --json` requires `--no-follow` for deterministic JSON output.');
+      throw new Error('`ompchamber logs --json` requires `--no-follow` for deterministic JSON output.');
     }
     const entries = targets.map((target) => {
       const logPath = getLogFilePath(target.port);
@@ -55,7 +55,7 @@ async function logsCommand(options) {
   }
 
   if (showFrames) {
-    clackIntro('OpenChamber Logs');
+    clackIntro('OMPChamber Logs');
   }
 
   for (const target of targets) {

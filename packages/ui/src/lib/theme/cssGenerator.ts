@@ -197,8 +197,8 @@ const sidebarBaseRgb = hexToRgb(theme.colors.surface.muted);
     document.documentElement.setAttribute('data-theme', theme.metadata.variant);
 
     const hasMacVibrancy = typeof window !== 'undefined'
-      && window.__OPENCHAMBER_ELECTRON__?.runtime === 'electron'
-      && window.__OPENCHAMBER_ELECTRON__?.macVibrancy === true;
+      && window.__OMPCHAMBER_ELECTRON__?.runtime === 'electron'
+      && window.__OMPCHAMBER_ELECTRON__?.macVibrancy === true;
     document.documentElement.toggleAttribute('data-oc-vibrancy', hasMacVibrancy);
     // Default the "ready" flag here (DOM is guaranteed to exist) rather than
     // relying on the preload, which sets it at document-start when

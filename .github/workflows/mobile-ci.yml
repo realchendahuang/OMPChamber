@@ -38,7 +38,7 @@ jobs:
       - name: Upload Android debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: openchamber-android-debug-apk
+          name: ompchamber-android-debug-apk
           path: packages/mobile/android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 

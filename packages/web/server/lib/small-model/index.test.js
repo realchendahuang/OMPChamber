@@ -7,7 +7,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 // this the suite would resolve whatever small model the developer running it
 // happens to have configured.
 const TEMP_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'small-model-settings-'));
-process.env.OPENCHAMBER_DATA_DIR = TEMP_DATA_DIR;
+process.env.OMPCHAMBER_DATA_DIR = TEMP_DATA_DIR;
 
 vi.mock('../opencode/auth.js', () => ({ readAuthFile: vi.fn() }));
 vi.mock('../opencode/shared.js', () => ({

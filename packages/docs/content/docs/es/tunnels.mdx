@@ -1,17 +1,17 @@
 ---
 title: Túneles
-description: Expón OpenChamber de forma segura para acceso remoto y móvil.
+description: Expón OMPChamber de forma segura para acceso remoto y móvil.
 ---
 
 # Túneles
 
-Un túnel es un enlace público a tu OpenChamber, para que puedas acceder a él desde un navegador corriente en otra red. Usa `openchamber tunnel` para crear uno para una instancia en marcha.
+Un túnel es un enlace público a tu OMPChamber, para que puedas acceder a él desde un navegador corriente en otra red. Usa `ompchamber tunnel` para crear uno para una instancia en marcha.
 
 > Conectar tus **propios dispositivos** (la app móvil, otro escritorio) normalmente no necesita un túnel: [vincúlalos](/es/connect-devices/) y deja que el [Private Relay](/es/private-relay/), cifrado de extremo a extremo, se encargue del acceso fuera de casa sin configuración.
 
 ## Requisitos previos
 
-OpenChamber inicia el CLI del proveedor de túnel en tu máquina. Instala primero el proveedor que quieras usar:
+OMPChamber inicia el CLI del proveedor de túnel en tu máquina. Instala primero el proveedor que quieras usar:
 
 ```bash
 brew install cloudflared
@@ -26,35 +26,35 @@ ngrok config add-authtoken <your-ngrok-token>
 
 ## Inicio rápido
 
-1. Inicia OpenChamber:
+1. Inicia OMPChamber:
 
 ```bash
-openchamber
+ompchamber
 ```
 
-Si omites este paso, `openchamber tunnel start` puede iniciar automáticamente un servidor CLI. Al hacerlo, puedes pasar opciones del servidor como `--port`, `--host`, `--lan`, `--ui-password` y `--api-only`.
+Si omites este paso, `ompchamber tunnel start` puede iniciar automáticamente un servidor CLI. Al hacerlo, puedes pasar opciones del servidor como `--port`, `--host`, `--lan`, `--ui-password` y `--api-only`.
 
 2. Inicia un túnel de Cloudflare:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode quick
+ompchamber tunnel start --provider cloudflare --mode quick
 ```
 
 O inicia un túnel de Ngrok:
 
 ```bash
-openchamber tunnel start --provider ngrok --mode quick
+ompchamber tunnel start --provider ngrok --mode quick
 ```
 
 3. Comprueba el estado:
 
 ```bash
-openchamber tunnel status
+ompchamber tunnel status
 ```
 
-Cuando el túnel está activo, `status` muestra una URL pública. Ábrela, o escanea el código QR, para acceder a OpenChamber desde cualquier lugar.
+Cuando el túnel está activo, `status` muestra una URL pública. Ábrela, o escanea el código QR, para acceder a OMPChamber desde cualquier lugar.
 
-Por defecto, OpenChamber imprime un código QR en sesiones TTY interactivas. Usa `--qr` para forzar la salida del QR, o `--no-qr` para desactivarla.
+Por defecto, OMPChamber imprime un código QR en sesiones TTY interactivas. Usa `--qr` para forzar la salida del QR, o `--no-qr` para desactivarla.
 
 ## Proveedores
 
@@ -68,7 +68,7 @@ Por defecto, OpenChamber imprime un código QR en sesiones TTY interactivas. Usa
 Usa un token + nombre de host gestionados por Cloudflare:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode managed-remote --token-file ~/.secrets/cf-token --hostname app.example.com
+ompchamber tunnel start --provider cloudflare --mode managed-remote --token-file ~/.secrets/cf-token --hostname app.example.com
 ```
 
 ### Gestionado local
@@ -76,7 +76,7 @@ openchamber tunnel start --provider cloudflare --mode managed-remote --token-fil
 Usa una configuración local de `cloudflared`:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode managed-local --config ~/.cloudflared/config.yml
+ompchamber tunnel start --provider cloudflare --mode managed-local --config ~/.cloudflared/config.yml
 ```
 
 ## Perfiles (managed-remote)
@@ -84,29 +84,29 @@ openchamber tunnel start --provider cloudflare --mode managed-local --config ~/.
 Guarda un perfil reutilizable:
 
 ```bash
-openchamber tunnel profile add --provider cloudflare --mode managed-remote --name prod-main --hostname app.example.com --token-file ~/.secrets/cf-token
+ompchamber tunnel profile add --provider cloudflare --mode managed-remote --name prod-main --hostname app.example.com --token-file ~/.secrets/cf-token
 ```
 
 Inicia usando el perfil guardado:
 
 ```bash
-openchamber tunnel start --profile prod-main
+ompchamber tunnel start --profile prod-main
 ```
 
 ## Comandos útiles
 
 ```bash
-openchamber tunnel providers
-openchamber tunnel ready --provider cloudflare
-openchamber tunnel ready --provider ngrok
-openchamber tunnel doctor --provider cloudflare
-openchamber tunnel doctor --provider ngrok
-openchamber tunnel stop --port 3000
+ompchamber tunnel providers
+ompchamber tunnel ready --provider cloudflare
+ompchamber tunnel ready --provider ngrok
+ompchamber tunnel doctor --provider cloudflare
+ompchamber tunnel doctor --provider ngrok
+ompchamber tunnel stop --port 3000
 ```
 
 ## Notas de comportamiento
 
-- un único túnel activo por instancia de OpenChamber (puerto)
+- un único túnel activo por instancia de OMPChamber (puerto)
 - iniciar un nuevo modo/proveedor en la misma instancia reemplaza el túnel anterior
 - generar un nuevo enlace de conexión revoca el anterior sin usar
 - el autoarranque del túnel conserva flags del servidor como `--ui-password` y `--api-only` en los ajustes de instancia usados por reinicios y actualizaciones
@@ -116,5 +116,5 @@ openchamber tunnel stop --port 3000
 - [Conectar un dispositivo](/es/connect-devices/) — vincula tus propios dispositivos sin una URL pública
 - [Seguridad](/es/security/) — protege la interfaz antes de exponerla
 - [Túneles de escritorio](/es/desktop-tunnels/) — configuración de túneles en la app de escritorio sin iniciar desde CLI
-- [PWA y acceso móvil](/es/mobile/) — accede a OpenChamber desde tu teléfono
+- [PWA y acceso móvil](/es/mobile/) — accede a OMPChamber desde tu teléfono
 - [Resolución de problemas](/es/troubleshooting/) — si el enlace del túnel no funciona

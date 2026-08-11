@@ -1,5 +1,5 @@
 /**
- * OpenChamber deep-link vocabulary — the single source of truth for the `openchamber://`
+ * OMPChamber deep-link vocabulary — the single source of truth for the `ompchamber://`
  * URL scheme used across every native entry point: notification taps, home-screen / lock-
  * screen widgets, and (later) Live Activities. Anything that wants to drive navigation
  * builds a URL with {@link buildDeepLink} and anything that receives one parses it with
@@ -10,7 +10,7 @@
  * context — including, eventually, a tiny encoder shared with the native widget/extension.
  */
 
-export const DEEP_LINK_SCHEME = 'openchamber';
+export const DEEP_LINK_SCHEME = 'ompchamber';
 
 export type SessionsFilter = 'all' | 'attention' | 'recent';
 export type ViewTarget = 'files' | 'mcp' | 'instances' | 'update';
@@ -32,8 +32,8 @@ export type DeepLinkIntent =
 const trimSlashes = (value: string): string => value.replace(/^\/+|\/+$/g, '');
 
 const segmentsOf = (url: URL): string[] => {
-  // Custom-scheme URLs put the first route token in `host` (openchamber://session/<id>),
-  // but be tolerant of authority-less forms (openchamber:/session/<id>) where it lands in
+  // Custom-scheme URLs put the first route token in `host` (ompchamber://session/<id>),
+  // but be tolerant of authority-less forms (ompchamber:/session/<id>) where it lands in
   // the pathname instead.
   const pathSegments = trimSlashes(url.pathname).split('/').filter(Boolean);
   if (url.host) {
@@ -43,8 +43,8 @@ const segmentsOf = (url: URL): string[] => {
 };
 
 /**
- * Parse a raw `openchamber://…` string into a typed intent, or `null` if it isn't a
- * recognised OpenChamber deep link. Tolerant by design: unknown routes return `null`
+ * Parse a raw `ompchamber://…` string into a typed intent, or `null` if it isn't a
+ * recognised OMPChamber deep link. Tolerant by design: unknown routes return `null`
  * rather than throwing, so callers can fall back without a try/catch.
  */
 export function parseDeepLink(raw: string | null | undefined): DeepLinkIntent | null {
@@ -126,7 +126,7 @@ export function parseDeepLink(raw: string | null | undefined): DeepLinkIntent | 
 }
 
 /**
- * Build a canonical `openchamber://…` URL for an intent. Used by anything that needs to hand
+ * Build a canonical `ompchamber://…` URL for an intent. Used by anything that needs to hand
  * a deep link to iOS — notification payloads, `widgetURL(...)`, Live Activity tap targets —
  * so every producer emits the exact shape {@link parseDeepLink} understands.
  */

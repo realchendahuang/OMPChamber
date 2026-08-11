@@ -371,7 +371,7 @@ const loadSnippetRegistry = (workingDirectory?: string): Map<string, Snippet> =>
         const snippet = loadSnippetFile(dir, filename, source);
         if (snippet) registerSnippet(registry, snippet);
       } catch (error) {
-        console.warn(`[OpenChamber][VSCode] Failed to load snippet ${path.join(dir, filename)}:`, error);
+        console.warn(`[OMPChamber][VSCode] Failed to load snippet ${path.join(dir, filename)}:`, error);
       }
     }
   }
@@ -695,7 +695,7 @@ const getConfigForPath = (layers: ReturnType<typeof readConfigLayers>, targetPat
 
 const writeConfig = (config: Record<string, unknown>, filePath: string = CONFIG_FILE) => {
   if (fs.existsSync(filePath)) {
-    const backupFile = `${filePath}.openchamber.backup`;
+    const backupFile = `${filePath}.ompchamber.backup`;
     try {
       fs.copyFileSync(filePath, backupFile);
     } catch {
@@ -1065,7 +1065,7 @@ const NPM_CACHE_TTL_MS = 3_600_000;
 const lookupNpmPackage = async (name: string): Promise<NpmLookupResult> => {
   try {
     const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name).replace(/^%40/, '@')}`, {
-      headers: { Accept: 'application/json', 'User-Agent': 'openchamber-vscode/dev' },
+      headers: { Accept: 'application/json', 'User-Agent': 'ompchamber-vscode/dev' },
       signal: AbortSignal.timeout(5000),
     });
     if (response.ok) {
@@ -1519,7 +1519,7 @@ const parseMdFile = (filePath: string): { frontmatter: Record<string, unknown>; 
   try {
     frontmatter = (yaml.parse(match[1]) || {}) as Record<string, unknown>;
   } catch (error) {
-    console.warn(`[OpenChamber][VSCode] Failed to parse frontmatter for ${filePath}, treating as empty:`, error);
+    console.warn(`[OMPChamber][VSCode] Failed to parse frontmatter for ${filePath}, treating as empty:`, error);
     frontmatter = {};
   }
   return { frontmatter, body: (match[2] || '').trim() };

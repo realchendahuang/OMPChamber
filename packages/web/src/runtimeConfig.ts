@@ -1,10 +1,10 @@
-import { getRuntimeExtraHeadersSync, refreshLocalRuntimeUrlAuthToken, refreshRuntimeUrlAuthToken, setRuntimeBearerToken, setRuntimeExtraHeaders } from '@openchamber/ui/lib/runtime-auth';
-import { installRuntimeFetchBridge } from '@openchamber/ui/lib/runtime-fetch';
-import { initializeRuntimeEndpoint, switchRuntimeEndpoint } from '@openchamber/ui/lib/runtime-switch';
-import { restoreDesktopRelayRuntime } from '@openchamber/ui/lib/desktopRelayRestore';
-import { configureRuntimeUrlResolver } from '@openchamber/ui/lib/runtime-url';
-import type { EmbeddedSessionRuntimeBootstrap } from '@openchamber/ui/components/layout/contextPanelEmbeddedChat';
-import { opencodeClient } from '@openchamber/ui/lib/opencode/client';
+import { getRuntimeExtraHeadersSync, refreshLocalRuntimeUrlAuthToken, refreshRuntimeUrlAuthToken, setRuntimeBearerToken, setRuntimeExtraHeaders } from '@ompchamber/ui/lib/runtime-auth';
+import { installRuntimeFetchBridge } from '@ompchamber/ui/lib/runtime-fetch';
+import { initializeRuntimeEndpoint, switchRuntimeEndpoint } from '@ompchamber/ui/lib/runtime-switch';
+import { restoreDesktopRelayRuntime } from '@ompchamber/ui/lib/desktopRelayRestore';
+import { configureRuntimeUrlResolver } from '@ompchamber/ui/lib/runtime-url';
+import type { EmbeddedSessionRuntimeBootstrap } from '@ompchamber/ui/components/layout/contextPanelEmbeddedChat';
+import { opencodeClient } from '@ompchamber/ui/lib/opencode/client';
 import { createWebAPIs } from './api';
 
 const sameOrigin = (left: string, right: string): boolean => {
@@ -18,11 +18,11 @@ const sameOrigin = (left: string, right: string): boolean => {
 
 declare global {
   interface Window {
-    __OPENCHAMBER_API_BASE_URL__?: string;
-    __OPENCHAMBER_CLIENT_TOKEN__?: string;
-    __OPENCHAMBER_RUNTIME_HEADERS__?: Record<string, string>;
-    __OPENCHAMBER_LOCAL_ORIGIN__?: string;
-    __OPENCHAMBER_RELAY_HOST_ID__?: string;
+    __OMPCHAMBER_API_BASE_URL__?: string;
+    __OMPCHAMBER_CLIENT_TOKEN__?: string;
+    __OMPCHAMBER_RUNTIME_HEADERS__?: Record<string, string>;
+    __OMPCHAMBER_LOCAL_ORIGIN__?: string;
+    __OMPCHAMBER_RELAY_HOST_ID__?: string;
   }
 }
 
@@ -30,11 +30,11 @@ export const readRuntimeBootstrapConfig = (): EmbeddedSessionRuntimeBootstrap =>
   const readString = (value: unknown): string => typeof value === 'string' ? value.trim() : '';
 
   return {
-    apiBaseUrl: readString(window.__OPENCHAMBER_API_BASE_URL__),
-    clientToken: readString(window.__OPENCHAMBER_CLIENT_TOKEN__),
-    localOrigin: readString(window.__OPENCHAMBER_LOCAL_ORIGIN__),
-    runtimeHeaders: window.__OPENCHAMBER_RUNTIME_HEADERS__,
-    relayHostId: readString(window.__OPENCHAMBER_RELAY_HOST_ID__),
+    apiBaseUrl: readString(window.__OMPCHAMBER_API_BASE_URL__),
+    clientToken: readString(window.__OMPCHAMBER_CLIENT_TOKEN__),
+    localOrigin: readString(window.__OMPCHAMBER_LOCAL_ORIGIN__),
+    runtimeHeaders: window.__OMPCHAMBER_RUNTIME_HEADERS__,
+    relayHostId: readString(window.__OMPCHAMBER_RELAY_HOST_ID__),
   };
 };
 

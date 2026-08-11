@@ -1,14 +1,14 @@
 /**
  * Bundle main.mjs into a single file. Small electron-* helper deps are
  * inlined; everything else — including the in-process web server
- * (@openchamber/web) and native modules — stays external so it resolves
+ * (@ompchamber/web) and native modules — stays external so it resolves
  * from node_modules at runtime inside the packaged app.
  *
  * Why external matters: packages/web/server pulls in bun-pty, which has
  * a top-level `import { dlopen } from "bun:ffi"`. If we inline it here,
  * Node's ESM loader sees `bun:ffi` at package load time and crashes with
  * ERR_UNSUPPORTED_ESM_URL_SCHEME before any runtime guard can skip it.
- * Leaving @openchamber/web external means the conditional
+ * Leaving @ompchamber/web external means the conditional
  * `if (isBunRuntime) await import('bun-pty')` stays dynamic and is never
  * reached under Electron.
  */
@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
-const updaterE2eBuild = process.env.OPENCHAMBER_UPDATER_E2E_BUILD === '1';
+const updaterE2eBuild = process.env.OMPCHAMBER_UPDATER_E2E_BUILD === '1';
 
 const result = await Bun.build({
   entrypoints: [path.join(root, 'main.mjs')],
@@ -26,8 +26,8 @@ const result = await Bun.build({
   format: 'esm',
   external: [
     'electron',
-    '@openchamber/web',
-    '@openchamber/web/*',
+    '@ompchamber/web',
+    '@ompchamber/web/*',
     'bun-pty',
     'node-pty',
   ],
@@ -35,7 +35,7 @@ const result = await Bun.build({
   sourcemap: 'none',
   naming: '[name].mjs',
   define: {
-    __OPENCHAMBER_UPDATER_E2E_BUILD__: updaterE2eBuild ? 'true' : 'false',
+    __OMPCHAMBER_UPDATER_E2E_BUILD__: updaterE2eBuild ? 'true' : 'false',
   },
 });
 

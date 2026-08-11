@@ -1,17 +1,17 @@
 ---
 title: Тунелі
-description: Безпечно відкрийте OpenChamber для віддаленого та мобільного доступу.
+description: Безпечно відкрийте OMPChamber для віддаленого та мобільного доступу.
 ---
 
 # Тунелі
 
-Тунель — це публічне посилання на ваш OpenChamber, щоб дістатися до нього зі звичайного браузера в іншій мережі. Скористайтеся `openchamber tunnel`, щоб створити його для запущеного інстансу.
+Тунель — це публічне посилання на ваш OMPChamber, щоб дістатися до нього зі звичайного браузера в іншій мережі. Скористайтеся `ompchamber tunnel`, щоб створити його для запущеного інстансу.
 
 > Для підключення **власних пристроїв** (мобільного застосунку, іншого десктопа) тунель зазвичай не потрібен — краще [зв'яжіть їх](/uk/connect-devices/) і дозвольте наскрізно зашифрованому [Private Relay](/uk/private-relay/) забезпечити доступ поза домом без жодних налаштувань.
 
 ## Передумови
 
-OpenChamber запускає CLI провайдера тунелю на вашій машині. Спочатку встановіть провайдера, який хочете використовувати:
+OMPChamber запускає CLI провайдера тунелю на вашій машині. Спочатку встановіть провайдера, який хочете використовувати:
 
 ```bash
 brew install cloudflared
@@ -26,35 +26,35 @@ ngrok config add-authtoken <your-ngrok-token>
 
 ## Швидкий старт
 
-1. Запустіть OpenChamber:
+1. Запустіть OMPChamber:
 
 ```bash
-openchamber
+ompchamber
 ```
 
-Якщо пропустити цей крок, `openchamber tunnel start` може автоматично запустити CLI server. Під час auto-start можна передати server options: `--port`, `--host`, `--lan`, `--ui-password` і `--api-only`.
+Якщо пропустити цей крок, `ompchamber tunnel start` може автоматично запустити CLI server. Під час auto-start можна передати server options: `--port`, `--host`, `--lan`, `--ui-password` і `--api-only`.
 
 2. Запустіть тунель Cloudflare:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode quick
+ompchamber tunnel start --provider cloudflare --mode quick
 ```
 
 Або запустіть тунель Ngrok:
 
 ```bash
-openchamber tunnel start --provider ngrok --mode quick
+ompchamber tunnel start --provider ngrok --mode quick
 ```
 
 3. Перевірте статус:
 
 ```bash
-openchamber tunnel status
+ompchamber tunnel status
 ```
 
-Коли тунель піднято, `status` показує публічний URL. Відкрийте його або відскануйте QR-код, щоб дістатися до OpenChamber звідусіль.
+Коли тунель піднято, `status` показує публічний URL. Відкрийте його або відскануйте QR-код, щоб дістатися до OMPChamber звідусіль.
 
-Типово OpenChamber виводить QR-код в інтерактивних TTY-сесіях. Використовуйте `--qr`, щоб примусово вивести QR, або `--no-qr`, щоб вимкнути його.
+Типово OMPChamber виводить QR-код в інтерактивних TTY-сесіях. Використовуйте `--qr`, щоб примусово вивести QR, або `--no-qr`, щоб вимкнути його.
 
 ## Провайдери
 
@@ -68,7 +68,7 @@ openchamber tunnel status
 Використовуйте токен + хостнейм, керовані Cloudflare:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode managed-remote --token-file ~/.secrets/cf-token --hostname app.example.com
+ompchamber tunnel start --provider cloudflare --mode managed-remote --token-file ~/.secrets/cf-token --hostname app.example.com
 ```
 
 ### Кероване локальне
@@ -76,7 +76,7 @@ openchamber tunnel start --provider cloudflare --mode managed-remote --token-fil
 Використовуйте локальний конфіг `cloudflared`:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode managed-local --config ~/.cloudflared/config.yml
+ompchamber tunnel start --provider cloudflare --mode managed-local --config ~/.cloudflared/config.yml
 ```
 
 ## Профілі (managed-remote)
@@ -84,29 +84,29 @@ openchamber tunnel start --provider cloudflare --mode managed-local --config ~/.
 Збережіть багаторазовий профіль:
 
 ```bash
-openchamber tunnel profile add --provider cloudflare --mode managed-remote --name prod-main --hostname app.example.com --token-file ~/.secrets/cf-token
+ompchamber tunnel profile add --provider cloudflare --mode managed-remote --name prod-main --hostname app.example.com --token-file ~/.secrets/cf-token
 ```
 
 Запуск зі збереженим профілем:
 
 ```bash
-openchamber tunnel start --profile prod-main
+ompchamber tunnel start --profile prod-main
 ```
 
 ## Корисні команди
 
 ```bash
-openchamber tunnel providers
-openchamber tunnel ready --provider cloudflare
-openchamber tunnel ready --provider ngrok
-openchamber tunnel doctor --provider cloudflare
-openchamber tunnel doctor --provider ngrok
-openchamber tunnel stop --port 3000
+ompchamber tunnel providers
+ompchamber tunnel ready --provider cloudflare
+ompchamber tunnel ready --provider ngrok
+ompchamber tunnel doctor --provider cloudflare
+ompchamber tunnel doctor --provider ngrok
+ompchamber tunnel stop --port 3000
 ```
 
 ## Нотатки щодо поведінки
 
-- один активний тунель на інстанс OpenChamber (порт)
+- один активний тунель на інстанс OMPChamber (порт)
 - запуск нового режиму/провайдера на тому самому інстансі замінює попередній тунель
 - генерація нового посилання для підключення відкликає попереднє невикористане
 - авто-старт тунелю зберігає серверні прапорці на кшталт `--ui-password` та `--api-only` у налаштуваннях інстансу, які використовуються під час рестарту/оновлення
@@ -116,5 +116,5 @@ openchamber tunnel stop --port 3000
 - [Підключення пристрою](/uk/connect-devices/) — зв'яжіть власні пристрої без публічного URL
 - [Безпека](/uk/security/) — захистіть інтерфейс перед відкриттям доступу
 - [Десктопні тунелі](/uk/desktop-tunnels/) — налаштування тунелю в десктопному застосунку без CLI-старту
-- [PWA та мобільний доступ](/uk/mobile/) — відкривайте OpenChamber з телефона
+- [PWA та мобільний доступ](/uk/mobile/) — відкривайте OMPChamber з телефона
 - [Усунення несправностей](/uk/troubleshooting/) — якщо посилання тунелю не працює

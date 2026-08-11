@@ -13,7 +13,7 @@ const decodeBase64Text = (value: string | undefined): string => {
 
 describe('VS Code webview request body transport', () => {
   test('preserves body from SDK-style Request objects', async () => {
-    const request = new Request('https://openchamber.local/api/session/abc/prompt_async', {
+    const request = new Request('https://ompchamber.local/api/session/abc/prompt_async', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ messageID: 'msg_1' }),
@@ -33,14 +33,14 @@ describe('VS Code webview request body transport', () => {
     ];
 
     for (const entry of cases) {
-      const encoded = await extractBodyBase64('https://openchamber.local/api/test', entry.init, 'POST');
+      const encoded = await extractBodyBase64('https://ompchamber.local/api/test', entry.init, 'POST');
       expect(decodeBase64Text(encoded)).toBe(entry.expected);
     }
 
     const form = new FormData();
     form.set('messageID', 'msg_1');
     form.set('file', new Blob(['file contents'], { type: 'text/plain' }), 'test.txt');
-    const encodedForm = await extractBodyBase64('https://openchamber.local/api/upload', { body: form }, 'POST');
+    const encodedForm = await extractBodyBase64('https://ompchamber.local/api/upload', { body: form }, 'POST');
     const decodedForm = decodeBase64Text(encodedForm);
     expect(decodedForm).toContain('name="messageID"');
     expect(decodedForm).toContain('msg_1');
@@ -49,7 +49,7 @@ describe('VS Code webview request body transport', () => {
   });
 
   test('extracts text for direct session message bridge bodies', async () => {
-    expect(await extractBodyText('https://openchamber.local/api/session/abc/message', { body: new URLSearchParams({ q: 'hello' }) }, 'POST'))
+    expect(await extractBodyText('https://ompchamber.local/api/session/abc/message', { body: new URLSearchParams({ q: 'hello' }) }, 'POST'))
       .toBe('q=hello');
   });
 });

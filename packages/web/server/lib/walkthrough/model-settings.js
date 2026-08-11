@@ -8,9 +8,9 @@ import path from 'path';
 // means the user has to degrade one feature to fix the other.
 
 const SETTINGS_FILE = path.join(
-  process.env.OPENCHAMBER_DATA_DIR
-    ? path.resolve(process.env.OPENCHAMBER_DATA_DIR)
-    : path.join(os.homedir(), '.config', 'openchamber'),
+  process.env.OMPCHAMBER_DATA_DIR
+    ? path.resolve(process.env.OMPCHAMBER_DATA_DIR)
+    : path.join(os.homedir(), '.config', 'ompchamber'),
   'settings.json',
 );
 

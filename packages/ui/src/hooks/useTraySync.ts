@@ -36,7 +36,7 @@ import type { QuestionRequest } from '@/types/question';
 // Only meaningful on desktop platforms with a native tray/menu bar — main.mjs
 // no-ops the command elsewhere, but we still gate here to avoid pointless work.
 
-const TRAY_ACTION_EVENT = 'openchamber:tray-action';
+const TRAY_ACTION_EVENT = 'ompchamber:tray-action';
 // Event-driven updates do the real work; this is just a slow safety net.
 const POLL_INTERVAL_MS = 5000;
 const FLUSH_DEBOUNCE_MS = 500;
@@ -76,7 +76,7 @@ type TrayUsage = { mode: 'usage' | 'remaining'; groups: TrayUsageGroup[] };
 type TraySnapshot = {
   sessions: TraySession[];
   approvals: TrayApproval[];
-  // Active instance label (e.g. "Local OpenChamber" or a remote host name) so
+  // Active instance label (e.g. "Local OMPChamber" or a remote host name) so
   // the tray header makes clear which instance/window it reflects.
   instanceName: string;
   // Provider rate-limit usage, only for providers the user enabled for the
@@ -89,7 +89,7 @@ type TraySnapshot = {
 };
 
 // focus-session / new-session are routed natively by the main process through
-// the existing `openchamber:open-session` / `openchamber:open-draft-session`
+// the existing `ompchamber:open-session` / `ompchamber:open-draft-session`
 // events (handled in App.tsx). Only respond-permission needs handling here.
 type TrayAction =
   | { type: 'respond-permission'; sessionId: string; id: string; response: 'once' | 'always' | 'reject' };
@@ -103,12 +103,12 @@ type DesktopBridgeGlobal = {
 
 const isTrayPlatform = (): boolean => {
   if (typeof window === 'undefined') return false;
-  const platform = (window as unknown as { __OPENCHAMBER_PLATFORM__?: string }).__OPENCHAMBER_PLATFORM__;
+  const platform = (window as unknown as { __OMPCHAMBER_PLATFORM__?: string }).__OMPCHAMBER_PLATFORM__;
   return platform === 'darwin' || platform === 'win32' || platform === 'linux';
 };
 
 const isTrayEnabled = (): boolean =>
-  typeof window !== 'undefined' && window.__OPENCHAMBER_ELECTRON__?.trayEnabled !== false;
+  typeof window !== 'undefined' && window.__OMPCHAMBER_ELECTRON__?.trayEnabled !== false;
 
 const permissionLabel = (request: PermissionRequest): string => {
   const head = typeof request.permission === 'string' ? request.permission : 'Permission';
@@ -204,15 +204,15 @@ const buildUsage = (): TrayUsage => {
 };
 
 // Mirrors the header's instance resolution (Header.refreshCurrentInstanceLabel):
-// the local origin shows as "Local OpenChamber"; a remote host shows its
+// the local origin shows as "Local OMPChamber"; a remote host shows its
 // configured name. Async because the host config is read over IPC.
 const resolveInstanceName = async (): Promise<string> => {
   try {
-    if (isDesktopLocalOriginActive()) return 'Local OpenChamber';
-    const localOrigin = (window as unknown as { __OPENCHAMBER_LOCAL_ORIGIN__?: string }).__OPENCHAMBER_LOCAL_ORIGIN__
+    if (isDesktopLocalOriginActive()) return 'Local OMPChamber';
+    const localOrigin = (window as unknown as { __OMPCHAMBER_LOCAL_ORIGIN__?: string }).__OMPCHAMBER_LOCAL_ORIGIN__
       || window.location.origin;
     const runtimeApiBaseUrl = getRuntimeApiBaseUrl();
-    if (runtimeApiBaseUrl && locationMatchesHost(runtimeApiBaseUrl, localOrigin)) return 'Local OpenChamber';
+    if (runtimeApiBaseUrl && locationMatchesHost(runtimeApiBaseUrl, localOrigin)) return 'Local OMPChamber';
     const cfg = await desktopHostsGet();
     const match = cfg.hosts.find((host) =>
       runtimeApiBaseUrl ? locationMatchesHost(runtimeApiBaseUrl, getDesktopHostApiUrl(host)) : false);
@@ -594,7 +594,7 @@ export const useTraySync = (): void => {
 
   React.useEffect(() => {
     if (!isTrayPlatform() || !isTrayEnabled() || typeof window === 'undefined') return;
-    const bridge = (window as unknown as { __OPENCHAMBER_DESKTOP__?: DesktopBridgeGlobal }).__OPENCHAMBER_DESKTOP__;
+    const bridge = (window as unknown as { __OMPCHAMBER_DESKTOP__?: DesktopBridgeGlobal }).__OMPCHAMBER_DESKTOP__;
     const listen = bridge?.listen;
     if (typeof listen !== 'function') return;
 

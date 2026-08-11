@@ -130,7 +130,7 @@ describe('default terminal tab labels', () => {
   const labels = () =>
     useTerminalStore.getState().getDirectoryState('/repo')!.tabs.map((tab) => tab.label);
 
-  // Regression for https://github.com/openchamber/openchamber/issues/2718
+  // Regression for https://github.com/realchendahuang/OMPChamber/issues/2718
   test('does not reuse the number of a closed tab', () => {
     const first = setup();
     useTerminalStore.getState().createTab('/repo');

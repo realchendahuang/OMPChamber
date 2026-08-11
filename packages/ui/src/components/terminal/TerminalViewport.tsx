@@ -28,14 +28,14 @@ const loadGhostty = (): Promise<GhosttyRuntime> =>
   }));
 
 // The web entry defers its ~2 MB Nerd Font download until a terminal actually
-// mounts (see the `__openchamberEnsureNerdFonts` hook in index.html). Wait for
+// mounts (see the `__ompchamberEnsureNerdFonts` hook in index.html). Wait for
 // it with a short bound so a cached font is in place before the glyph atlas is
 // built, while a cold CDN fetch never blocks the terminal from opening; the
 // runtimes without the hook (VS Code, mobile) resolve immediately.
 const NERD_FONT_WAIT_MS = 2000;
 const ensureNerdFonts = (): Promise<void> => {
   if (typeof window === 'undefined') return Promise.resolve();
-  const loader = (window as typeof window & { __openchamberEnsureNerdFonts?: () => Promise<void> }).__openchamberEnsureNerdFonts;
+  const loader = (window as typeof window & { __ompchamberEnsureNerdFonts?: () => Promise<void> }).__ompchamberEnsureNerdFonts;
   if (typeof loader !== 'function') return Promise.resolve();
   return Promise.race([
     Promise.resolve(loader()).catch(() => undefined),

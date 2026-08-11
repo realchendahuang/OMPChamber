@@ -35,7 +35,7 @@ All primitives and class constants below live in
 
 Sidebar groups (`packages/ui/src/lib/settings/metadata.ts`, order in `SettingsView.tsx`):
 
-- **OpenChamber** (`general` group): General, Appearance, Chat, Notifications, Sessions, Shortcuts, Voice, Usage, About.
+- **OMPChamber** (`general` group): General, Appearance, Chat, Notifications, Sessions, Shortcuts, Voice, Usage, About.
 - **Workspace** (`projects`): Projects, Remote Instances, External Tunnel, Git.
 - **OpenCode** (`opencode`): Providers, Agents, Behavior, Commands, MCP, Plugins.
 - **Library** (`content`): Magic Prompts, Snippets, Skills, Skills Catalog.

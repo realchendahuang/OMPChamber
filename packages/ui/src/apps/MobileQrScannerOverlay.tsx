@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 
 import { Icon } from '@/components/icon/Icon';
 import { Button } from '@/components/ui/button';
-import { OpenChamberLogo } from '@/components/ui/OpenChamberLogo';
+import { OMPChamberLogo } from '@/components/ui/OMPChamberLogo';
 import { useI18n } from '@/lib/i18n';
 
 export const MobileQrScannerOverlay: React.FC<{ onCancel: () => void }> = ({ onCancel }) => {
@@ -26,7 +26,7 @@ export const MobileQrScannerOverlay: React.FC<{ onCancel: () => void }> = ({ onC
     document.documentElement.style.setProperty('background-color', 'rgba(0, 0, 0, 0)', 'important');
     document.body.style.setProperty('background-color', 'rgba(0, 0, 0, 0)', 'important');
 
-    // startScan() places CameraX behind the WebView. OpenChamber has several
+    // startScan() places CameraX behind the WebView. OMPChamber has several
     // independent portal roots, so hiding only #root (or relying on inherited
     // visibility) can leave a sheet/sidebar painted over the preview. Opacity on
     // each top-level sibling is composited for its whole subtree and cannot be
@@ -98,7 +98,7 @@ export const MobileQrConnectionLoading: React.FC = () => {
   const { t } = useI18n();
   return createPortal(
     <div role="status" className="fixed inset-0 z-[1000] flex flex-col items-center justify-center gap-5 bg-background px-6 text-foreground">
-      <OpenChamberLogo width={96} height={96} isAnimated />
+      <OMPChamberLogo width={96} height={96} isAnimated />
       <div className="flex items-center gap-2 typography-ui-label text-muted-foreground">
         <Icon name="loader-4" className="size-[18px] animate-spin" />
         <span>{t('mobile.connect.connecting')}</span>

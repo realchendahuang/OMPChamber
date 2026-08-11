@@ -1,4 +1,4 @@
-export const PREVIEW_TARGET_ERROR_HEADER = 'x-openchamber-preview-target-error';
+export const PREVIEW_TARGET_ERROR_HEADER = 'x-ompchamber-preview-target-error';
 
 type PreviewTargetErrorCode = 'missing' | 'expired' | 'invalid-token';
 

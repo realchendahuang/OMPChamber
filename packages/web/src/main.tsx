@@ -1,19 +1,19 @@
 import { createConfiguredWebAPIs, getDesktopRelayRestoreReady } from './runtimeConfig';
 import { registerSW } from 'virtual:pwa-register';
 
-import type { RuntimeAPIs } from '@openchamber/ui/lib/api/types';
-import { resolveHostedSurface, type HostedSurface } from '@openchamber/ui/lib/runtimeSurface';
+import type { RuntimeAPIs } from '@ompchamber/ui/lib/api/types';
+import { resolveHostedSurface, type HostedSurface } from '@ompchamber/ui/lib/runtimeSurface';
 import {
   isEmbeddedSessionChat,
   requestEmbeddedSessionRuntimeBootstrap,
-} from '@openchamber/ui/components/layout/contextPanelEmbeddedChat';
-import '@openchamber/ui/index.css';
-import '@openchamber/ui/styles/fonts';
+} from '@ompchamber/ui/components/layout/contextPanelEmbeddedChat';
+import '@ompchamber/ui/index.css';
+import '@ompchamber/ui/styles/fonts';
 
 declare global {
   interface Window {
-    __OPENCHAMBER_RUNTIME_APIS__?: RuntimeAPIs;
-    __OPENCHAMBER_SURFACE__?: HostedSurface;
+    __OMPCHAMBER_RUNTIME_APIS__?: RuntimeAPIs;
+    __OMPCHAMBER_SURFACE__?: HostedSurface;
   }
 }
 
@@ -88,24 +88,24 @@ const start = async (): Promise<void> => {
   const embeddedBootstrap = isEmbeddedSessionChat()
     ? await requestEmbeddedSessionRuntimeBootstrap()
     : null;
-  window.__OPENCHAMBER_RUNTIME_APIS__ = createConfiguredWebAPIs(embeddedBootstrap);
+  window.__OMPCHAMBER_RUNTIME_APIS__ = createConfiguredWebAPIs(embeddedBootstrap);
 
   if (hostedSurface === 'mobile') {
-    const { renderMobileApp } = await import('@openchamber/ui/apps/renderMobileApp');
-    renderMobileApp(window.__OPENCHAMBER_RUNTIME_APIS__);
+    const { renderMobileApp } = await import('@ompchamber/ui/apps/renderMobileApp');
+    renderMobileApp(window.__OMPCHAMBER_RUNTIME_APIS__);
     return;
   }
 
   // Hold the render until a desktop relay-host restore has picked its transport.
   await getDesktopRelayRestoreReady();
-  await import('@openchamber/ui/main');
+  await import('@ompchamber/ui/main');
 };
 
 void start();
 
 if (import.meta.hot) {
-  import.meta.hot.on('openchamber:theme-updated', (theme: unknown) => {
-    window.dispatchEvent(new CustomEvent('openchamber:theme-hmr', { detail: theme }));
+  import.meta.hot.on('ompchamber:theme-updated', (theme: unknown) => {
+    window.dispatchEvent(new CustomEvent('ompchamber:theme-hmr', { detail: theme }));
   });
 }
 

@@ -65,7 +65,7 @@ async function createFile(fileName = 'test.js', content = '//x') {
 
 describe('opencode plugin routes', () => {
   beforeAll(async () => {
-    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-plugin-routes-'));
+    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-plugin-routes-'));
     userConfigPath = path.join(rootDir, 'user-opencode.json');
     process.env.OPENCODE_CONFIG = userConfigPath;
     plugins = await import('./plugins.js');

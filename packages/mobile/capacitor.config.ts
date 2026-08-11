@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.openchamber.app',
-  appName: 'OpenChamber',
+  appId: 'com.ompchamber.app',
+  appName: 'OMPChamber',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

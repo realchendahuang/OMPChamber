@@ -291,7 +291,7 @@ pickers, and session creation from an issue or PR in `NewWorktreeDialog` and
 thread to the work *is* the act of linking it.
 
 Stored in session metadata as a **snapshot** (`lib/linkedIssues.ts`, namespace
-`openchamber.linked_issues`), riding the same `patchSessionMetadata` channel as
+`ompchamber.linked_issues`), riding the same `patchSessionMetadata` channel as
 pinned messages. Number, title, url, author and avatar only — the body,
 comments and state belong to GitHub, and mirroring them would mean owning their
 staleness. The stored title can drift; that is the price of a store that never

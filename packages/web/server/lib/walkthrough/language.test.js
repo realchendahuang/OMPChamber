@@ -4,7 +4,7 @@ import path from 'path';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const TEMP_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'walkthrough-language-'));
-process.env.OPENCHAMBER_DATA_DIR = TEMP_DATA_DIR;
+process.env.OMPCHAMBER_DATA_DIR = TEMP_DATA_DIR;
 
 vi.mock('../git/service.js', () => ({
   getRepositoryRoot: vi.fn(async () => '/repo'),

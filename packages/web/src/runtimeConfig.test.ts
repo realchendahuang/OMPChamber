@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
-vi.mock('@openchamber/ui/lib/runtime-auth', () => ({
+vi.mock('@ompchamber/ui/lib/runtime-auth', () => ({
   getRuntimeBearerTokenSync: vi.fn(() => ''),
   getRuntimeExtraHeadersSync: vi.fn(() => ({})),
   refreshLocalRuntimeUrlAuthToken: vi.fn(() => Promise.resolve()),
@@ -8,22 +8,22 @@ vi.mock('@openchamber/ui/lib/runtime-auth', () => ({
   setRuntimeBearerToken: vi.fn(),
   setRuntimeExtraHeaders: vi.fn(),
 }));
-vi.mock('@openchamber/ui/lib/runtime-fetch', () => ({ installRuntimeFetchBridge: vi.fn() }));
-vi.mock('@openchamber/ui/lib/runtime-switch', () => ({
+vi.mock('@ompchamber/ui/lib/runtime-fetch', () => ({ installRuntimeFetchBridge: vi.fn() }));
+vi.mock('@ompchamber/ui/lib/runtime-switch', () => ({
   getRuntimeApiBaseUrl: vi.fn(() => ''),
   getRuntimeKey: vi.fn(() => 'local'),
   initializeRuntimeEndpoint: vi.fn(),
   switchRuntimeEndpoint: vi.fn(),
 }));
-vi.mock('@openchamber/ui/lib/desktopRelayRestore', () => ({ restoreDesktopRelayRuntime: vi.fn(() => Promise.resolve()) }));
-vi.mock('@openchamber/ui/lib/runtime-url', () => ({ configureRuntimeUrlResolver: vi.fn(() => ({})) }));
-vi.mock('@openchamber/ui/lib/opencode/client', () => ({ opencodeClient: { reconnectToRuntimeBaseUrl: vi.fn() } }));
+vi.mock('@ompchamber/ui/lib/desktopRelayRestore', () => ({ restoreDesktopRelayRuntime: vi.fn(() => Promise.resolve()) }));
+vi.mock('@ompchamber/ui/lib/runtime-url', () => ({ configureRuntimeUrlResolver: vi.fn(() => ({})) }));
+vi.mock('@ompchamber/ui/lib/opencode/client', () => ({ opencodeClient: { reconnectToRuntimeBaseUrl: vi.fn() } }));
 vi.mock('./api', () => ({ createWebAPIs: vi.fn() }));
 
-import { setRuntimeBearerToken, setRuntimeExtraHeaders } from '@openchamber/ui/lib/runtime-auth';
-import { initializeRuntimeEndpoint, switchRuntimeEndpoint } from '@openchamber/ui/lib/runtime-switch';
-import { restoreDesktopRelayRuntime } from '@openchamber/ui/lib/desktopRelayRestore';
-import { opencodeClient } from '@openchamber/ui/lib/opencode/client';
+import { setRuntimeBearerToken, setRuntimeExtraHeaders } from '@ompchamber/ui/lib/runtime-auth';
+import { initializeRuntimeEndpoint, switchRuntimeEndpoint } from '@ompchamber/ui/lib/runtime-switch';
+import { restoreDesktopRelayRuntime } from '@ompchamber/ui/lib/desktopRelayRestore';
+import { opencodeClient } from '@ompchamber/ui/lib/opencode/client';
 import { createConfiguredWebAPIs, readRuntimeBootstrapConfig } from './runtimeConfig';
 
 const originalWindow = globalThis.window;
@@ -37,7 +37,7 @@ const installWindow = (value: Record<string, unknown>) => {
 
 const makeWindow = (search = ''): Record<string, unknown> => {
   const value: Record<string, unknown> = {
-    location: { origin: 'openchamber-ui://app', search },
+    location: { origin: 'ompchamber-ui://app', search },
     setTimeout: vi.fn(() => 1),
   };
   value.parent = value;
@@ -59,26 +59,26 @@ afterAll(() => {
 describe('readRuntimeBootstrapConfig', () => {
   test('reads the runtime injected into the current window', () => {
     const current = makeWindow();
-    current.__OPENCHAMBER_API_BASE_URL__ = ' https://remote.example.com ';
-    current.__OPENCHAMBER_CLIENT_TOKEN__ = ' remote-token ';
-    current.__OPENCHAMBER_LOCAL_ORIGIN__ = ' http://127.0.0.1:3000 ';
-    current.__OPENCHAMBER_RUNTIME_HEADERS__ = { 'x-openchamber-relay': 'relay-value' };
-    current.__OPENCHAMBER_RELAY_HOST_ID__ = ' remote-host ';
+    current.__OMPCHAMBER_API_BASE_URL__ = ' https://remote.example.com ';
+    current.__OMPCHAMBER_CLIENT_TOKEN__ = ' remote-token ';
+    current.__OMPCHAMBER_LOCAL_ORIGIN__ = ' http://127.0.0.1:3000 ';
+    current.__OMPCHAMBER_RUNTIME_HEADERS__ = { 'x-ompchamber-relay': 'relay-value' };
+    current.__OMPCHAMBER_RELAY_HOST_ID__ = ' remote-host ';
     installWindow(current);
 
     expect(readRuntimeBootstrapConfig()).toEqual({
       apiBaseUrl: 'https://remote.example.com',
       clientToken: 'remote-token',
       localOrigin: 'http://127.0.0.1:3000',
-      runtimeHeaders: { 'x-openchamber-relay': 'relay-value' },
+      runtimeHeaders: { 'x-ompchamber-relay': 'relay-value' },
       relayHostId: 'remote-host',
     });
   });
 
   test('does not read runtime credentials directly from a parent window', () => {
     const parent = makeWindow();
-    parent.__OPENCHAMBER_API_BASE_URL__ = 'https://remote.example.com';
-    parent.__OPENCHAMBER_CLIENT_TOKEN__ = 'remote-token';
+    parent.__OMPCHAMBER_API_BASE_URL__ = 'https://remote.example.com';
+    parent.__OMPCHAMBER_CLIENT_TOKEN__ = 'remote-token';
     const child = makeWindow('?ocPanel=session-chat&sessionId=ses_child');
     child.parent = parent;
     installWindow(child);
@@ -99,7 +99,7 @@ describe('createConfiguredWebAPIs', () => {
     const bootstrap = {
       apiBaseUrl: 'https://remote.example.com',
       clientToken: 'client-token',
-      localOrigin: 'openchamber-ui://app',
+      localOrigin: 'ompchamber-ui://app',
       runtimeHeaders: { 'x-runtime': 'value' },
       relayHostId: 'host-1',
     };
@@ -123,7 +123,7 @@ describe('createConfiguredWebAPIs', () => {
       hostEncPubJwk: { kty: 'EC', crv: 'P-256', x: 'public-x', y: 'public-y' },
     };
     const bootstrap = {
-      apiBaseUrl: 'openchamber-ui://app',
+      apiBaseUrl: 'ompchamber-ui://app',
       clientToken: 'client-token',
       localOrigin: 'http://127.0.0.1:3000',
       relayHostId: 'host-1',

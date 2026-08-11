@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# OpenChamber Install Script
-# Usage: curl -fsSL https://raw.githubusercontent.com/btriapitsyn/openchamber/main/scripts/install.sh | bash
+# OMPChamber Install Script
+# Usage: curl -fsSL https://raw.githubusercontent.com/btriapitsyn/ompchamber/main/scripts/install.sh | bash
 
 set -euo pipefail
 
-PACKAGE_NAME="@openchamber/web"
-BIN_NAME="openchamber"
+PACKAGE_NAME="@ompchamber/web"
+BIN_NAME="ompchamber"
 MIN_NODE_VERSION=22
 
 # Colors
@@ -156,7 +156,7 @@ main() {
   echo ""
   echo "  ╭───────────────────────────────────╮"
   echo "  │                                   │"
-  echo "  │   OpenChamber Installer           │"
+  echo "  │   OMPChamber Installer           │"
   echo "  │   Web interface for OpenCode      │"
   echo "  │                                   │"
   echo "  ╰───────────────────────────────────╯"
@@ -176,23 +176,23 @@ main() {
   fi
   success "Node.js v$NODE_VERSION found"
 
-  # If OpenChamber is already installed, hand off to its own updater instead
-  # of guessing a package manager. `openchamber update` detects which manager
+  # If OMPChamber is already installed, hand off to its own updater instead
+  # of guessing a package manager. `ompchamber update` detects which manager
   # actually owns the existing global install and reinstalls with that one —
   # reinstalling with a different manager here would orphan files and break PATH.
   if command_exists "$BIN_NAME"; then
-    info "OpenChamber is already installed — updating via 'openchamber update'..."
+    info "OMPChamber is already installed — updating via 'ompchamber update'..."
     echo ""
-    if openchamber update; then
+    if ompchamber update; then
       echo ""
-      success "OpenChamber is up to date!"
+      success "OMPChamber is up to date!"
       exit 0
     fi
     echo ""
     error "Update failed."
     echo ""
     echo "  Try running it manually:"
-    echo "    openchamber update"
+    echo "    ompchamber update"
     echo ""
     exit 1
   fi
@@ -216,7 +216,7 @@ main() {
 
   # Install
   echo ""
-  info "Installing OpenChamber..."
+  info "Installing OMPChamber..."
   echo "  Running: $INSTALL_CMD"
   echo ""
   
@@ -234,7 +234,7 @@ main() {
   ░▀▀▀░▀░▀░▀░▀░▀░▀░▀▀░░▀▀▀░▀░▀
 EOF
     printf '%b\n' "$NC"
-    success "OpenChamber installed successfully!"
+    success "OMPChamber installed successfully!"
     echo ""
 
     # Verify the binary is actually reachable. Global installs frequently
@@ -242,8 +242,8 @@ EOF
     # letting the user hit a confusing "command not found".
     if command_exists "$BIN_NAME"; then
       echo "  Get started:"
-      echo "    openchamber              # Start server on port 3000"
-      echo "    openchamber --help       # Show all options"
+      echo "    ompchamber              # Start server on port 3000"
+      echo "    ompchamber --help       # Show all options"
     else
       warn "'$BIN_NAME' was installed but isn't on your PATH yet."
       echo ""
@@ -259,7 +259,7 @@ EOF
         echo "    export PATH=\"$bin_dir:\$PATH\""
       else
         echo "  Add your package manager's global bin directory to PATH,"
-        echo "  then restart your terminal and run: openchamber"
+        echo "  then restart your terminal and run: ompchamber"
       fi
     fi
     echo ""

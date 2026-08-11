@@ -5,7 +5,7 @@ const CLIENT_TOKEN_QUERY_PARAM = 'oc_client_token';
 const URL_AUTH_TOKEN_QUERY_PARAM = 'oc_url_token';
 const PREVIEW_PASSTHROUGH_REQUEST_HEADERS = ['x-inertia', 'x-inertia-version'];
 const PREVIEW_PASSTHROUGH_RESPONSE_HEADERS = ['x-inertia', 'x-inertia-location'];
-export const PREVIEW_TARGET_ERROR_HEADER = 'x-openchamber-preview-target-error';
+export const PREVIEW_TARGET_ERROR_HEADER = 'x-ompchamber-preview-target-error';
 
 const LOOPBACK_HOSTS = new Set([
   'localhost',
@@ -15,7 +15,7 @@ const LOOPBACK_HOSTS = new Set([
   '0.0.0.0',
 ]);
 
-const PREVIEW_BRIDGE_SCRIPT_ID = 'openchamber-preview-bridge';
+const PREVIEW_BRIDGE_SCRIPT_ID = 'ompchamber-preview-bridge';
 
 const parsePreviewResourcePath = (url) => {
   try {
@@ -196,14 +196,14 @@ export const classifyPreviewNavigation = ({ url, currentUrl, targetOrigin }) => 
 };
 
 const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
-  if (window.__openchamberPreviewBridgeInstalled) return;
-  window.__openchamberPreviewBridgeInstalled = true;
+  if (window.__ompchamberPreviewBridgeInstalled) return;
+  window.__ompchamberPreviewBridgeInstalled = true;
 
-  const SOURCE = 'openchamber-preview-bridge';
+  const SOURCE = 'ompchamber-preview-bridge';
   const VERSION = 1;
   const MAX_TEXT = 500;
   const MAX_ARG = 1000;
-  const TARGET_ORIGIN = typeof window.__openchamberPreviewTargetOrigin === 'string' ? window.__openchamberPreviewTargetOrigin : '';
+  const TARGET_ORIGIN = typeof window.__ompchamberPreviewTargetOrigin === 'string' ? window.__ompchamberPreviewTargetOrigin : '';
   let inspectMode = false;
   let lastHoverKey = '';
   let pendingHover = null;
@@ -274,8 +274,8 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
   };
 
   const installColorSchemeMatchMediaPatch = () => {
-    if (window.__openchamberPreviewColorSchemePatched || typeof window.matchMedia !== 'function') return;
-    window.__openchamberPreviewColorSchemePatched = true;
+    if (window.__ompchamberPreviewColorSchemePatched || typeof window.matchMedia !== 'function') return;
+    window.__ompchamberPreviewColorSchemePatched = true;
     nativeMatchMedia = window.matchMedia.bind(window);
     window.matchMedia = function(query) {
       const nativeMql = nativeMatchMedia(query);
@@ -327,7 +327,7 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
     try {
       const root = document.documentElement;
       root.style.colorScheme = next;
-      root.dataset.openchamberPreviewColorScheme = next;
+      root.dataset.ompchamberPreviewColorScheme = next;
       if (shouldSyncDataTheme()) {
         root.dataset.theme = next;
       }
@@ -475,8 +475,8 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
   };
 
   const installViteHmrProxyPatch = () => {
-    if (window.__openchamberViteHmrProxyPatched || typeof window.WebSocket !== 'function') return;
-    window.__openchamberViteHmrProxyPatched = true;
+    if (window.__ompchamberViteHmrProxyPatched || typeof window.WebSocket !== 'function') return;
+    window.__ompchamberViteHmrProxyPatched = true;
     const NativeWebSocket = window.WebSocket;
     const proxyMatch = window.location.pathname.match(/^(\/api\/preview\/proxy\/[a-f0-9]{16,64})(?:\/|$)/i);
     if (!proxyMatch) return;
@@ -514,7 +514,7 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
       }
     };
 
-    function OpenChamberPreviewWebSocket(url, protocols) {
+    function OMPChamberPreviewWebSocket(url, protocols) {
       const protocolList = Array.isArray(protocols) ? protocols : [protocols];
       const isViteSocket = protocolList.indexOf('vite-hmr') >= 0;
       const nextUrl = rewriteUrl(url, protocols);
@@ -536,15 +536,15 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
       return socket;
     }
 
-    OpenChamberPreviewWebSocket.prototype = NativeWebSocket.prototype;
-    Object.setPrototypeOf(OpenChamberPreviewWebSocket, NativeWebSocket);
-    Object.defineProperty(OpenChamberPreviewWebSocket, 'name', { value: 'WebSocket' });
-    window.WebSocket = OpenChamberPreviewWebSocket;
+    OMPChamberPreviewWebSocket.prototype = NativeWebSocket.prototype;
+    Object.setPrototypeOf(OMPChamberPreviewWebSocket, NativeWebSocket);
+    Object.defineProperty(OMPChamberPreviewWebSocket, 'name', { value: 'WebSocket' });
+    window.WebSocket = OMPChamberPreviewWebSocket;
   };
 
   const installAppRequestProxyPatch = () => {
-    if (window.__openchamberAppRequestProxyPatched) return;
-    window.__openchamberAppRequestProxyPatched = true;
+    if (window.__ompchamberAppRequestProxyPatched) return;
+    window.__ompchamberAppRequestProxyPatched = true;
     const proxyMatch = window.location.pathname.match(/^(\/api\/preview\/proxy\/[a-f0-9]{16,64})(?:\/|$)/i);
     if (!proxyMatch) return;
     const proxyBase = proxyMatch[1];
@@ -672,27 +672,27 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
 
     if (typeof window.EventSource === 'function') {
       const NativeEventSource = window.EventSource;
-      function OpenChamberPreviewEventSource(url, eventSourceInitDict) {
+      function OMPChamberPreviewEventSource(url, eventSourceInitDict) {
         return new NativeEventSource(proxiedUrl(String(url)), eventSourceInitDict);
       }
-      OpenChamberPreviewEventSource.prototype = NativeEventSource.prototype;
-      Object.setPrototypeOf(OpenChamberPreviewEventSource, NativeEventSource);
-      Object.defineProperty(OpenChamberPreviewEventSource, 'name', { value: 'EventSource' });
-      window.EventSource = OpenChamberPreviewEventSource;
+      OMPChamberPreviewEventSource.prototype = NativeEventSource.prototype;
+      Object.setPrototypeOf(OMPChamberPreviewEventSource, NativeEventSource);
+      Object.defineProperty(OMPChamberPreviewEventSource, 'name', { value: 'EventSource' });
+      window.EventSource = OMPChamberPreviewEventSource;
     }
 
     if (typeof window.WebSocket === 'function') {
       const NativeWebSocket = window.WebSocket;
-      function OpenChamberPreviewAppWebSocket(url, protocols) {
+      function OMPChamberPreviewAppWebSocket(url, protocols) {
         const nextUrl = proxiedWebSocketUrl(String(url));
         return arguments.length === 1
           ? new NativeWebSocket(nextUrl)
           : new NativeWebSocket(nextUrl, protocols);
       }
-      OpenChamberPreviewAppWebSocket.prototype = NativeWebSocket.prototype;
-      Object.setPrototypeOf(OpenChamberPreviewAppWebSocket, NativeWebSocket);
-      Object.defineProperty(OpenChamberPreviewAppWebSocket, 'name', { value: 'WebSocket' });
-      window.WebSocket = OpenChamberPreviewAppWebSocket;
+      OMPChamberPreviewAppWebSocket.prototype = NativeWebSocket.prototype;
+      Object.setPrototypeOf(OMPChamberPreviewAppWebSocket, NativeWebSocket);
+      Object.defineProperty(OMPChamberPreviewAppWebSocket, 'name', { value: 'WebSocket' });
+      window.WebSocket = OMPChamberPreviewAppWebSocket;
     }
   };
 
@@ -777,9 +777,9 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
   const sendHover = (event) => {
     if (!inspectMode) return;
     pendingHover = event;
-    if (window.__openchamberPreviewHoverFrame) return;
-    window.__openchamberPreviewHoverFrame = window.requestAnimationFrame(() => {
-      window.__openchamberPreviewHoverFrame = 0;
+    if (window.__ompchamberPreviewHoverFrame) return;
+    window.__ompchamberPreviewHoverFrame = window.requestAnimationFrame(() => {
+      window.__ompchamberPreviewHoverFrame = 0;
       const currentEvent = pendingHover;
       pendingHover = null;
       if (!currentEvent || !inspectMode) return;
@@ -861,7 +861,7 @@ const PREVIEW_BRIDGE_SCRIPT = String.raw`(() => {
   window.addEventListener('message', (event) => {
     if (event.source !== window.parent) return;
     const data = event.data;
-    if (!data || data.source !== 'openchamber-preview-parent' || data.version !== VERSION) return;
+    if (!data || data.source !== 'ompchamber-preview-parent' || data.version !== VERSION) return;
     if (data.type === 'set-inspect-mode') {
       setInspectMode(data.enabled === true);
     }
@@ -1013,7 +1013,7 @@ export const normalizeProxyTargetUrl = (rawUrl, { allowExternal = false } = {}) 
     url.hostname = '127.0.0.1';
   }
 
-  // Only keep origin here; the proxy path is preserved on the OpenChamber side.
+  // Only keep origin here; the proxy path is preserved on the OMPChamber side.
   return { ok: true, origin: url.origin };
 };
 
@@ -1025,7 +1025,7 @@ const appendProxyAuthToProxyUrl = (value, { previewToken = '', urlAuthToken = ''
     || value.includes(URL_AUTH_TOKEN_QUERY_PARAM);
   if (!needsQueryRewrite) return value;
   try {
-    const parsed = new URL(value, 'http://openchamber-preview.local');
+    const parsed = new URL(value, 'http://ompchamber-preview.local');
     parsed.searchParams.delete(CLIENT_TOKEN_QUERY_PARAM);
     parsed.searchParams.delete(URL_AUTH_TOKEN_QUERY_PARAM);
     if (previewToken) parsed.searchParams.set(TOKEN_QUERY_PARAM, previewToken);
@@ -1319,7 +1319,7 @@ export const createPreviewProxyRuntime = ({
       }
 
       const nonceAttr = bridgeNonce ? ` nonce="${bridgeNonce}"` : '';
-      const targetOriginScript = `<script${nonceAttr}>window.__openchamberPreviewTargetOrigin=${JSON.stringify(targetOrigin || '')};</script>`;
+      const targetOriginScript = `<script${nonceAttr}>window.__ompchamberPreviewTargetOrigin=${JSON.stringify(targetOrigin || '')};</script>`;
       const script = `${targetOriginScript}<script id="${PREVIEW_BRIDGE_SCRIPT_ID}"${nonceAttr}>${PREVIEW_BRIDGE_SCRIPT}</script>`;
       if (/<head(?:\s[^>]*)?>/i.test(bodyText)) {
         return bodyText.replace(/<head(\s[^>]*)?>/i, (match) => `${match}${script}`);
@@ -1445,10 +1445,10 @@ export const createPreviewProxyRuntime = ({
       on: {
         proxyReq: (proxyReq, req) => {
           applyPreviewPassthroughRequestHeaders(req, proxyReq);
-          // Keep local dev servers from receiving OpenChamber credentials.
+          // Keep local dev servers from receiving OMPChamber credentials.
           proxyReq.removeHeader('cookie');
           proxyReq.removeHeader('authorization');
-          proxyReq.removeHeader('x-openchamber-ui-session');
+          proxyReq.removeHeader('x-ompchamber-ui-session');
           proxyReq.setHeader('accept-encoding', 'identity');
         },
         proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, res) => {
@@ -1459,7 +1459,7 @@ export const createPreviewProxyRuntime = ({
           // Per-response nonce lets the injected bridge run under the dev
           // server's CSP without dropping its script restrictions wholesale.
           const bridgeNonce = crypto.randomBytes(16).toString('base64');
-          // Allow the dev server response to be framed inside OpenChamber even
+          // Allow the dev server response to be framed inside OMPChamber even
           // if it normally sets X-Frame-Options or a CSP frame-ancestors rule.
           // The proxy is same-origin so embedding is otherwise safe.
           stripFrameBustingHeaders(proxyRes.headers, bridgeNonce);

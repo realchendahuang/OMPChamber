@@ -1,9 +1,9 @@
 // Private relay service: config persistence, lifecycle of the relay host
-// client, and the /api/openchamber/relay/* management routes.
+// client, and the /api/ompchamber/relay/* management routes.
 //
 // Config lives in the server settings file as `settings.privateRelay =
 // { enabled, relayUrl }` (same storage precedent as tunnels/notifications).
-// Routes are registered with the other OpenChamber feature routes, before the
+// Routes are registered with the other OMPChamber feature routes, before the
 // generic OpenCode proxy, and are covered by the same global UI auth gate.
 //
 // Cross-runtime parity note: relay host mode intentionally targets the web
@@ -16,7 +16,7 @@ import express from 'express';
 import { createRelayIdentityRuntime } from './identity.js';
 import { startRelayHost } from './host-client.js';
 
-export const DEFAULT_RELAY_URL = 'wss://relay.openchamber.dev/ws';
+export const DEFAULT_RELAY_URL = 'wss://relay.ompchamber.dev/ws';
 
 const isValidRelayUrl = (value) => {
   if (typeof value !== 'string') return false;
@@ -40,7 +40,7 @@ const normalizeRelayUrl = (value) => {
 // stored setting entirely, so the host connection, the pairing offer, and the
 // status all point at it — clients then inherit it from the offer automatically.
 const envRelayUrlOverride = () => {
-  const raw = process.env.OPENCHAMBER_RELAY_URL;
+  const raw = process.env.OMPCHAMBER_RELAY_URL;
   if (typeof raw !== 'string' || !raw.trim() || !isValidRelayUrl(raw)) return null;
   return raw.trim();
 };
@@ -88,7 +88,7 @@ export const createRelayService = ({
     return {
       enabled: stored?.enabled === true,
       relayUrl: override ?? normalizeRelayUrl(stored?.relayUrl),
-      // True when the endpoint is pinned by OPENCHAMBER_RELAY_URL (a self-hosted
+      // True when the endpoint is pinned by OMPCHAMBER_RELAY_URL (a self-hosted
       // relay); the stored setting is ignored while it is set.
       relayUrlLocked: override !== null,
     };
@@ -110,7 +110,7 @@ export const createRelayService = ({
 
   const standbyStatus = (holderPid) => ({
     state: 'standby',
-    lastError: `relay host is owned by another local OpenChamber process (pid ${holderPid})`,
+    lastError: `relay host is owned by another local OMPChamber process (pid ${holderPid})`,
     connectedClients: 0,
   });
 
@@ -286,7 +286,7 @@ export const createRelayService = ({
   };
 
   const registerRoutes = (app) => {
-    app.get('/api/openchamber/relay/status', async (_req, res) => {
+    app.get('/api/ompchamber/relay/status', async (_req, res) => {
       try {
         res.json(await getStatus());
       } catch (error) {
@@ -294,7 +294,7 @@ export const createRelayService = ({
       }
     });
 
-    app.post('/api/openchamber/relay/enable', express.json({ limit: '16kb' }), async (req, res) => {
+    app.post('/api/ompchamber/relay/enable', express.json({ limit: '16kb' }), async (req, res) => {
       try {
         const current = await readConfig();
         const relayUrl = typeof req.body?.relayUrl === 'string' ? normalizeRelayUrl(req.body.relayUrl) : current.relayUrl;
@@ -308,7 +308,7 @@ export const createRelayService = ({
       }
     });
 
-    app.post('/api/openchamber/relay/disable', async (_req, res) => {
+    app.post('/api/ompchamber/relay/disable', async (_req, res) => {
       try {
         const current = await readConfig();
         await writeConfig({ enabled: false, relayUrl: current.relayUrl });

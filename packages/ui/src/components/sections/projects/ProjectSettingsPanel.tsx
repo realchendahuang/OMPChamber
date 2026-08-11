@@ -1,5 +1,5 @@
 import React from 'react';
-import { WorktreeSectionContent } from '@/components/sections/openchamber/WorktreeSectionContent';
+import { WorktreeSectionContent } from '@/components/sections/ompchamber/WorktreeSectionContent';
 import { ProjectActionsSection } from '@/components/sections/projects/ProjectActionsSection';
 import { ProjectIdentityFields } from '@/components/sections/projects/ProjectIdentityFields';
 import {

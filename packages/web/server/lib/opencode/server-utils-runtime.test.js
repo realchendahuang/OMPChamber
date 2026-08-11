@@ -102,7 +102,7 @@ describe('server utils runtime', () => {
   });
 
   it('adds existing Windows package-manager directories to managed OpenCode PATH', () => {
-    const root = createTempDir('openchamber-win-path-');
+    const root = createTempDir('ompchamber-win-path-');
     const systemDir = path.join(root, 'System32');
     const appData = path.join(root, 'Roaming');
     const programFiles = path.join(root, 'Program Files');

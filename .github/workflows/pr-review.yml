@@ -20,8 +20,8 @@ jobs:
     name: automation
     if: |
       github.event_name == 'pull_request_target' ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.user.login != 'openchamber-bot[bot]' && (github.event.comment.body == '/oc-review' || startsWith(github.event.comment.body, '/oc-review ') || github.event.comment.body == '@openchamber-bot review' || startsWith(github.event.comment.body, '@openchamber-bot review '))) ||
-      (github.event_name == 'pull_request_review_comment' && github.event.comment.user.login != 'openchamber-bot[bot]' && (github.event.comment.body == '/oc-review' || startsWith(github.event.comment.body, '/oc-review ') || github.event.comment.body == '@openchamber-bot review' || startsWith(github.event.comment.body, '@openchamber-bot review ')))
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.user.login != 'ompchamber-bot[bot]' && (github.event.comment.body == '/oc-review' || startsWith(github.event.comment.body, '/oc-review ') || github.event.comment.body == '@ompchamber-bot review' || startsWith(github.event.comment.body, '@ompchamber-bot review '))) ||
+      (github.event_name == 'pull_request_review_comment' && github.event.comment.user.login != 'ompchamber-bot[bot]' && (github.event.comment.body == '/oc-review' || startsWith(github.event.comment.body, '/oc-review ') || github.event.comment.body == '@ompchamber-bot review' || startsWith(github.event.comment.body, '@ompchamber-bot review ')))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -132,8 +132,8 @@ jobs:
             /oc-review|/oc-review\ *)
               focus="${first_line#/oc-review}"
               ;;
-            "@openchamber-bot review"|"@openchamber-bot review "*)
-              focus="${first_line#@openchamber-bot review}"
+            "@ompchamber-bot review"|"@ompchamber-bot review "*)
+              focus="${first_line#@ompchamber-bot review}"
               ;;
             *)
               echo "Unsupported manual review command: $first_line" >&2
@@ -266,7 +266,7 @@ jobs:
           echo "Review timeout: $REVIEW_TIMEOUT"
 
           set +e
-          timeout --signal=TERM --kill-after=30s "$REVIEW_TIMEOUT" opencode run --agent pr-review "A pull request in the OpenChamber repository needs one unified correctness, repository-guidance, contribution-quality, and evidence review.
+          timeout --signal=TERM --kill-after=30s "$REVIEW_TIMEOUT" opencode run --agent pr-review "A pull request in the OMPChamber repository needs one unified correctness, repository-guidance, contribution-quality, and evidence review.
 
           This may be a repeated review request. Before writing a new review, inspect prior PR comments, bot comments, reviews, inline comments, and the commit timeline via GitHub. Compare prior findings against commits pushed after those comments, then only repeat findings that still exist in the current diff/current file state.
 
@@ -346,10 +346,10 @@ jobs:
           review_json="$(gh api \
             "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
             --paginate \
-            | jq -s --arg started_at "$REVIEW_STARTED_AT" '[.[][] | select(.created_at >= $started_at and .user.login == "openchamber-bot[bot]" and (.body | contains("<h3>Code Review Summary</h3>")) and (.body | contains("<!-- oc-review-meta ")))] | last // empty')"
+            | jq -s --arg started_at "$REVIEW_STARTED_AT" '[.[][] | select(.created_at >= $started_at and .user.login == "ompchamber-bot[bot]" and (.body | contains("<h3>Code Review Summary</h3>")) and (.body | contains("<!-- oc-review-meta ")))] | last // empty')"
 
           if [ -z "$review_json" ]; then
-            fail_automation "Review completed without creating a new structured OpenChamber Bot PR comment."
+            fail_automation "Review completed without creating a new structured OMPChamber Bot PR comment."
           fi
 
           if ! metadata="$(printf '%s' "$review_json" | jq -er '.body | capture("<!-- oc-review-meta (?<json>\\{[^\\n]+\\}) -->").json | fromjson')"; then
@@ -416,7 +416,7 @@ jobs:
           fi
 
           {
-            echo "### OpenChamber review verdict"
+            echo "### OMPChamber review verdict"
             echo
             echo "- HEAD: \`$REVIEW_HEAD_SHA\`"
             echo "- Verdict: \`$verdict\`"

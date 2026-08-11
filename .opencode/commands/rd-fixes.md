@@ -3,7 +3,7 @@ description: Create a React Doctor diagnostics cleanup PR from the next generate
 agent: build
 ---
 
-You are working in the OpenChamber repository.
+You are working in the OMPChamber repository.
 
 Goal: reduce React Doctor diagnostics in a small, reviewable maintenance PR.
 

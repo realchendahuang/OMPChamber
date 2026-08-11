@@ -1,13 +1,13 @@
 ---
 name: drag-to-reorder
-description: Use when implementing or modifying OpenChamber sortable or drag-to-reorder behavior, especially `@dnd-kit`, touch/mobile interactions, variable-width items, or wrapping layouts.
+description: Use when implementing or modifying OMPChamber sortable or drag-to-reorder behavior, especially `@dnd-kit`, touch/mobile interactions, variable-width items, or wrapping layouts.
 license: MIT
 compatibility: opencode
 ---
 
 ## Overview
 
-OpenChamber uses **@dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) for drag-to-reorder. Getting it to feel right on both desktop and mobile — especially for chips/tags of **variable width that wrap onto multiple rows** — has several non-obvious gotchas. This skill captures the configuration that works, and the bugs to avoid.
+OMPChamber uses **@dnd-kit** (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) for drag-to-reorder. Getting it to feel right on both desktop and mobile — especially for chips/tags of **variable width that wrap onto multiple rows** — has several non-obvious gotchas. This skill captures the configuration that works, and the bugs to avoid.
 
 **Reference implementations in this repo:**
 - `packages/ui/src/components/chat/DraftPresetChips.tsx` — variable-width chips that wrap (the hardest case; mobile long-press).

@@ -53,7 +53,7 @@ const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
 describe('VS Code config bridge plugin parity', () => {
   test('explicit config reload restarts OpenCode', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-reload-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-reload-'));
     tempRoots.push(root);
     const ctx = createCtx(root);
 
@@ -72,7 +72,7 @@ describe('VS Code config bridge plugin parity', () => {
   });
 
   test('removes agent fields when update payload sends null', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-agent-null-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-agent-null-'));
     tempRoots.push(root);
     const ctx = createCtx(root);
     const configDir = path.join(root, '.opencode');
@@ -105,7 +105,7 @@ describe('VS Code config bridge plugin parity', () => {
   });
 
   test('creates, lists, updates, and deletes project plugin entries', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-plugins-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-plugins-'));
     tempRoots.push(root);
     const ctx = createCtx(root);
 
@@ -171,7 +171,7 @@ describe('VS Code config bridge plugin parity', () => {
   });
 
   test('creates and reads project plugin files', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-plugin-files-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-plugin-files-'));
     tempRoots.push(root);
     const ctx = createCtx(root);
 
@@ -205,7 +205,7 @@ describe('VS Code config bridge plugin parity', () => {
   });
 
   test('updates and deletes user plugin entries from OPENCODE_CONFIG source', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-custom-config-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-custom-config-'));
     tempRoots.push(root);
     const configDir = path.join(root, 'custom-config');
     const configPath = path.join(configDir, 'opencode.json');
@@ -253,7 +253,7 @@ describe('VS Code config bridge plugin parity', () => {
   });
 
   test('writes user plugin files next to OPENCODE_CONFIG', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-custom-files-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-custom-files-'));
     tempRoots.push(root);
     const configDir = path.join(root, 'custom-config');
     const configPath = path.join(configDir, 'opencode.json');
@@ -278,7 +278,7 @@ describe('VS Code config bridge plugin parity', () => {
   });
 
   test('creates MCP config with deferred restart when restart would fail', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-vscode-mcp-deferred-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-mcp-deferred-'));
     tempRoots.push(root);
     const ctx = createCtx(root, async () => {
       throw new Error('restart failed');

@@ -30,7 +30,7 @@ function writeAuthFile(auth) {
     if (process.platform !== 'win32') fs.chmodSync(OPENCODE_DATA_DIR, 0o700);
 
     if (fs.existsSync(AUTH_FILE)) {
-      const backupFile = `${AUTH_FILE}.openchamber.backup`;
+      const backupFile = `${AUTH_FILE}.ompchamber.backup`;
       fs.copyFileSync(AUTH_FILE, backupFile);
       if (process.platform !== 'win32') fs.chmodSync(backupFile, 0o600);
       console.log(`Created auth backup: ${backupFile}`);

@@ -1,26 +1,26 @@
 ---
 title: Connexion à OpenCode
-description: Corrigez OpenChamber lorsqu’il ne se connecte pas à son serveur OpenCode.
+description: Corrigez OMPChamber lorsqu’il ne se connecte pas à son serveur OpenCode.
 ---
 
 # Connexion à OpenCode
 
-Si OpenChamber se charge mais reste bloqué sur « OpenCode redémarre », ou si le chat ne répond pas, le serveur auquel il parle n’est pas joignable. Suivez ces vérifications.
+Si OMPChamber se charge mais reste bloqué sur « OpenCode redémarre », ou si le chat ne répond pas, le serveur auquel il parle n’est pas joignable. Suivez ces vérifications.
 
 ## Il reste bloqué sur « OpenCode redémarre »
 
 - laissez-lui un moment juste après le lancement — cet état est normal pendant le démarrage du serveur
-- vérifiez si le serveur est vivant avec `openchamber status`
-- redémarrez-le avec `openchamber restart`
-- consultez les détails de démarrage avec `openchamber logs`
+- vérifiez si le serveur est vivant avec `ompchamber status`
+- redémarrez-le avec `ompchamber restart`
+- consultez les détails de démarrage avec `ompchamber logs`
 
 ## Vous vous connectez à votre propre serveur
 
-Si vous avez configuré OpenChamber pour utiliser un serveur existant, revérifiez la configuration depuis [Serveur OpenCode](/opencode-server/) :
+Si vous avez configuré OMPChamber pour utiliser un serveur existant, revérifiez la configuration depuis [Serveur OpenCode](/opencode-server/) :
 
 - `OPENCODE_HOST` doit inclure le port, sans chemin — par exemple `http://localhost:4096`
-- définissez `OPENCODE_SKIP_START=true` pour qu’OpenChamber ne démarre pas aussi le sien
-- si l’adresse est invalide, OpenChamber l’ignore et démarre son propre serveur à la place — cherchez un avertissement `[config]` dans les logs
+- définissez `OPENCODE_SKIP_START=true` pour qu’OMPChamber ne démarre pas aussi le sien
+- si l’adresse est invalide, OMPChamber l’ignore et démarre son propre serveur à la place — cherchez un avertissement `[config]` dans les logs
 
 ## Toujours en échec
 
@@ -30,5 +30,5 @@ Si vous avez configuré OpenChamber pour utiliser un serveur existant, revérifi
 
 ## Pages liées
 
-- [Serveur OpenCode](/opencode-server/) — comment OpenChamber trouve et gère le serveur
+- [Serveur OpenCode](/opencode-server/) — comment OMPChamber trouve et gère le serveur
 - [Dépannage](/troubleshooting/) — autres problèmes courants

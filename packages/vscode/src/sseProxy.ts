@@ -45,7 +45,7 @@ const sleep = (ms: number, signal: AbortSignal) => new Promise<void>((resolve) =
 const getAbortReason = (signal: AbortSignal) => signal.reason ?? new DOMException('Aborted', 'AbortError');
 
 const normalizeSsePath = (path: string): { pathname: '/event' | '/global/event'; searchParams: URLSearchParams; directory: string | null } => {
-  const parsed = new URL(path, 'https://openchamber.invalid');
+  const parsed = new URL(path, 'https://ompchamber.invalid');
   const pathname = parsed.pathname === '/global/event' ? '/global/event' : '/event';
   const directory = parsed.searchParams.get('directory');
   return {

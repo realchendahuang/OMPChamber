@@ -246,7 +246,7 @@ function getConfigForPath(layers, targetPath) {
 function writeConfig(config, filePath = CONFIG_FILE) {
   try {
     if (fs.existsSync(filePath)) {
-      const backupFile = `${filePath}.openchamber.backup`;
+      const backupFile = `${filePath}.ompchamber.backup`;
       fs.copyFileSync(filePath, backupFile);
       console.log(`Created config backup: ${backupFile}`);
     }

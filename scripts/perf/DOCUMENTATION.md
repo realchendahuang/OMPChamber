@@ -1,7 +1,7 @@
 # Performance Measurement Tooling
 
 Owns the unattended performance capture commands and their shared Chrome
-DevTools Protocol plumbing. Read this before measuring OpenChamber performance
+DevTools Protocol plumbing. Read this before measuring OMPChamber performance
 or extending these scripts. The methodology rules they enforce come from
 `.agents/skills/performance-engineering/SKILL.md`.
 
@@ -57,7 +57,7 @@ what a surface keeps doing once the user has left it).
 ## profile:session
 
 Creates a session, opens it in a browser, dispatches a prompt through the
-supported `openchamber session` CLI, and records until the session reports
+supported `ompchamber session` CLI, and records until the session reports
 itself idle. No input is synthesised; the prompt is the only stimulus.
 
 Streaming is judged by responsiveness, not totals, so the report leads with the

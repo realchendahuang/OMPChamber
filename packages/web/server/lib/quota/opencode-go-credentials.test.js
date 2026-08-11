@@ -4,9 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { deleteOpenCodeGoCredential, getOpenCodeGoCredentialStatus, readOpenCodeGoCredential, writeOpenCodeGoCredential } from './opencode-go-credentials.js';
 
-const previousDataDir = process.env.OPENCHAMBER_DATA_DIR;
-const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-go-'));
-process.env.OPENCHAMBER_DATA_DIR = temporaryDirectory;
+const previousDataDir = process.env.OMPCHAMBER_DATA_DIR;
+const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-go-'));
+process.env.OMPCHAMBER_DATA_DIR = temporaryDirectory;
 
 afterEach(() => deleteOpenCodeGoCredential());
 
@@ -26,7 +26,7 @@ describe('OpenCode Go credential store', () => {
 });
 
 afterAll(() => {
-  if (previousDataDir === undefined) delete process.env.OPENCHAMBER_DATA_DIR;
-  else process.env.OPENCHAMBER_DATA_DIR = previousDataDir;
+  if (previousDataDir === undefined) delete process.env.OMPCHAMBER_DATA_DIR;
+  else process.env.OMPCHAMBER_DATA_DIR = previousDataDir;
   fs.rmSync(temporaryDirectory, { recursive: true, force: true });
 });

@@ -10,7 +10,7 @@
 // it can be imported from inside the Shiki Web Worker bundle without dragging in
 // main-thread-only modules.
 
-export const MARKDOWN_SHIKI_THEME = 'openchamber-md';
+export const MARKDOWN_SHIKI_THEME = 'ompchamber-md';
 
 // Loosely typed on purpose: consumers (`@pierre/diffs` registration and the raw
 // Shiki worker) each cast to their own theme type. The shape is a standard

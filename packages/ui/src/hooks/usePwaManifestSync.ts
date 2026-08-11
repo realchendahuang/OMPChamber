@@ -10,7 +10,7 @@ type RecentSessionShortcut = {
 };
 
 type ManifestSyncWindow = Window & {
-  __OPENCHAMBER_UPDATE_PWA_MANIFEST__?: () => void;
+  __OMPCHAMBER_UPDATE_PWA_MANIFEST__?: () => void;
 };
 
 const MAX_RECENT_SHORTCUTS = 3;
@@ -87,6 +87,6 @@ export const usePwaManifestSync = () => {
     }
 
     const win = window as ManifestSyncWindow;
-    win.__OPENCHAMBER_UPDATE_PWA_MANIFEST__?.();
+    win.__OMPCHAMBER_UPDATE_PWA_MANIFEST__?.();
   }, [hasRecentShortcuts, signature]);
 };

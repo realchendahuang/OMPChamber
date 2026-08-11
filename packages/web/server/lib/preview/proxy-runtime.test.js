@@ -433,10 +433,10 @@ describe('preview navigation policy', () => {
     expect(classifyPreviewNavigation({
       url: 'http://127.0.0.1:57123/support',
       currentUrl,
-      targetOrigin: 'https://openchamber.dev',
+      targetOrigin: 'https://ompchamber.dev',
     })).toEqual({
       action: 'proxy',
-      url: 'https://openchamber.dev/support',
+      url: 'https://ompchamber.dev/support',
     });
   });
 
@@ -457,8 +457,8 @@ describe('preview navigation policy', () => {
 
 describe('proxy target normalization (SSRF guard)', () => {
   it('allows ordinary external hosts when allowExternal is set', () => {
-    expect(normalizeProxyTargetUrl('https://docs.openchamber.dev/security/', { allowExternal: true }))
-      .toEqual({ ok: true, origin: 'https://docs.openchamber.dev' });
+    expect(normalizeProxyTargetUrl('https://docs.ompchamber.dev/security/', { allowExternal: true }))
+      .toEqual({ ok: true, origin: 'https://docs.ompchamber.dev' });
   });
 
   it('rejects non-loopback hosts without allowExternal', () => {

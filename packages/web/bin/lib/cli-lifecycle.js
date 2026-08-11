@@ -12,18 +12,18 @@ import {
   removePidFile,
   readInstanceOptions,
   removeInstanceFile,
-  getOpenchamberProcessState,
-  hasOpenchamberRuntimeInfo,
+  getOMPChamberProcessState,
+  hasOMPChamberRuntimeInfo,
 } from './cli-process.js';
 import { DEFAULT_TUNNEL_PROVIDER_CAPABILITIES } from './cli-tunnel-capabilities.js';
 
 function createLivePortInstance(port, info, host) {
-  if (!hasOpenchamberRuntimeInfo(info)) return null;
+  if (!hasOMPChamberRuntimeInfo(info)) return null;
   return {
     port,
     pid: Number.isFinite(info.pid) ? info.pid : null,
-    pidFilePath: path.join(getRunDir(), `openchamber-${port}.pid`),
-    instanceFilePath: path.join(getRunDir(), `openchamber-${port}.json`),
+    pidFilePath: path.join(getRunDir(), `ompchamber-${port}.pid`),
+    instanceFilePath: path.join(getRunDir(), `ompchamber-${port}.json`),
     mtime: 0,
     startedAt: 0,
     launchMode: 'daemon',
@@ -77,7 +77,7 @@ function getSystemInfoProbeHosts(...hosts) {
 async function fetchSystemInfoFromPortCandidates(port, fetchImpl, hosts, expectedPid) {
   for (const { host, requiresPidMatch } of hosts) {
     const info = await fetchSystemInfoFromPort(port, fetchImpl, host);
-    if (hasOpenchamberRuntimeInfo(info)) {
+    if (hasOMPChamberRuntimeInfo(info)) {
       if (requiresPidMatch && info.pid !== expectedPid) {
         continue;
       }
@@ -112,7 +112,7 @@ async function resolveDoctorPortStatuses(options = {}) {
         available: false,
         status: 'warning',
         line: `port ${requestedPort} not available (desktop runtime)`,
-        detail: 'Use a CLI instance port from `openchamber serve` for tunneling.',
+        detail: 'Use a CLI instance port from `ompchamber serve` for tunneling.',
       });
       return { statuses, availableEntries: [] };
     }
@@ -122,7 +122,7 @@ async function resolveDoctorPortStatuses(options = {}) {
       available: false,
       status: 'error',
       line: `port ${requestedPort} not available (no running instance)`,
-      detail: `Start one with \`openchamber serve --port ${requestedPort}\`.`,
+      detail: `Start one with \`ompchamber serve --port ${requestedPort}\`.`,
     });
     return { statuses, availableEntries: [] };
   }
@@ -143,7 +143,7 @@ async function resolveDoctorPortStatuses(options = {}) {
       available: false,
       status: 'warning',
       line: `port ${desktopEntry.port} not available (desktop runtime)`,
-      detail: 'Use a CLI instance port from `openchamber serve` for tunneling.',
+      detail: 'Use a CLI instance port from `ompchamber serve` for tunneling.',
     });
   }
 
@@ -153,7 +153,7 @@ async function resolveDoctorPortStatuses(options = {}) {
       available: false,
       status: 'warning',
       line: 'no CLI ports available for tunneling',
-      detail: 'Start one with `openchamber serve`.',
+      detail: 'Start one with `ompchamber serve`.',
     });
   }
 
@@ -164,24 +164,24 @@ async function discoverRunningInstances(options = {}) {
   const instances = [];
   const runDir = getRunDir();
   const fetchImpl = typeof options.fetchImpl === 'function' ? options.fetchImpl : globalThis.fetch;
-  const getProcessState = typeof options.getOpenchamberProcessState === 'function'
-    ? options.getOpenchamberProcessState
-    : (pid) => getOpenchamberProcessState(pid, options);
+  const getProcessState = typeof options.getOMPChamberProcessState === 'function'
+    ? options.getOMPChamberProcessState
+    : (pid) => getOMPChamberProcessState(pid, options);
   try {
     const files = fs.readdirSync(runDir);
-    const pidFiles = files.filter((file) => file.startsWith('openchamber-') && file.endsWith('.pid'));
+    const pidFiles = files.filter((file) => file.startsWith('ompchamber-') && file.endsWith('.pid'));
     for (const file of pidFiles) {
-      const port = parseInt(file.replace('openchamber-', '').replace('.pid', ''), 10);
+      const port = parseInt(file.replace('ompchamber-', '').replace('.pid', ''), 10);
       if (!Number.isFinite(port) || port <= 0) continue;
       const pidFilePath = path.join(runDir, file);
       const pid = readPidFile(pidFilePath);
       if (!pid) {
         removePidFile(pidFilePath);
-        removeInstanceFile(path.join(runDir, `openchamber-${port}.json`));
+        removeInstanceFile(path.join(runDir, `ompchamber-${port}.json`));
         continue;
       }
 
-      const instanceFilePath = path.join(runDir, `openchamber-${port}.json`);
+      const instanceFilePath = path.join(runDir, `ompchamber-${port}.json`);
       const storedOptions = readInstanceOptions(instanceFilePath);
       const processState = getProcessState(pid);
       if (processState === 'dead') {
@@ -191,8 +191,8 @@ async function discoverRunningInstances(options = {}) {
       }
 
       // A live PID-file is only the right instance if the recorded port also
-      // confirms OpenChamber. Cmdline identity alone can match a recycled PID
-      // from another OpenChamber process on a different port. Try all plausible
+      // confirms OMPChamber. Cmdline identity alone can match a recycled PID
+      // from another OMPChamber process on a different port. Try all plausible
       // hosts first; if matched/unknown identity still can't be confirmed, keep
       // the registry files but don't claim the instance is running.
       const { info: liveInfo, host: confirmedHost } = await fetchSystemInfoFromPortCandidates(
@@ -202,7 +202,7 @@ async function discoverRunningInstances(options = {}) {
         pid,
       );
       const livePid = Number.isFinite(liveInfo?.pid) ? liveInfo.pid : null;
-      if (!hasOpenchamberRuntimeInfo(liveInfo)) {
+      if (!hasOMPChamberRuntimeInfo(liveInfo)) {
         if (processState === 'mismatched') {
           removePidFile(pidFilePath);
           removeInstanceFile(instanceFilePath);
@@ -247,7 +247,7 @@ async function discoverRunningInstances(options = {}) {
   return instances;
 }
 
-async function discoverOpenChamberInstanceOnPort(port, options = {}) {
+async function discoverOMPChamberInstanceOnPort(port, options = {}) {
   if (!Number.isFinite(port) || port <= 0) return null;
   const runningInstances = Array.isArray(options.runningInstances)
     ? options.runningInstances
@@ -273,7 +273,7 @@ async function discoverLifecycleInstances(options = {}, deps = {}) {
   }
   const found = runningInstances.find((entry) => entry.port === options.port);
   if (found) return [found];
-  const liveInstance = await discoverOpenChamberInstanceOnPort(options.port, {
+  const liveInstance = await discoverOMPChamberInstanceOnPort(options.port, {
     ...deps,
     host: options.host,
     runningInstances,
@@ -290,7 +290,7 @@ async function discoverUnconfirmedRegistryInstanceOnPort(port, options = {}) {
 
   const instanceFilePath = await getInstanceFilePath(port);
   const storedOptions = readInstanceOptions(instanceFilePath);
-  const processState = getOpenchamberProcessState(pid);
+  const processState = getOMPChamberProcessState(pid);
   if (processState === 'dead') {
     removePidFile(pidFilePath);
     removeInstanceFile(instanceFilePath);
@@ -410,7 +410,7 @@ async function resolveTunnelProviders(options = {}, deps = {}) {
 export {
   resolveDoctorPortStatuses,
   discoverRunningInstances,
-  discoverOpenChamberInstanceOnPort,
+  discoverOMPChamberInstanceOnPort,
   discoverLifecycleInstances,
   discoverUnconfirmedRegistryInstanceOnPort,
   getLatestInstance,

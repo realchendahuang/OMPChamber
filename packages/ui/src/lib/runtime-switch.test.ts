@@ -96,17 +96,17 @@ describe('runtime endpoint switching', () => {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       })) as typeof fetch;
-      Object.defineProperty(runtimeWindow, '__OPENCHAMBER_API_BASE_URL__', {
+      Object.defineProperty(runtimeWindow, '__OMPCHAMBER_API_BASE_URL__', {
         configurable: true,
         value: 'http://127.0.0.1:3000',
         writable: false,
       });
-      Object.defineProperty(runtimeWindow, '__OPENCHAMBER_CLIENT_TOKEN__', {
+      Object.defineProperty(runtimeWindow, '__OMPCHAMBER_CLIENT_TOKEN__', {
         configurable: true,
         value: '',
         writable: false,
       });
-      Object.defineProperty(runtimeWindow, '__OPENCHAMBER_RUNTIME_HEADERS__', {
+      Object.defineProperty(runtimeWindow, '__OMPCHAMBER_RUNTIME_HEADERS__', {
         configurable: true,
         value: {},
         writable: false,

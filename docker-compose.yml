@@ -1,33 +1,33 @@
 services:
-  openchamber:
+  ompchamber:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: openchamber
+    container_name: ompchamber
     ports:
       - "3000:3000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./data/openchamber:/home/openchamber/.config/openchamber
-      - ./data/opencode/share:/home/openchamber/.local/share/opencode
-      - ./data/opencode/state:/home/openchamber/.local/state/opencode
-      - ./data/opencode/config:/home/openchamber/.config/opencode
-      - ./data/ssh:/home/openchamber/.ssh
-      - ./workspaces:/home/openchamber/workspaces
+      - ./data/ompchamber:/home/ompchamber/.config/ompchamber
+      - ./data/opencode/share:/home/ompchamber/.local/share/opencode
+      - ./data/opencode/state:/home/ompchamber/.local/state/opencode
+      - ./data/opencode/config:/home/ompchamber/.config/opencode
+      - ./data/ssh:/home/ompchamber/.ssh
+      - ./workspaces:/home/ompchamber/workspaces
     environment:
-      # Docker binds OpenChamber to 0.0.0.0 for port mapping, so UI auth is required.
+      # Docker binds OMPChamber to 0.0.0.0 for port mapping, so UI auth is required.
       # Set this before starting, for example:
-      #   OPENCHAMBER_UI_PASSWORD="$(openssl rand -base64 24)" docker compose up -d
-      OPENCHAMBER_UI_PASSWORD: ${OPENCHAMBER_UI_PASSWORD:?Set OPENCHAMBER_UI_PASSWORD before exposing OpenChamber through Docker}
-    # OPENCHAMBER_HOST: 0.0.0.0  # Bind address (default in Docker entrypoint: 0.0.0.0)
-    # OPENCHAMBER_TUNNEL_PROVIDER: cloudflare
-    # OPENCHAMBER_TUNNEL_MODE: quick  # quick | managed-remote | managed-local
-    # OPENCHAMBER_TUNNEL_HOSTNAME: app.example.com  # required for managed-remote
-    # OPENCHAMBER_TUNNEL_TOKEN: your_cloudflare_token  # required for managed-remote
-    # OPENCHAMBER_TUNNEL_CONFIG: /home/openchamber/.cloudflared/config.yml  # optional for managed-local
+      #   OMPCHAMBER_UI_PASSWORD="$(openssl rand -base64 24)" docker compose up -d
+      OMPCHAMBER_UI_PASSWORD: ${OMPCHAMBER_UI_PASSWORD:?Set OMPCHAMBER_UI_PASSWORD before exposing OMPChamber through Docker}
+    # OMPCHAMBER_HOST: 0.0.0.0  # Bind address (default in Docker entrypoint: 0.0.0.0)
+    # OMPCHAMBER_TUNNEL_PROVIDER: cloudflare
+    # OMPCHAMBER_TUNNEL_MODE: quick  # quick | managed-remote | managed-local
+    # OMPCHAMBER_TUNNEL_HOSTNAME: app.example.com  # required for managed-remote
+    # OMPCHAMBER_TUNNEL_TOKEN: your_cloudflare_token  # required for managed-remote
+    # OMPCHAMBER_TUNNEL_CONFIG: /home/ompchamber/.cloudflared/config.yml  # optional for managed-local
     # OH_MY_OPENCODE: true # enable oh-my-opencode
     # OPENCODE_HOST: http://172.17.0.1:4096 # Connect to external OpenCode server
     # OPENCODE_SKIP_START: true # skip start opencode
-    # OPENCHAMBER_OPENCODE_HOSTNAME: 0.0.0.0 # Bind OpenCode to all interfaces
+    # OMPCHAMBER_OPENCODE_HOSTNAME: 0.0.0.0 # Bind OpenCode to all interfaces
     restart: unless-stopped

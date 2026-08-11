@@ -279,7 +279,7 @@ export const useInlineCommentDraftStore = create<InlineCommentDraftStore>()(
         },
       }),
       {
-        name: 'openchamber-inline-comment-drafts',
+        name: 'ompchamber-inline-comment-drafts',
         storage: createDeferredSafeJSONStorage(),
         version: 2,
         partialize: (state) => ({ drafts: state.drafts, touchedAt: state.touchedAt }),

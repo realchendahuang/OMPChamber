@@ -14,18 +14,18 @@ afterEach(async () => {
 
 describe('managed system prompt runtime', () => {
   it.each(['build', 'plan'])('materializes the optimizer for the %s agent and preserves existing plugins', async (agent) => {
-    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openchamber-system-prompt-'));
+    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-system-prompt-'));
     temporaryDirectories.push(dataDir);
     const runtime = createSystemPromptRuntime({ fsPromises: fs, path, dataDir });
 
     const prepared = await runtime.prepareManagedOpenCodeEnv('{ "plugin": ["file:///existing.js"], "model": "test/model" }');
     const config = JSON.parse(prepared.OPENCODE_CONFIG_CONTENT);
-    const pluginPath = path.join(dataDir, 'system-prompt', 'openchamber-system-prompt-plugin.js');
+    const pluginPath = path.join(dataDir, 'system-prompt', 'ompchamber-system-prompt-plugin.js');
 
     expect(config.model).toBe('test/model');
     expect(config.plugin).toEqual(['file:///existing.js', pathToFileURL(pluginPath).href]);
     const pluginModule = await import(`${pathToFileURL(pluginPath).href}?test=${Date.now()}`);
-    const hooks = await pluginModule.OpenChamberSystemPromptPlugin();
+    const hooks = await pluginModule.OMPChamberSystemPromptPlugin();
     const output = {
       system: ['Behavioral prompt\nYou are powered by the model named GPT.\n<env>kept</env>'],
     };
@@ -40,13 +40,13 @@ describe('managed system prompt runtime', () => {
   });
 
   it('leaves an unknown prompt format unchanged', async () => {
-    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openchamber-system-prompt-'));
+    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-system-prompt-'));
     temporaryDirectories.push(dataDir);
     const runtime = createSystemPromptRuntime({ fsPromises: fs, path, dataDir });
     await runtime.prepareManagedOpenCodeEnv('{}');
-    const pluginPath = path.join(dataDir, 'system-prompt', 'openchamber-system-prompt-plugin.js');
+    const pluginPath = path.join(dataDir, 'system-prompt', 'ompchamber-system-prompt-plugin.js');
     const pluginModule = await import(`${pathToFileURL(pluginPath).href}?test=${Date.now()}`);
-    const hooks = await pluginModule.OpenChamberSystemPromptPlugin();
+    const hooks = await pluginModule.OMPChamberSystemPromptPlugin();
     const output = { system: ['Unrecognized prompt'] };
     await hooks['chat.message']({ sessionID: 'session-1', agent: 'plan' });
     await hooks['experimental.chat.system.transform']({ sessionID: 'session-1' }, output);
@@ -54,13 +54,13 @@ describe('managed system prompt runtime', () => {
   });
 
   it('does not transform prompts for other agents', async () => {
-    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'openchamber-system-prompt-'));
+    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-system-prompt-'));
     temporaryDirectories.push(dataDir);
     const runtime = createSystemPromptRuntime({ fsPromises: fs, path, dataDir });
     await runtime.prepareManagedOpenCodeEnv('{}');
-    const pluginPath = path.join(dataDir, 'system-prompt', 'openchamber-system-prompt-plugin.js');
+    const pluginPath = path.join(dataDir, 'system-prompt', 'ompchamber-system-prompt-plugin.js');
     const pluginModule = await import(`${pathToFileURL(pluginPath).href}?test=${Date.now()}`);
-    const hooks = await pluginModule.OpenChamberSystemPromptPlugin();
+    const hooks = await pluginModule.OMPChamberSystemPromptPlugin();
     const output = {
       system: ['Custom agent prompt\nYou are powered by the model named GPT.\n<env>kept</env>'],
     };

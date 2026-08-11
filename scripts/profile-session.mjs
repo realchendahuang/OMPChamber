@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Fully automated streaming capture for OpenChamber.
+ * Fully automated streaming capture for OMPChamber.
  *
  * Where `profile:idle` measures what the app does when nothing happens, this
  * command measures the opposite: what it costs to receive and render a live
  * assistant response. It creates a session, opens it in a real browser, sends a
- * prompt through the supported `openchamber session` CLI, and records until the
+ * prompt through the supported `ompchamber session` CLI, and records until the
  * session reports itself idle again.
  *
  * The streaming path is judged by responsiveness rather than by totals: a
@@ -41,11 +41,11 @@ const DEFAULT_PROMPT = "Write a technical explanation of how a bytecode virtual 
 
 const HELP = `Usage: bun run profile:session -- [options]
 
-Records what OpenChamber costs while an assistant response streams in.
+Records what OMPChamber costs while an assistant response streams in.
 
 Options:
-  --url <url>              OpenChamber URL (default: http://localhost:3000)
-  --port <port>            OpenChamber CLI port (default: from --url)
+  --url <url>              OMPChamber URL (default: http://localhost:3000)
+  --port <port>            OMPChamber CLI port (default: from --url)
   --dir <path>             Session directory (default: repository root)
   --session <id>           Reuse this session instead of creating one
   --expand-projects        Expand every project in the sidebar before recording
@@ -94,7 +94,7 @@ const parseArgs = (argv) => {
     output: null,
     label: null,
     chrome: null,
-    profileDir: join(homedir(), ".openchamber", "browser-profile-google-chrome"),
+    profileDir: join(homedir(), ".ompchamber", "browser-profile-google-chrome"),
     headless: true,
     samplingInterval: 200,
     baseline: null,
@@ -139,7 +139,7 @@ const parseArgs = (argv) => {
 }
 
 /**
- * Runs an `openchamber session` subcommand and returns its parsed JSON.
+ * Runs an `ompchamber session` subcommand and returns its parsed JSON.
  * The CLI is the supported automation entry point, so the harness drives the
  * same path a scripted user would rather than reaching into internal APIs.
  */
@@ -384,8 +384,8 @@ const main = async () => {
     // The application's own stream counters are opt-in; enabling them before
     // the recorded reload keeps their timeline aligned with the capture.
     await evaluateValue(client, `
-      localStorage.setItem("openchamber_sync_perf", "1")
-      localStorage.setItem("openchamber_stream_perf", "1")
+      localStorage.setItem("ompchamber_sync_perf", "1")
+      localStorage.setItem("ompchamber_stream_perf", "1")
     `)
     if (options.expandProjects) {
       await expandProjects(client)
@@ -405,9 +405,9 @@ const main = async () => {
     }
 
     await evaluateValue(client, `globalThis[${JSON.stringify(IDLE_PROBE_GLOBAL)}]?.start()`)
-    await evaluateValue(client, `window.__openchamberSyncPerformance?.reset()`)
-    await evaluateValue(client, `window.__openchamberStreamPerformance?.setEnabled(true)`)
-    await evaluateValue(client, `window.__openchamberStreamPerformance?.reset()`)
+    await evaluateValue(client, `window.__ompchamberSyncPerformance?.reset()`)
+    await evaluateValue(client, `window.__ompchamberStreamPerformance?.setEnabled(true)`)
+    await evaluateValue(client, `window.__ompchamberStreamPerformance?.reset()`)
     await client.send("Profiler.setSamplingInterval", { interval: options.samplingInterval })
     await client.send("Profiler.start")
     await client.send("Tracing.start", {
@@ -510,8 +510,8 @@ const main = async () => {
 
     await evaluateValue(client, `globalThis[${JSON.stringify(IDLE_PROBE_GLOBAL)}]?.stop()`)
     const probe = await evaluateValue(client, `globalThis[${JSON.stringify(IDLE_PROBE_GLOBAL)}]?.snapshot() ?? null`)
-    const streamPerformance = await evaluateValue(client, `window.__openchamberStreamPerformance?.getSnapshot() ?? null`)
-    const syncCounters = await evaluateValue(client, `window.__openchamberSyncPerformance?.getSnapshot() ?? null`)
+    const streamPerformance = await evaluateValue(client, `window.__ompchamberStreamPerformance?.getSnapshot() ?? null`)
+    const syncCounters = await evaluateValue(client, `window.__ompchamberSyncPerformance?.getSnapshot() ?? null`)
     const dispatchResult = await dispatch.catch(() => null)
 
     // Both signals must agree: new message elements in the DOM and the

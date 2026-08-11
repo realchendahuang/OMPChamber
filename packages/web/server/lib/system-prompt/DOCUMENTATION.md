@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This module injects an opt-in OpenCode plugin only when OpenChamber launches
+This module injects an opt-in OpenCode plugin only when OMPChamber launches
 and owns the OpenCode process and `optimizeSystemPrompt` is enabled. The plugin
 replaces OpenCode's built-in behavioral/provider prompt with a short identity
 while preserving the environment, project instructions, MCP instructions,
@@ -10,10 +10,10 @@ skills, conversation history, and separately supplied tools.
 
 ## Runtime flow
 
-1. Settings persist `optimizeSystemPrompt` in OpenChamber's `settings.json`.
+1. Settings persist `optimizeSystemPrompt` in OMPChamber's `settings.json`.
 2. The setting is applied when managed OpenCode restarts.
 3. The runtime materializes the plugin under
-   `<openchamber-data-dir>/system-prompt/` and appends its `file://` URL to
+   `<ompchamber-data-dir>/system-prompt/` and appends its `file://` URL to
    `OPENCODE_CONFIG_CONTENT` without replacing existing plugin entries.
 4. The plugin tracks the selected agent through `chat.message`. The transform
    runs only for sessions using the built-in `build` or `plan` agent.

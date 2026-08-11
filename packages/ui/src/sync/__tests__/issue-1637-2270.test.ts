@@ -8,7 +8,7 @@ import { resolveProjectForSessionDirectory } from "@/lib/projectResolution"
 const setCurrentSessionCalls: Array<{ id: string | null; directoryHint: string | null | undefined }> = []
 const registerSessionDirectoryCalls: Array<{ sessionID: string; directory: string }> = []
 const upsertSessionCalls: Session[] = []
-const markSessionAsOpenChamberCreatedCalls: string[] = []
+const markSessionAsOMPChamberCreatedCalls: string[] = []
 
 // Configurable opencodeClient.createSession — set per test
 let nextCreateSessionResponse: Session = { id: "ses_default", time: { created: 1 } } as Session
@@ -34,8 +34,8 @@ mock.module("../session-ui-store", () => ({
       setCurrentSession: (id: string | null, directoryHint?: string | null) => {
         setCurrentSessionCalls.push({ id, directoryHint })
       },
-      markSessionAsOpenChamberCreated: (sessionId: string) => {
-        markSessionAsOpenChamberCreatedCalls.push(sessionId)
+      markSessionAsOMPChamberCreated: (sessionId: string) => {
+        markSessionAsOMPChamberCreatedCalls.push(sessionId)
       },
     }),
   },
@@ -85,7 +85,7 @@ beforeEach(() => {
   setCurrentSessionCalls.length = 0
   registerSessionDirectoryCalls.length = 0
   upsertSessionCalls.length = 0
-  markSessionAsOpenChamberCreatedCalls.length = 0
+  markSessionAsOMPChamberCreatedCalls.length = 0
   nextCreateSessionCalls = []
   nextCreateSessionResponse = { id: "ses_default", time: { created: 1 } } as Session
   currentDirectory = null

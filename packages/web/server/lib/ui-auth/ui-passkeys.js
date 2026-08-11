@@ -11,13 +11,13 @@ import {
 
 const DEFAULT_STORE_VERSION = 1;
 const DEFAULT_CHALLENGE_TTL_MS = 5 * 60 * 1000;
-const DEFAULT_RP_NAME = 'OpenChamber';
+const DEFAULT_RP_NAME = 'OMPChamber';
 
-const OPENCHAMBER_DATA_DIR = process.env.OPENCHAMBER_DATA_DIR
-  ? path.resolve(process.env.OPENCHAMBER_DATA_DIR)
-  : path.join(os.homedir(), '.config', 'openchamber');
+const OMPCHAMBER_DATA_DIR = process.env.OMPCHAMBER_DATA_DIR
+  ? path.resolve(process.env.OMPCHAMBER_DATA_DIR)
+  : path.join(os.homedir(), '.config', 'ompchamber');
 
-const PASSKEY_STORE_FILE = path.join(OPENCHAMBER_DATA_DIR, 'ui-passkeys.json');
+const PASSKEY_STORE_FILE = path.join(OMPCHAMBER_DATA_DIR, 'ui-passkeys.json');
 
 const createUserId = () => crypto.randomBytes(32).toString('base64url');
 
@@ -330,8 +330,8 @@ export const createUiPasskeys = ({
       rpName,
       rpID,
       userID,
-      userName: 'openchamber-ui',
-      userDisplayName: 'OpenChamber UI',
+      userName: 'ompchamber-ui',
+      userDisplayName: 'OMPChamber UI',
       attestationType: 'none',
       excludeCredentials: getPasskeysForRpId(store, rpID).map((passkey) => ({
         id: passkey.id,
@@ -471,7 +471,7 @@ export const createUiPasskeys = ({
     const passkey = store.passkeys.find((item) => item.id === response?.id);
 
     if (!passkey) {
-      const error = new Error('That passkey is not registered for this OpenChamber instance');
+      const error = new Error('That passkey is not registered for this OMPChamber instance');
       error.statusCode = 404;
       throw error;
     }

@@ -1,4 +1,4 @@
-// Per-machine relay-host claim. Every OpenChamber instance on a machine shares
+// Per-machine relay-host claim. Every OMPChamber instance on a machine shares
 // the same data dir and therefore the same relay signing key / serverId, so if
 // two processes run a relay host at once they fight over the single host slot
 // at the relay worker (each new connection closes the previous one with

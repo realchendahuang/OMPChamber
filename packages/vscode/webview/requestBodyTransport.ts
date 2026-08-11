@@ -31,7 +31,7 @@ const readBodyBytes = async (body: BodyInit): Promise<Uint8Array> => {
   }
 
   if (body instanceof FormData) {
-    return new Uint8Array(await new Request('https://openchamber.local/body', { method: 'POST', body }).arrayBuffer());
+    return new Uint8Array(await new Request('https://ompchamber.local/body', { method: 'POST', body }).arrayBuffer());
   }
 
   throw new Error('Unsupported request body type');

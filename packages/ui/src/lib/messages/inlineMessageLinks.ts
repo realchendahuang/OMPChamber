@@ -1,5 +1,5 @@
-const SKILL_LINK_PREFIX = '#openchamber-skill:';
-const AGENT_LINK_PREFIX = '#openchamber-agent:';
+const SKILL_LINK_PREFIX = '#ompchamber-skill:';
+const AGENT_LINK_PREFIX = '#ompchamber-agent:';
 
 export const buildAgentMentionUrl = (name: string): string => {
     const encoded = encodeURIComponent(name);

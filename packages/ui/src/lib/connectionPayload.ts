@@ -193,7 +193,7 @@ export const encodePairingConnectionPayload = (payload: PairingConnectionPayload
   const params = new URLSearchParams();
   params.set('v', '2');
   params.set('p', base64UrlEncode(JSON.stringify(normalized)));
-  return `openchamber://connect?${params.toString()}`;
+  return `ompchamber://connect?${params.toString()}`;
 };
 
 export const parsePairingConnectionPayload = (value: string): PairingConnectionPayload | null => {
@@ -201,7 +201,7 @@ export const parsePairingConnectionPayload = (value: string): PairingConnectionP
   if (!trimmed || trimmed.length > MAX_PAIRING_PAYLOAD_LENGTH) return null;
   try {
     const url = new URL(trimmed);
-    if (url.protocol !== 'openchamber:' || url.hostname !== 'connect') return null;
+    if (url.protocol !== 'ompchamber:' || url.hostname !== 'connect') return null;
     if (url.searchParams.get('v') !== '2') return null;
     const encoded = url.searchParams.get('p') || '';
     if (!encoded || encoded.length > MAX_PAIRING_PAYLOAD_LENGTH) return null;
@@ -214,7 +214,7 @@ export const parsePairingConnectionPayload = (value: string): PairingConnectionP
 };
 
 // URL-string-only sibling of parsePairingConnectionPayload. Old Android WebViews
-// (e.g. WebView 114) mis-parse non-special schemes: `new URL('openchamber://connect?...')`
+// (e.g. WebView 114) mis-parse non-special schemes: `new URL('ompchamber://connect?...')`
 // yields hostname "" and pathname "//connect", so the URL-based parser above rejects a
 // perfectly valid pairing link. This parser never touches the URL/URLSearchParams APIs —
 // it matches the head with a regex and reads `v`/`p` straight off the query string.
@@ -224,7 +224,7 @@ export const parsePairingConnectionPayloadString = (value: string): PairingConne
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > MAX_PAIRING_PAYLOAD_LENGTH) return null;
   const question = trimmed.indexOf('?');
-  if (question === -1 || !/^openchamber:\/\/connect\/?$/i.test(trimmed.slice(0, question))) return null;
+  if (question === -1 || !/^ompchamber:\/\/connect\/?$/i.test(trimmed.slice(0, question))) return null;
   let version: string | null = null;
   let encoded: string | null = null;
   for (const part of trimmed.slice(question + 1).split('&')) {

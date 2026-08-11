@@ -22,7 +22,7 @@ if (!fs.existsSync(sourceIconPath)) {
   throw new Error(`Missing Icon Composer source at ${sourceIconPath}`);
 }
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-app-icon-'));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-app-icon-'));
 try {
   execFileSync(resolveActool(), [
     sourceIconPath,

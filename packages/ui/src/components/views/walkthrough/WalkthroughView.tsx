@@ -47,7 +47,7 @@ const SCOPES: WalkthroughWorkingTreeScope[] = ['all', 'staged', 'working'];
 // the panel: the first question users asked about it was whether its marks were
 // review findings. The guide answers that, so it is reachable from the surface
 // itself rather than only from the release announcement.
-const WALKTHROUGH_GUIDE_URL = 'https://docs.openchamber.dev/walkthrough/';
+const WALKTHROUGH_GUIDE_URL = 'https://docs.ompchamber.dev/walkthrough/';
 
 // DropdownMenuLabel defaults to the same size and weight as its items, which
 // makes a heading read as another choice. This matches SelectLabel, the

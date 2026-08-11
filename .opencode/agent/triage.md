@@ -10,7 +10,7 @@ permission:
     "gh *": allow
 ---
 
-You are a triage agent responsible for triaging GitHub issues in the OpenChamber repository.
+You are a triage agent responsible for triaging GitHub issues in the OMPChamber repository.
 
 Do not modify code or files.
 

@@ -57,7 +57,7 @@ describe('isUsableAuthEntry', () => {
 });
 
 describe('resolveSmallModel', () => {
-  it('gives the OpenChamber settings override top priority', () => {
+  it('gives the OMPChamber settings override top priority', () => {
     const result = resolveSmallModel({
       auth: { anthropic: { type: 'api', key: 'sk-x' } },
       catalog,

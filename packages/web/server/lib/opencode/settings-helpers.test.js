@@ -321,24 +321,24 @@ describe('settings helpers', () => {
 
   it('includes transient desktop LAN access runtime status in desktop settings response', () => {
     const helpers = createTestHelpers();
-    const previousRuntime = process.env.OPENCHAMBER_RUNTIME;
-    const previousActive = process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE;
-    const previousReason = process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON;
+    const previousRuntime = process.env.OMPCHAMBER_RUNTIME;
+    const previousActive = process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE;
+    const previousReason = process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON;
     try {
-      process.env.OPENCHAMBER_RUNTIME = 'desktop';
-      process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE = 'false';
-      process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON = 'missing-password';
+      process.env.OMPCHAMBER_RUNTIME = 'desktop';
+      process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE = 'false';
+      process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON = 'missing-password';
 
       const response = helpers.formatSettingsResponse({ desktopLanAccessEnabled: true });
       expect(response.desktopLanAccessActive).toBe(false);
       expect(response.desktopLanAccessBlockedReason).toBe('missing-password');
     } finally {
-      if (typeof previousRuntime === 'string') process.env.OPENCHAMBER_RUNTIME = previousRuntime;
-      else delete process.env.OPENCHAMBER_RUNTIME;
-      if (typeof previousActive === 'string') process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE = previousActive;
-      else delete process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE;
-      if (typeof previousReason === 'string') process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON = previousReason;
-      else delete process.env.OPENCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON;
+      if (typeof previousRuntime === 'string') process.env.OMPCHAMBER_RUNTIME = previousRuntime;
+      else delete process.env.OMPCHAMBER_RUNTIME;
+      if (typeof previousActive === 'string') process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE = previousActive;
+      else delete process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_ACTIVE;
+      if (typeof previousReason === 'string') process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON = previousReason;
+      else delete process.env.OMPCHAMBER_DESKTOP_LAN_ACCESS_BLOCKED_REASON;
     }
   });
 

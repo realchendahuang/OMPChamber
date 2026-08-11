@@ -55,19 +55,19 @@ describe('resolveOpenCodeEnvConfig hostname', () => {
     expect(resolveOpenCodeEnvConfig({ env: {} }).configuredOpenCodeHostname).toBe('127.0.0.1');
   });
 
-  it('reads OPENCHAMBER_OPENCODE_HOSTNAME', () => {
-    const result = resolveOpenCodeEnvConfig({ env: { OPENCHAMBER_OPENCODE_HOSTNAME: '0.0.0.0' } });
+  it('reads OMPCHAMBER_OPENCODE_HOSTNAME', () => {
+    const result = resolveOpenCodeEnvConfig({ env: { OMPCHAMBER_OPENCODE_HOSTNAME: '0.0.0.0' } });
     expect(result.configuredOpenCodeHostname).toBe('0.0.0.0');
   });
 
   it('trims surrounding whitespace', () => {
-    const result = resolveOpenCodeEnvConfig({ env: { OPENCHAMBER_OPENCODE_HOSTNAME: '  tailscale-host  ' } });
+    const result = resolveOpenCodeEnvConfig({ env: { OMPCHAMBER_OPENCODE_HOSTNAME: '  tailscale-host  ' } });
     expect(result.configuredOpenCodeHostname).toBe('tailscale-host');
   });
 
   it('warns and falls back for an empty value', () => {
     const logger = { warn: vi.fn(), error: vi.fn() };
-    const result = resolveOpenCodeEnvConfig({ env: { OPENCHAMBER_OPENCODE_HOSTNAME: '   ' }, logger });
+    const result = resolveOpenCodeEnvConfig({ env: { OMPCHAMBER_OPENCODE_HOSTNAME: '   ' }, logger });
     expect(result.configuredOpenCodeHostname).toBe('127.0.0.1');
     expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('empty after trimming'));
     expect(logger.error).not.toHaveBeenCalled();
@@ -76,19 +76,19 @@ describe('resolveOpenCodeEnvConfig hostname', () => {
   it('rejects invalid values with a clear error and falls back to loopback', () => {
     const logger = { warn: vi.fn(), error: vi.fn() };
     const result = resolveOpenCodeEnvConfig({
-      env: { OPENCHAMBER_OPENCODE_HOSTNAME: 'http://nope:4096' },
+      env: { OMPCHAMBER_OPENCODE_HOSTNAME: 'http://nope:4096' },
       logger,
     });
     expect(result.configuredOpenCodeHostname).toBe('127.0.0.1');
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('Rejecting OPENCHAMBER_OPENCODE_HOSTNAME'),
+      expect.stringContaining('Rejecting OMPCHAMBER_OPENCODE_HOSTNAME'),
     );
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('127.0.0.1'));
   });
 
   it('keeps other env config intact when the hostname is validated', () => {
     const result = resolveOpenCodeEnvConfig({
-      env: { OPENCHAMBER_OPENCODE_HOSTNAME: '0.0.0.0', OPENCODE_PORT: '4096' },
+      env: { OMPCHAMBER_OPENCODE_HOSTNAME: '0.0.0.0', OPENCODE_PORT: '4096' },
     });
     expect(result.configuredOpenCodeHostname).toBe('0.0.0.0');
     expect(result.configuredOpenCodePort).toBe(4096);

@@ -1,17 +1,17 @@
 ---
 title: Tunnels
-description: Expose OpenChamber safely for remote and mobile access.
+description: Expose OMPChamber safely for remote and mobile access.
 ---
 
 # Tunnels
 
-A tunnel is a public link to your OpenChamber, so you can reach it from an ordinary browser on another network. Use `openchamber tunnel` to create one for a running instance.
+A tunnel is a public link to your OMPChamber, so you can reach it from an ordinary browser on another network. Use `ompchamber tunnel` to create one for a running instance.
 
 > Connecting your **own devices** (the mobile app, another desktop) usually doesn't need a tunnel — [pair them](/connect-devices/) instead and let the end-to-end encrypted [Private Relay](/private-relay/) handle away-from-home access with zero setup.
 
 ## Prerequisites
 
-OpenChamber starts the tunnel provider CLI on your machine. Install the provider you want to use first:
+OMPChamber starts the tunnel provider CLI on your machine. Install the provider you want to use first:
 
 ```bash
 brew install cloudflared
@@ -26,35 +26,35 @@ ngrok config add-authtoken <your-ngrok-token>
 
 ## Quick start
 
-1. Start OpenChamber:
+1. Start OMPChamber:
 
 ```bash
-openchamber
+ompchamber
 ```
 
-If you skip this step, `openchamber tunnel start` can auto-start a CLI server. When auto-starting, you can pass server options such as `--port`, `--host`, `--lan`, `--ui-password`, and `--api-only`.
+If you skip this step, `ompchamber tunnel start` can auto-start a CLI server. When auto-starting, you can pass server options such as `--port`, `--host`, `--lan`, `--ui-password`, and `--api-only`.
 
 2. Start a Cloudflare tunnel:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode quick
+ompchamber tunnel start --provider cloudflare --mode quick
 ```
 
 Or start an Ngrok tunnel:
 
 ```bash
-openchamber tunnel start --provider ngrok --mode quick
+ompchamber tunnel start --provider ngrok --mode quick
 ```
 
 3. Check status:
 
 ```bash
-openchamber tunnel status
+ompchamber tunnel status
 ```
 
-When the tunnel is up, `status` shows a public URL. Open it, or scan the QR code, to reach OpenChamber from anywhere.
+When the tunnel is up, `status` shows a public URL. Open it, or scan the QR code, to reach OMPChamber from anywhere.
 
-By default, OpenChamber prints a QR code in interactive TTY sessions. Use `--qr` to force QR output, or `--no-qr` to disable it.
+By default, OMPChamber prints a QR code in interactive TTY sessions. Use `--qr` to force QR output, or `--no-qr` to disable it.
 
 ## Providers
 
@@ -68,7 +68,7 @@ By default, OpenChamber prints a QR code in interactive TTY sessions. Use `--qr`
 Use a token + hostname managed by Cloudflare:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode managed-remote --token-file ~/.secrets/cf-token --hostname app.example.com
+ompchamber tunnel start --provider cloudflare --mode managed-remote --token-file ~/.secrets/cf-token --hostname app.example.com
 ```
 
 ### Managed local
@@ -76,7 +76,7 @@ openchamber tunnel start --provider cloudflare --mode managed-remote --token-fil
 Use a local `cloudflared` config:
 
 ```bash
-openchamber tunnel start --provider cloudflare --mode managed-local --config ~/.cloudflared/config.yml
+ompchamber tunnel start --provider cloudflare --mode managed-local --config ~/.cloudflared/config.yml
 ```
 
 ## Profiles (managed-remote)
@@ -84,29 +84,29 @@ openchamber tunnel start --provider cloudflare --mode managed-local --config ~/.
 Save a reusable profile:
 
 ```bash
-openchamber tunnel profile add --provider cloudflare --mode managed-remote --name prod-main --hostname app.example.com --token-file ~/.secrets/cf-token
+ompchamber tunnel profile add --provider cloudflare --mode managed-remote --name prod-main --hostname app.example.com --token-file ~/.secrets/cf-token
 ```
 
 Start using the saved profile:
 
 ```bash
-openchamber tunnel start --profile prod-main
+ompchamber tunnel start --profile prod-main
 ```
 
 ## Useful commands
 
 ```bash
-openchamber tunnel providers
-openchamber tunnel ready --provider cloudflare
-openchamber tunnel ready --provider ngrok
-openchamber tunnel doctor --provider cloudflare
-openchamber tunnel doctor --provider ngrok
-openchamber tunnel stop --port 3000
+ompchamber tunnel providers
+ompchamber tunnel ready --provider cloudflare
+ompchamber tunnel ready --provider ngrok
+ompchamber tunnel doctor --provider cloudflare
+ompchamber tunnel doctor --provider ngrok
+ompchamber tunnel stop --port 3000
 ```
 
 ## Behavior notes
 
-- one active tunnel per OpenChamber instance (port)
+- one active tunnel per OMPChamber instance (port)
 - starting a new mode/provider on same instance replaces previous tunnel
 - generating a new connect link revokes previous unused one
 - tunnel auto-start preserves server flags like `--ui-password` and `--api-only` in the instance settings used by restart/update flows
@@ -116,5 +116,5 @@ openchamber tunnel stop --port 3000
 - [Connect a Device](/connect-devices/) — pair your own devices without a public URL
 - [Security](/security/) — protect the UI before exposing it
 - [Desktop Tunnels](/desktop-tunnels/) — desktop app tunnel setup without CLI startup
-- [PWA & Mobile](/mobile/) — reach OpenChamber from your phone
+- [PWA & Mobile](/mobile/) — reach OMPChamber from your phone
 - [Troubleshooting](/troubleshooting/) — if the tunnel link doesn't work

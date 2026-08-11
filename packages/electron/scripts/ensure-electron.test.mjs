@@ -157,8 +157,8 @@ test('main returns 0 for a healthy install without attempting repair', async (t)
   const dir = withFixture(t, { complete: true, installScripts: { 'install.js': FAIL_SCRIPT } });
   const env = {
     ...process.env,
-    OPENCHAMBER_ELECTRON_PKG_DIR: dir,
-    OPENCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install.js"]]]',
+    OMPCHAMBER_ELECTRON_PKG_DIR: dir,
+    OMPCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install.js"]]]',
   };
   assert.equal(await main([], env), 0);
   // The failing install script never ran: dist was not rewritten.
@@ -169,8 +169,8 @@ test('main repairs an incomplete install via the injected command', async (t) =>
   const dir = withFixture(t, { installScripts: { 'install.js': installScriptContent() } });
   const env = {
     ...process.env,
-    OPENCHAMBER_ELECTRON_PKG_DIR: dir,
-    OPENCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install.js"]]]',
+    OMPCHAMBER_ELECTRON_PKG_DIR: dir,
+    OMPCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install.js"]]]',
   };
   assert.equal(await main([], env), 0);
   assert.equal(isComplete(dir), true);
@@ -185,8 +185,8 @@ test('main falls back from a failing first command to a succeeding second', asyn
   });
   const env = {
     ...process.env,
-    OPENCHAMBER_ELECTRON_PKG_DIR: dir,
-    OPENCHAMBER_ELECTRON_INSTALL_COMMANDS:
+    OMPCHAMBER_ELECTRON_PKG_DIR: dir,
+    OMPCHAMBER_ELECTRON_INSTALL_COMMANDS:
       '[["bun",["install-fail.js"]],["node",["install-ok.js"]]]',
   };
   assert.equal(await main([], env), 0);
@@ -202,8 +202,8 @@ test('main returns 1 when every repair command fails', async (t) => {
   });
   const env = {
     ...process.env,
-    OPENCHAMBER_ELECTRON_PKG_DIR: dir,
-    OPENCHAMBER_ELECTRON_INSTALL_COMMANDS:
+    OMPCHAMBER_ELECTRON_PKG_DIR: dir,
+    OMPCHAMBER_ELECTRON_INSTALL_COMMANDS:
       '[["node",["install-fail-1.js"]],["node",["install-fail-2.js"]]]',
   };
   assert.equal(await main([], env), 1);
@@ -213,8 +213,8 @@ test('main --best-effort returns 0 when repair is impossible', async (t) => {
   const dir = withFixture(t, { installScripts: { 'install-fail.js': FAIL_SCRIPT } });
   const env = {
     ...process.env,
-    OPENCHAMBER_ELECTRON_PKG_DIR: dir,
-    OPENCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install-fail.js"]]]',
+    OMPCHAMBER_ELECTRON_PKG_DIR: dir,
+    OMPCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install-fail.js"]]]',
   };
   assert.equal(await main(['--best-effort'], env), 0);
 });
@@ -223,8 +223,8 @@ test('main honors ELECTRON_SKIP_BINARY_DOWNLOAD and skips repair', async (t) => 
   const dir = withFixture(t, { installScripts: { 'install.js': installScriptContent() } });
   const env = {
     ...process.env,
-    OPENCHAMBER_ELECTRON_PKG_DIR: dir,
-    OPENCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install.js"]]]',
+    OMPCHAMBER_ELECTRON_PKG_DIR: dir,
+    OMPCHAMBER_ELECTRON_INSTALL_COMMANDS: '[["node",["install.js"]]]',
     ELECTRON_SKIP_BINARY_DOWNLOAD: '1',
   };
   assert.equal(await main([], env), 1);
@@ -237,7 +237,7 @@ test('main honors ELECTRON_SKIP_BINARY_DOWNLOAD and skips repair', async (t) => 
 test('main reports a missing electron package', async () => {
   const env = {
     ...process.env,
-    OPENCHAMBER_ELECTRON_PKG_DIR: path.join(os.tmpdir(), 'does-not-exist-electron-pkg'),
+    OMPCHAMBER_ELECTRON_PKG_DIR: path.join(os.tmpdir(), 'does-not-exist-electron-pkg'),
   };
   assert.equal(await main([], env), 1);
   assert.equal(await main(['--best-effort'], env), 0);

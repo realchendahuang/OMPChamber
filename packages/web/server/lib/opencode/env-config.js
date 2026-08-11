@@ -28,8 +28,8 @@ export const resolveOpenCodeEnvConfig = (options = {}) => {
   const configuredOpenCodePort = (() => {
     const raw =
       env.OPENCODE_PORT ||
-      env.OPENCHAMBER_OPENCODE_PORT ||
-      env.OPENCHAMBER_INTERNAL_PORT;
+      env.OMPCHAMBER_OPENCODE_PORT ||
+      env.OMPCHAMBER_INTERNAL_PORT;
     if (!raw) {
       return null;
     }
@@ -72,20 +72,20 @@ export const resolveOpenCodeEnvConfig = (options = {}) => {
   const effectivePort = configuredOpenCodeHost?.port ?? configuredOpenCodePort;
 
   const configuredOpenCodeHostname = (() => {
-    const raw = env.OPENCHAMBER_OPENCODE_HOSTNAME;
+    const raw = env.OMPCHAMBER_OPENCODE_HOSTNAME;
     if (typeof raw !== 'string') {
       return '127.0.0.1';
     }
     const trimmed = raw.trim();
     if (!trimmed) {
       logger.warn(
-        `[config] Ignoring OPENCHAMBER_OPENCODE_HOSTNAME=${JSON.stringify(raw)}: empty after trimming`,
+        `[config] Ignoring OMPCHAMBER_OPENCODE_HOSTNAME=${JSON.stringify(raw)}: empty after trimming`,
       );
       return '127.0.0.1';
     }
     if (!isValidOpenCodeHostname(trimmed)) {
       logger.error(
-        `[config] Rejecting OPENCHAMBER_OPENCODE_HOSTNAME=${JSON.stringify(raw)}: `
+        `[config] Rejecting OMPCHAMBER_OPENCODE_HOSTNAME=${JSON.stringify(raw)}: `
         + 'must be a valid hostname or IP address (for example 127.0.0.1, 0.0.0.0, localhost, [::1]); '
         + 'falling back to 127.0.0.1 (loopback only)',
       );

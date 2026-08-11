@@ -39,7 +39,7 @@ interface UpdateStore extends UpdateState {
 
 type ClientRuntime = 'desktop' | 'web' | 'vscode' | 'mobile';
 
-const CLIENT_INSTALL_ID_KEY = 'openchamber.update-install-id';
+const CLIENT_INSTALL_ID_KEY = 'ompchamber.update-install-id';
 
 function getClientInstallId(): string | undefined {
   if (typeof window === 'undefined' || typeof crypto.randomUUID !== 'function') return undefined;
@@ -68,7 +68,7 @@ function detectDeviceClass(): 'mobile' | 'tablet' | 'desktop' | 'unknown' {
 
 function detectArch(): 'arm64' | 'x64' | 'unknown' {
   const electronArch = typeof window !== 'undefined'
-    ? window.__OPENCHAMBER_ELECTRON__?.arch?.toLowerCase?.()
+    ? window.__OMPCHAMBER_ELECTRON__?.arch?.toLowerCase?.()
     : undefined;
   if (electronArch === 'arm64' || electronArch === 'aarch64') return 'arm64';
   if (electronArch === 'x64' || electronArch === 'amd64' || electronArch === 'x86_64') return 'x64';
@@ -144,7 +144,7 @@ async function checkForWebUpdates(runtime: ClientRuntime, currentVersion?: strin
       : undefined;
     if (currentVersion) params.set('currentVersion', currentVersion);
     else if (runtime === 'vscode' && vscodeVersion) params.set('currentVersion', vscodeVersion);
-    const response = await runtimeFetch(`/api/openchamber/update-check?${params.toString()}`, {
+    const response = await runtimeFetch(`/api/ompchamber/update-check?${params.toString()}`, {
       method: 'GET',
       headers: { Accept: 'application/json' },
       // Background check — keep sockets free for interactive traffic at startup.

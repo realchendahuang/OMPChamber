@@ -842,7 +842,7 @@ function SessionNodeItemComponent(props: Props): React.ReactNode {
   const handleOpenInEditorClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    void runtimeApis?.vscode?.executeCommand('openchamber.openSessionInEditor', session.id, sessionTitle);
+    void runtimeApis?.vscode?.executeCommand('ompchamber.openSessionInEditor', session.id, sessionTitle);
   };
 
   const handleRowSelect = (event?: React.MouseEvent<HTMLButtonElement>) => {

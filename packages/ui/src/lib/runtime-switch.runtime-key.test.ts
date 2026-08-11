@@ -14,8 +14,8 @@ import { getRuntimeKey } from './runtime-switch';
  */
 
 type RuntimeWindow = typeof globalThis & {
-  __OPENCHAMBER_API_BASE_URL__?: string;
-  __OPENCHAMBER_LOCAL_ORIGIN__?: string;
+  __OMPCHAMBER_API_BASE_URL__?: string;
+  __OMPCHAMBER_LOCAL_ORIGIN__?: string;
 };
 
 const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -24,8 +24,8 @@ let urlConstructions = 0;
 
 const setRuntimeWindow = (apiBaseUrl: string | undefined, localOrigin: string | undefined): void => {
   const runtimeWindow = {} as RuntimeWindow;
-  if (apiBaseUrl !== undefined) runtimeWindow.__OPENCHAMBER_API_BASE_URL__ = apiBaseUrl;
-  if (localOrigin !== undefined) runtimeWindow.__OPENCHAMBER_LOCAL_ORIGIN__ = localOrigin;
+  if (apiBaseUrl !== undefined) runtimeWindow.__OMPCHAMBER_API_BASE_URL__ = apiBaseUrl;
+  if (localOrigin !== undefined) runtimeWindow.__OMPCHAMBER_LOCAL_ORIGIN__ = localOrigin;
   Object.defineProperty(globalThis, 'window', { value: runtimeWindow, configurable: true, writable: true });
 };
 
@@ -66,7 +66,7 @@ describe('getRuntimeKey caching', () => {
     setRuntimeWindow('https://first.example.com', 'https://app.example.com');
     expect(getRuntimeKey()).toBe('url:https://first.example.com');
 
-    (globalThis as RuntimeWindow & { window: RuntimeWindow }).window.__OPENCHAMBER_API_BASE_URL__ = 'https://second.example.com';
+    (globalThis as RuntimeWindow & { window: RuntimeWindow }).window.__OMPCHAMBER_API_BASE_URL__ = 'https://second.example.com';
     expect(getRuntimeKey()).toBe('url:https://second.example.com');
   });
 
@@ -74,7 +74,7 @@ describe('getRuntimeKey caching', () => {
     setRuntimeWindow('https://app.example.com', 'https://other.example.com');
     expect(getRuntimeKey()).toBe('url:https://app.example.com');
 
-    (globalThis as RuntimeWindow & { window: RuntimeWindow }).window.__OPENCHAMBER_LOCAL_ORIGIN__ = 'https://app.example.com';
+    (globalThis as RuntimeWindow & { window: RuntimeWindow }).window.__OMPCHAMBER_LOCAL_ORIGIN__ = 'https://app.example.com';
     expect(getRuntimeKey()).toBe('local');
   });
 });

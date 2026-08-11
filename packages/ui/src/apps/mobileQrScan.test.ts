@@ -32,12 +32,12 @@ describe('parseConnectionPayload', () => {
   test('rejects non-connection and legacy/relay-offer payloads', () => {
     expect(parseConnectionPayload('')).toBeNull();
     expect(parseConnectionPayload('hello world')).toBeNull();
-    expect(parseConnectionPayload('openchamber://connect')).toBeNull();
-    expect(parseConnectionPayload('openchamber://session/abc')).toBeNull();
+    expect(parseConnectionPayload('ompchamber://connect')).toBeNull();
+    expect(parseConnectionPayload('ompchamber://session/abc')).toBeNull();
     // Legacy v1 direct links are no longer accepted.
-    expect(parseConnectionPayload('openchamber://connect?v=1&server=http%3A%2F%2F192.168.1.10%3A2606&token=tok')).toBeNull();
+    expect(parseConnectionPayload('ompchamber://connect?v=1&server=http%3A%2F%2F192.168.1.10%3A2606&token=tok')).toBeNull();
     // Legacy relay-offer format (mode=relay + fragment) is no longer accepted.
-    expect(parseConnectionPayload('openchamber://connect?v=1&mode=relay#offer=eyJ2IjoxfQ')).toBeNull();
+    expect(parseConnectionPayload('ompchamber://connect?v=1&mode=relay#offer=eyJ2IjoxfQ')).toBeNull();
   });
 });
 
@@ -84,7 +84,7 @@ describe('scanConnectionQr on Android', () => {
   });
 
   test('falls back to string parsing when the WebView URL parser rejects the link (old Android WebView)', async () => {
-    // Old Android WebViews resolve openchamber://connect?... with hostname "" and
+    // Old Android WebViews resolve ompchamber://connect?... with hostname "" and
     // pathname "//connect", so the URL-based parse fails on an intact string. The test
     // runtime's URL parser handles the canonical form fine, so simulate the rejection
     // with a case variant the URL parser refuses while the string parser accepts.
@@ -93,7 +93,7 @@ describe('scanConnectionQr on Android', () => {
       secret: 'one-time',
       candidates: [{ type: 'lan', url: 'http://192.168.1.20:4096', priority: 10 }],
     }));
-    const mixedCase = url.replace('openchamber://connect', 'OpenChamber://CONNECT');
+    const mixedCase = url.replace('ompchamber://connect', 'OMPChamber://CONNECT');
     const listeners = new Map<string, (event: { barcodes?: Array<{ rawValue?: string }> }) => void>();
     const plugin = {
       requestPermissions: mock(async () => ({ camera: 'granted' })),

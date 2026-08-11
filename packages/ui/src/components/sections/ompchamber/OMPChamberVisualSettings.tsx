@@ -1,0 +1,2087 @@
+import React from 'react';
+import { runtimeFetch } from '@/lib/runtime-fetch';
+
+import { useThemeSystem } from '@/contexts/useThemeSystem';
+import type { ThemeMode } from '@/types/theme';
+import { useUIStore } from '@/stores/useUIStore';
+import { useMessageQueueStore, type FollowUpBehavior } from '@/stores/messageQueueStore';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { NumberInput } from '@/components/ui/number-input';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Icon } from "@/components/icon/Icon";
+import {
+    invokeDesktop,
+    isDesktopShell,
+    isVSCodeRuntime,
+    isWebRuntime,
+    usesFramelessElectronChrome,
+    type DesktopWindowControlsPosition,
+    type DesktopWindowControlsStyle,
+} from '@/lib/desktop';
+import { useDeviceInfo } from '@/lib/device';
+import { usePwaDetection } from '@/hooks/usePwaDetection';
+import { updateDesktopSettings } from '@/lib/persistence';
+import { CODE_FONT_OPTIONS, DEFAULT_MONO_FONT, DEFAULT_UI_FONT, UI_FONT_OPTIONS, type MonoFontOption, type UiFontOption } from '@/lib/fontOptions';
+import { useI18n, type Locale } from '@/lib/i18n';
+import { useConfigStore } from '@/stores/useConfigStore';
+import { normalizeMobileKeyboardMode, supportsMobileKeyboardResizeContent, type MobileKeyboardMode } from '@/lib/mobileKeyboardMode';
+import { getStoredMobileLayoutPreference, setStoredMobileLayoutPreference, type MobileLayoutPreference } from '@/lib/mobileLayoutPreference';
+import {
+    setDirectoryShowHidden,
+    useDirectoryShowHidden,
+} from '@/lib/directoryShowHidden';
+import {
+    SettingsSection,
+    SettingsTwoColumn,
+    SettingsControlGroup,
+    SettingsStackedField,
+    SettingsFieldRow,
+    SettingsInset,
+    SettingsCheckboxRow,
+    SettingsRadioGroup,
+    SettingsRadioOption,
+    SettingsChipGroup,
+    SETTINGS_SELECT_TRIGGER_CLASS,
+    SETTINGS_SELECT_SIZE,
+    SETTINGS_ICON_BUTTON_CLASS,
+    SETTINGS_CONTROL_CLUSTER_CLASS,
+    SETTINGS_CLUSTER_CONTROL_CLASS,
+    SETTINGS_NUMBER_STEPPER_ROW_CLASS,
+    SETTINGS_NUMBER_UNIT_CLASS,
+    SETTINGS_FIELDS_STACK_CLASS,
+    SETTINGS_OPTION_STACK_CLASS,
+} from '@/components/sections/shared/SettingsSection';
+import { SettingsInfoHint } from '@/components/sections/shared/SettingsInfoHint';
+import { useRuntimeAPIs } from '@/hooks/useRuntimeAPIs';
+import type { TerminalShellOption } from '@/lib/api/types';
+import { isTerminalShell } from '@/lib/terminalShell';
+import { subscribeRuntimeEndpointChanged } from '@/lib/runtime-switch';
+
+interface Option<T extends string> {
+    id: T;
+    labelKey: string;
+    descriptionKey?: string;
+}
+
+const THEME_MODE_OPTIONS: Array<{ value: ThemeMode; labelKey: string; descriptionKey: string }> = [
+    {
+        value: 'system',
+        labelKey: 'settings.ompchamber.visual.option.themeMode.system',
+        descriptionKey: 'settings.ompchamber.visual.option.themeMode.system.description',
+    },
+    {
+        value: 'light',
+        labelKey: 'settings.ompchamber.visual.option.themeMode.light',
+        descriptionKey: 'settings.ompchamber.visual.option.themeMode.light.description',
+    },
+    {
+        value: 'dark',
+        labelKey: 'settings.ompchamber.visual.option.themeMode.dark',
+        descriptionKey: 'settings.ompchamber.visual.option.themeMode.dark.description',
+    },
+];
+
+const DIFF_LAYOUT_OPTIONS: Option<'dynamic' | 'inline' | 'side-by-side'>[] = [
+    {
+        id: 'dynamic',
+        labelKey: 'settings.ompchamber.visual.option.diffLayout.dynamic.label',
+        descriptionKey: 'settings.ompchamber.visual.option.diffLayout.dynamic.description',
+    },
+    {
+        id: 'inline',
+        labelKey: 'settings.ompchamber.visual.option.diffLayout.inline.label',
+        descriptionKey: 'settings.ompchamber.visual.option.diffLayout.inline.description',
+    },
+    {
+        id: 'side-by-side',
+        labelKey: 'settings.ompchamber.visual.option.diffLayout.sideBySide.label',
+        descriptionKey: 'settings.ompchamber.visual.option.diffLayout.sideBySide.description',
+    },
+];
+
+const MERMAID_RENDERING_OPTIONS: Option<'svg' | 'ascii'>[] = [
+    {
+        id: 'svg',
+        labelKey: 'settings.ompchamber.visual.option.mermaidRendering.svg.label',
+        descriptionKey: 'settings.ompchamber.visual.option.mermaidRendering.svg.description',
+    },
+    {
+        id: 'ascii',
+        labelKey: 'settings.ompchamber.visual.option.mermaidRendering.ascii.label',
+        descriptionKey: 'settings.ompchamber.visual.option.mermaidRendering.ascii.description',
+    },
+];
+
+const DEFAULT_PWA_INSTALL_NAME = 'OMPChamber - AI Coding Assistant';
+const PWA_ORIENTATION_OPTIONS: Option<'system' | 'portrait' | 'landscape'>[] = [
+    {
+        id: 'system',
+        labelKey: 'settings.ompchamber.visual.option.pwaOrientation.system.label',
+        descriptionKey: 'settings.ompchamber.visual.option.pwaOrientation.system.description',
+    },
+    {
+        id: 'portrait',
+        labelKey: 'settings.ompchamber.visual.option.pwaOrientation.portrait.label',
+        descriptionKey: 'settings.ompchamber.visual.option.pwaOrientation.portrait.description',
+    },
+    {
+        id: 'landscape',
+        labelKey: 'settings.ompchamber.visual.option.pwaOrientation.landscape.label',
+        descriptionKey: 'settings.ompchamber.visual.option.pwaOrientation.landscape.description',
+    },
+];
+
+const MOBILE_KEYBOARD_MODE_OPTIONS: Option<MobileKeyboardMode>[] = [
+    {
+        id: 'native',
+        labelKey: 'settings.ompchamber.visual.option.mobileKeyboardMode.native.label',
+        descriptionKey: 'settings.ompchamber.visual.option.mobileKeyboardMode.native.description',
+    },
+    {
+        id: 'resize-content',
+        labelKey: 'settings.ompchamber.visual.option.mobileKeyboardMode.resizeContent.label',
+        descriptionKey: 'settings.ompchamber.visual.option.mobileKeyboardMode.resizeContent.description',
+    },
+];
+
+const MOBILE_LAYOUT_OPTIONS: Array<{ value: MobileLayoutPreference; labelKey: string }> = [
+    {
+        value: 'default',
+        labelKey: 'settings.ompchamber.visual.option.mobileLayout.default',
+    },
+    {
+        value: 'new',
+        labelKey: 'settings.ompchamber.visual.option.mobileLayout.new',
+    },
+];
+
+type PwaInstallNameWindow = Window & {
+    __OMPCHAMBER_SET_PWA_INSTALL_NAME__?: (value: string) => string;
+    __OMPCHAMBER_SET_PWA_ORIENTATION__?: (value: 'system' | 'portrait' | 'landscape') => 'system' | 'portrait' | 'landscape';
+    __OMPCHAMBER_UPDATE_PWA_MANIFEST__?: () => void;
+};
+
+const normalizePwaOrientation = (value: unknown): 'system' | 'portrait' | 'landscape' => {
+    return value === 'portrait' || value === 'landscape' ? value : 'system';
+};
+
+const USER_MESSAGE_RENDERING_OPTIONS: Option<'markdown' | 'plain'>[] = [
+    {
+        id: 'markdown',
+        labelKey: 'settings.ompchamber.visual.option.userMessageRendering.markdown.label',
+        descriptionKey: 'settings.ompchamber.visual.option.userMessageRendering.markdown.description',
+    },
+    {
+        id: 'plain',
+        labelKey: 'settings.ompchamber.visual.option.userMessageRendering.plain.label',
+        descriptionKey: 'settings.ompchamber.visual.option.userMessageRendering.plain.description',
+    },
+];
+
+const CHAT_RENDER_MODE_OPTIONS: Option<'sorted' | 'live'>[] = [
+    {
+        id: 'sorted',
+        labelKey: 'settings.ompchamber.visual.option.chatRenderMode.sorted.label',
+        descriptionKey: 'settings.ompchamber.visual.option.chatRenderMode.sorted.description',
+    },
+    {
+        id: 'live',
+        labelKey: 'settings.ompchamber.visual.option.chatRenderMode.live.label',
+        descriptionKey: 'settings.ompchamber.visual.option.chatRenderMode.live.description',
+    },
+];
+
+const MESSAGE_STREAM_TRANSPORT_OPTIONS: Option<'auto' | 'ws' | 'sse'>[] = [
+    {
+        id: 'auto',
+        labelKey: 'settings.ompchamber.visual.option.messageTransport.auto.label',
+        descriptionKey: 'settings.ompchamber.visual.option.messageTransport.auto.description',
+    },
+    {
+        id: 'ws',
+        labelKey: 'settings.ompchamber.visual.option.messageTransport.ws.label',
+        descriptionKey: 'settings.ompchamber.visual.option.messageTransport.ws.description',
+    },
+    {
+        id: 'sse',
+        labelKey: 'settings.ompchamber.visual.option.messageTransport.sse.label',
+        descriptionKey: 'settings.ompchamber.visual.option.messageTransport.sse.description',
+    },
+];
+
+const ACTIVITY_RENDER_MODE_OPTIONS: Option<'collapsed' | 'summary'>[] = [
+    {
+        id: 'collapsed',
+        labelKey: 'settings.ompchamber.visual.option.activityRenderMode.collapsed.label',
+        descriptionKey: 'settings.ompchamber.visual.option.activityRenderMode.collapsed.description',
+    },
+    {
+        id: 'summary',
+        labelKey: 'settings.ompchamber.visual.option.activityRenderMode.summary.label',
+        descriptionKey: 'settings.ompchamber.visual.option.activityRenderMode.summary.description',
+    },
+];
+
+const TIME_FORMAT_OPTIONS: Option<'auto' | '12h' | '24h'>[] = [
+    {
+        id: 'auto',
+        labelKey: 'settings.ompchamber.visual.option.timeFormat.auto.label',
+        descriptionKey: 'settings.ompchamber.visual.option.timeFormat.auto.description',
+    },
+    {
+        id: '24h',
+        labelKey: 'settings.ompchamber.visual.option.timeFormat.24h.label',
+        descriptionKey: 'settings.ompchamber.visual.option.timeFormat.24h.description',
+    },
+    {
+        id: '12h',
+        labelKey: 'settings.ompchamber.visual.option.timeFormat.12h.label',
+        descriptionKey: 'settings.ompchamber.visual.option.timeFormat.12h.description',
+    },
+];
+
+const WEEK_START_OPTIONS: Option<'auto' | 'monday' | 'sunday'>[] = [
+    {
+        id: 'auto',
+        labelKey: 'settings.ompchamber.visual.option.weekStart.auto.label',
+        descriptionKey: 'settings.ompchamber.visual.option.weekStart.auto.description',
+    },
+    {
+        id: 'monday',
+        labelKey: 'settings.ompchamber.visual.option.weekStart.monday.label',
+    },
+    {
+        id: 'sunday',
+        labelKey: 'settings.ompchamber.visual.option.weekStart.sunday.label',
+    },
+];
+
+const FOLLOW_UP_BEHAVIOR_OPTIONS: Option<FollowUpBehavior>[] = [
+    {
+        id: 'steer',
+        labelKey: 'settings.ompchamber.visual.option.followUpBehavior.steer.label',
+    },
+    {
+        id: 'queue',
+        labelKey: 'settings.ompchamber.visual.option.followUpBehavior.queue.label',
+    },
+];
+
+const normalizeUserMessageRenderingMode = (mode: unknown): 'markdown' | 'plain' => {
+    return mode === 'markdown' ? 'markdown' : 'plain';
+};
+
+type VisibleSetting = 'sessionAssist' | 'sessionGoal' | 'theme' | 'windowControlsPosition' | 'pwaInstallName' | 'pwaOrientation' | 'mobileKeyboardMode' | 'timeFormat' | 'weekStart' | 'fontSize' | 'terminalFontSize' | 'terminalShell' | 'terminalLoginShell' | 'editorFontSize' | 'spacing' | 'inputBarOffset' | 'mermaidRendering' | 'userMessageRendering' | 'chatRenderMode' | 'messageTransport' | 'activityRenderMode' | 'collapsibleUserMessages' | 'stickyUserHeader' | 'promptNavigatorEnabled' | 'wideChatLayout' | 'codeBlockLineWrap' | 'splitAssistantMessageActions' | 'subagentReadOnlyBanner' | 'diffLayout' | 'mobileStatusBar' | 'dotfiles' | 'fileViewerPreview' | 'reasoning' | 'showToolFileIcons' | 'showTurnChangedFiles' | 'expandedTools' | 'followUpBehavior' | 'terminalQuickKeys' | 'fileEditorKeymap' | 'persistDraft' | 'inputSpellcheck' | 'reportUsage' | 'expandedEditorToolbar' | 'autoSaveEnabled';
+
+const WINDOW_CONTROLS_POSITION_OPTIONS: Array<{ id: DesktopWindowControlsPosition; labelKey: string }> = [
+    { id: 'left', labelKey: 'settings.ompchamber.desktopNetwork.option.windowControlsLeft' },
+    { id: 'right', labelKey: 'settings.ompchamber.desktopNetwork.option.windowControlsRight' },
+];
+
+const WINDOW_CONTROLS_STYLE_OPTIONS: Array<{ id: DesktopWindowControlsStyle; labelKey: string }> = [
+    { id: 'classic', labelKey: 'settings.ompchamber.desktopNetwork.option.windowControlsClassic' },
+    { id: 'traffic-lights', labelKey: 'settings.ompchamber.desktopNetwork.option.windowControlsTrafficLights' },
+];
+
+interface OMPChamberVisualSettingsProps {
+    /** Which settings to show. If undefined, shows all. */
+    visibleSettings?: VisibleSetting[];
+}
+
+export const OMPChamberVisualSettings: React.FC<OMPChamberVisualSettingsProps> = ({ visibleSettings }) => {
+    const { locale, locales, setLocale, label, t } = useI18n();
+    const tUnsafe = React.useCallback((key: string) => t(key as Parameters<typeof t>[0]), [t]);
+    const { isMobile } = useDeviceInfo();
+    const { terminal } = useRuntimeAPIs();
+    const { browserTab } = usePwaDetection();
+    const directoryShowHidden = useDirectoryShowHidden();
+    const showReasoningTraces = useUIStore(state => state.showReasoningTraces);
+    const sessionRecapEnabled = useUIStore(state => state.sessionRecapEnabled);
+    const sessionSuggestionEnabled = useUIStore(state => state.sessionSuggestionEnabled);
+    const setSessionRecapEnabled = useUIStore(state => state.setSessionRecapEnabled);
+    const setSessionSuggestionEnabled = useUIStore(state => state.setSessionSuggestionEnabled);
+    const sessionGoalEnabled = useUIStore(state => state.sessionGoalEnabled);
+    const setSessionGoalEnabled = useUIStore(state => state.setSessionGoalEnabled);
+    const sessionGoalDefaultBudgetEnabled = useUIStore(state => state.sessionGoalDefaultBudgetEnabled);
+    const setSessionGoalDefaultBudgetEnabled = useUIStore(state => state.setSessionGoalDefaultBudgetEnabled);
+    const sessionGoalDefaultBudget = useUIStore(state => state.sessionGoalDefaultBudget);
+    const setSessionGoalDefaultBudget = useUIStore(state => state.setSessionGoalDefaultBudget);
+    const setShowReasoningTraces = useUIStore(state => state.setShowReasoningTraces);
+    const collapsibleThinkingBlocks = useUIStore(state => state.collapsibleThinkingBlocks);
+    const setCollapsibleThinkingBlocks = useUIStore(state => state.setCollapsibleThinkingBlocks);
+
+    const mermaidRenderingMode = useUIStore(state => state.mermaidRenderingMode);
+    const setMermaidRenderingMode = useUIStore(state => state.setMermaidRenderingMode);
+    const userMessageRenderingMode = useUIStore(state => state.userMessageRenderingMode);
+    const setUserMessageRenderingMode = useUIStore(state => state.setUserMessageRenderingMode);
+    const collapsibleUserMessages = useUIStore(state => state.collapsibleUserMessages);
+    const setCollapsibleUserMessages = useUIStore(state => state.setCollapsibleUserMessages);
+    const stickyUserHeader = useUIStore(state => state.stickyUserHeader);
+    const promptNavigatorEnabled = useUIStore(state => state.promptNavigatorEnabled);
+    const setStickyUserHeader = useUIStore(state => state.setStickyUserHeader);
+    const setPromptNavigatorEnabled = useUIStore(state => state.setPromptNavigatorEnabled);
+    const expandedEditorToolbar = useUIStore(state => state.expandedEditorToolbar);
+    const setExpandedEditorToolbar = useUIStore(state => state.setExpandedEditorToolbar);
+    const autoSaveEnabled = useUIStore(state => state.autoSaveEnabled);
+    const setAutoSaveEnabled = useUIStore(state => state.setAutoSaveEnabled);
+    const wideChatLayoutEnabled = useUIStore(state => state.wideChatLayoutEnabled);
+    const setWideChatLayoutEnabled = useUIStore(state => state.setWideChatLayoutEnabled);
+    const codeBlockLineWrap = useUIStore(state => state.codeBlockLineWrap);
+    const setCodeBlockLineWrap = useUIStore(state => state.setCodeBlockLineWrap);
+    const chatRenderMode = useUIStore(state => state.chatRenderMode);
+    const setChatRenderMode = useUIStore(state => state.setChatRenderMode);
+    const activityRenderMode = useUIStore(state => state.activityRenderMode);
+    const setActivityRenderMode = useUIStore(state => state.setActivityRenderMode);
+    const fontSize = useUIStore(state => state.fontSize);
+    const setFontSize = useUIStore(state => state.setFontSize);
+    const terminalFontSize = useUIStore(state => state.terminalFontSize);
+    const setTerminalFontSize = useUIStore(state => state.setTerminalFontSize);
+    const terminalShell = useUIStore(state => state.terminalShell);
+    const setTerminalShell = useUIStore(state => state.setTerminalShell);
+    const terminalLoginShells = useUIStore(state => state.terminalLoginShells);
+    const setTerminalLoginShells = useUIStore(state => state.setTerminalLoginShells);
+    const editorFontSize = useUIStore(state => state.editorFontSize);
+    const setEditorFontSize = useUIStore(state => state.setEditorFontSize);
+    const uiFont = useUIStore(state => state.uiFont);
+    const setUiFont = useUIStore(state => state.setUiFont);
+    const monoFont = useUIStore(state => state.monoFont);
+    const setMonoFont = useUIStore(state => state.setMonoFont);
+    const padding = useUIStore(state => state.padding);
+    const setPadding = useUIStore(state => state.setPadding);
+    const inputBarOffset = useUIStore(state => state.inputBarOffset);
+    const setInputBarOffset = useUIStore(state => state.setInputBarOffset);
+    const mobileKeyboardMode = useUIStore(state => state.mobileKeyboardMode);
+    const setMobileKeyboardMode = useUIStore(state => state.setMobileKeyboardMode);
+    const diffLayoutPreference = useUIStore(state => state.diffLayoutPreference);
+    const setDiffLayoutPreference = useUIStore(state => state.setDiffLayoutPreference);
+    const showTerminalQuickKeysOnDesktop = useUIStore(state => state.showTerminalQuickKeysOnDesktop);
+    const setShowTerminalQuickKeysOnDesktop = useUIStore(state => state.setShowTerminalQuickKeysOnDesktop);
+    const fileEditorKeymap = useUIStore(state => state.fileEditorKeymap);
+    const setFileEditorKeymap = useUIStore(state => state.setFileEditorKeymap);
+    const followUpBehavior = useMessageQueueStore(state => state.followUpBehavior);
+    const setFollowUpBehavior = useMessageQueueStore(state => state.setFollowUpBehavior);
+    const persistChatDraft = useUIStore(state => state.persistChatDraft);
+    const setPersistChatDraft = useUIStore(state => state.setPersistChatDraft);
+    const inputSpellcheckEnabled = useUIStore(state => state.inputSpellcheckEnabled);
+    const setInputSpellcheckEnabled = useUIStore(state => state.setInputSpellcheckEnabled);
+    const showToolFileIcons = useUIStore(state => state.showToolFileIcons);
+    const setShowToolFileIcons = useUIStore(state => state.setShowToolFileIcons);
+    const showTurnChangedFiles = useUIStore(state => state.showTurnChangedFiles);
+    const setShowTurnChangedFiles = useUIStore(state => state.setShowTurnChangedFiles);
+    const showExpandedBashTools = useUIStore(state => state.showExpandedBashTools);
+    const setShowExpandedBashTools = useUIStore(state => state.setShowExpandedBashTools);
+    const showExpandedEditTools = useUIStore(state => state.showExpandedEditTools);
+    const setShowExpandedEditTools = useUIStore(state => state.setShowExpandedEditTools);
+    const timeFormatPreference = useUIStore(state => state.timeFormatPreference);
+    const setTimeFormatPreference = useUIStore(state => state.setTimeFormatPreference);
+    const weekStartPreference = useUIStore(state => state.weekStartPreference);
+    const setWeekStartPreference = useUIStore(state => state.setWeekStartPreference);
+    const showSplitAssistantMessageActions = useUIStore(state => state.showSplitAssistantMessageActions);
+    const setShowSplitAssistantMessageActions = useUIStore(state => state.setShowSplitAssistantMessageActions);
+    const allowPromptingSubagentSessions = useUIStore(state => state.allowPromptingSubagentSessions);
+    const setAllowPromptingSubagentSessions = useUIStore(state => state.setAllowPromptingSubagentSessions);
+    const draftStartersVisible = useUIStore(state => state.draftStartersVisible);
+    const setDraftStartersVisible = useUIStore(state => state.setDraftStartersVisible);
+    const messageStreamTransport = useConfigStore((state) => state.settingsMessageStreamTransport);
+    const setMessageStreamTransport = useConfigStore((state) => state.setSettingsMessageStreamTransport);
+    const effectiveMessageStreamTransport = messageStreamTransport;
+    const settingsDefaultFileViewerPreview = useConfigStore((state) => state.settingsDefaultFileViewerPreview);
+    const setSettingsDefaultFileViewerPreview = useConfigStore((state) => state.setSettingsDefaultFileViewerPreview);
+    const isSettingsDialogOpen = useUIStore(state => state.isSettingsDialogOpen);
+    const {
+        themeMode,
+        setThemeMode,
+        availableThemes,
+        customThemesLoading,
+        reloadCustomThemes,
+        lightThemeId,
+        darkThemeId,
+        setLightThemePreference,
+        setDarkThemePreference,
+    } = useThemeSystem();
+
+    const [themesReloading, setThemesReloading] = React.useState(false);
+
+    // macOS-desktop-only vibrancy toggle. Changing it needs a full relaunch
+    // (vibrancy is a window-creation option), so we persist + restart on save.
+    const macVibrancySupported = React.useMemo(
+        () => isDesktopShell() && typeof window !== 'undefined' && window.__OMPCHAMBER_ELECTRON__?.macVibrancySupported === true,
+        [],
+    );
+    const macVibrancyEnabled = typeof window !== 'undefined' && window.__OMPCHAMBER_ELECTRON__?.macVibrancy === true;
+    const [vibrancyChecked, setVibrancyChecked] = React.useState(macVibrancyEnabled);
+    const [vibrancyRestarting, setVibrancyRestarting] = React.useState(false);
+
+    // macOS-desktop-only dock badge that counts chats with unseen activity.
+    // The tray sync (mac-only) pumps the count to the main process, so the
+    // toggle is offered only where it actually has an effect. No relaunch needed.
+    const dockBadgeSupported = React.useMemo(
+        () => isDesktopShell() && typeof window !== 'undefined'
+            && (window as unknown as { __OMPCHAMBER_PLATFORM__?: string }).__OMPCHAMBER_PLATFORM__ === 'darwin',
+        [],
+    );
+    const dockBadgeEnabled = useUIStore(state => state.dockBadgeEnabled);
+    const setDockBadgeEnabled = useUIStore(state => state.setDockBadgeEnabled);
+    const showWindowControlsPosition = usesFramelessElectronChrome();
+    const desktopWindowControlsPosition = useUIStore((state) => state.desktopWindowControlsPosition);
+    const setDesktopWindowControlsPosition = useUIStore((state) => state.setDesktopWindowControlsPosition);
+    const desktopWindowControlsStyle = useUIStore((state) => state.desktopWindowControlsStyle);
+    const setDesktopWindowControlsStyle = useUIStore((state) => state.setDesktopWindowControlsStyle);
+    const [chatRenderPreviewTick, setChatRenderPreviewTick] = React.useState(0);
+    const reportUsage = useUIStore(state => state.reportUsage);
+    const setReportUsage = useUIStore(state => state.setReportUsage);
+
+    // Sync reportUsage changes to server settings
+    const handleReportUsageChange = React.useCallback((enabled: boolean) => {
+        setReportUsage(enabled);
+        void updateDesktopSettings({ reportUsage: enabled });
+    }, [setReportUsage]);
+
+    const handleWindowControlsPositionChange = React.useCallback((value: DesktopWindowControlsPosition) => {
+        setDesktopWindowControlsPosition(value);
+        void updateDesktopSettings({ desktopWindowControlsPosition: value });
+    }, [setDesktopWindowControlsPosition]);
+
+    const handleWindowControlsStyleChange = React.useCallback((value: DesktopWindowControlsStyle) => {
+        setDesktopWindowControlsStyle(value);
+        void updateDesktopSettings({ desktopWindowControlsStyle: value });
+    }, [setDesktopWindowControlsStyle]);
+
+    const shouldAnimateChatPreview = (isSettingsDialogOpen || isMobile || isVSCodeRuntime())
+        && (visibleSettings ? visibleSettings.includes('chatRenderMode') : true);
+
+    React.useEffect(() => {
+        if (!shouldAnimateChatPreview) {
+            return;
+        }
+
+        // Use requestAnimationFrame for smoother animation without setInterval overhead
+        let rafId: number | null = null;
+        let lastTime = Date.now();
+        
+        const tick = () => {
+            const now = Date.now();
+            // Update every ~420ms
+            if (now - lastTime >= 420) {
+                setChatRenderPreviewTick((prev) => (prev + 1) % 24);
+                lastTime = now;
+            }
+            rafId = requestAnimationFrame(tick);
+        };
+        
+        // Only run when visible
+        if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+            rafId = requestAnimationFrame(tick);
+        }
+        
+        const onVisibility = () => {
+            if (document.visibilityState === 'visible' && rafId === null) {
+                rafId = requestAnimationFrame(tick);
+            } else if (document.visibilityState !== 'visible' && rafId !== null) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+        };
+        
+        document.addEventListener('visibilitychange', onVisibility);
+
+        return () => {
+            document.removeEventListener('visibilitychange', onVisibility);
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
+        };
+    }, [shouldAnimateChatPreview]);
+
+    const handleUserMessageRenderingModeChange = React.useCallback((mode: 'markdown' | 'plain') => {
+        setUserMessageRenderingMode(mode);
+        void updateDesktopSettings({ userMessageRenderingMode: mode });
+    }, [setUserMessageRenderingMode]);
+
+    const handleStickyUserHeaderChange = React.useCallback((enabled: boolean) => {
+        setStickyUserHeader(enabled);
+        void updateDesktopSettings({ stickyUserHeader: enabled });
+    }, [setStickyUserHeader]);
+
+    const handlePromptNavigatorEnabledChange = React.useCallback((enabled: boolean) => {
+        setPromptNavigatorEnabled(enabled);
+        void updateDesktopSettings({ promptNavigatorEnabled: enabled });
+    }, [setPromptNavigatorEnabled]);
+
+    const handleDraftStartersVisibleChange = React.useCallback((enabled: boolean) => {
+        setDraftStartersVisible(enabled);
+        void updateDesktopSettings({ draftStartersVisible: enabled });
+    }, [setDraftStartersVisible]);
+
+    const handleExpandedEditorToolbarChange = React.useCallback((enabled: boolean) => {
+        setExpandedEditorToolbar(enabled);
+        void updateDesktopSettings({ expandedEditorToolbar: enabled });
+    }, [setExpandedEditorToolbar]);
+
+    const handleCollapsibleUserMessagesChange = React.useCallback((enabled: boolean) => {
+        setCollapsibleUserMessages(enabled);
+        void updateDesktopSettings({ collapsibleUserMessages: enabled });
+    }, [setCollapsibleUserMessages]);
+
+    const handleWideChatLayoutChange = React.useCallback((enabled: boolean) => {
+        setWideChatLayoutEnabled(enabled);
+        void updateDesktopSettings({ wideChatLayoutEnabled: enabled });
+    }, [setWideChatLayoutEnabled]);
+
+    const handleShowSplitAssistantMessageActionsChange = React.useCallback((enabled: boolean) => {
+        setShowSplitAssistantMessageActions(enabled);
+        void updateDesktopSettings({ showSplitAssistantMessageActions: enabled });
+    }, [setShowSplitAssistantMessageActions]);
+
+    const handleInputSpellcheckChange = React.useCallback((enabled: boolean) => {
+        setInputSpellcheckEnabled(enabled);
+        void updateDesktopSettings({ inputSpellcheckEnabled: enabled });
+    }, [setInputSpellcheckEnabled]);
+
+    const handleChatRenderModeChange = React.useCallback((mode: 'sorted' | 'live') => {
+        setChatRenderMode(mode);
+        void updateDesktopSettings({ chatRenderMode: mode });
+    }, [setChatRenderMode]);
+
+    const handleMessageStreamTransportChange = React.useCallback((mode: 'auto' | 'ws' | 'sse') => {
+        setMessageStreamTransport(mode);
+        void updateDesktopSettings({ messageStreamTransport: mode });
+    }, [setMessageStreamTransport]);
+
+    const handleActivityRenderModeChange = React.useCallback((mode: 'collapsed' | 'summary') => {
+        setActivityRenderMode(mode);
+        void updateDesktopSettings({ activityRenderMode: mode });
+    }, [setActivityRenderMode]);
+
+    const handleMermaidRenderingModeChange = React.useCallback((mode: 'svg' | 'ascii') => {
+        setMermaidRenderingMode(mode);
+        void updateDesktopSettings({ mermaidRenderingMode: mode });
+    }, [setMermaidRenderingMode]);
+
+    const handleShowToolFileIconsChange = React.useCallback((enabled: boolean) => {
+        setShowToolFileIcons(enabled);
+        void updateDesktopSettings({ showToolFileIcons: enabled });
+    }, [setShowToolFileIcons]);
+
+    const handleShowTurnChangedFilesChange = React.useCallback((enabled: boolean) => {
+        setShowTurnChangedFiles(enabled);
+        void updateDesktopSettings({ showTurnChangedFiles: enabled });
+    }, [setShowTurnChangedFiles]);
+
+    const handleFileViewerPreviewChange = React.useCallback((enabled: boolean) => {
+        setSettingsDefaultFileViewerPreview(enabled);
+        void updateDesktopSettings({ defaultFileViewerPreview: enabled });
+        window.dispatchEvent(new CustomEvent('ompchamber:file-viewer-preview-mode-changed', { detail: { enabled } }));
+    }, [setSettingsDefaultFileViewerPreview]);
+
+    const handleShowExpandedBashToolsChange = React.useCallback((enabled: boolean) => {
+        setShowExpandedBashTools(enabled);
+        void updateDesktopSettings({ showExpandedBashTools: enabled });
+    }, [setShowExpandedBashTools]);
+
+    const handleShowExpandedEditToolsChange = React.useCallback((enabled: boolean) => {
+        setShowExpandedEditTools(enabled);
+        void updateDesktopSettings({ showExpandedEditTools: enabled });
+    }, [setShowExpandedEditTools]);
+
+    const handleTimeFormatPreferenceChange = React.useCallback((value: 'auto' | '12h' | '24h') => {
+        setTimeFormatPreference(value);
+        void updateDesktopSettings({ timeFormatPreference: value });
+    }, [setTimeFormatPreference]);
+
+    const handleWeekStartPreferenceChange = React.useCallback((value: 'auto' | 'monday' | 'sunday') => {
+        setWeekStartPreference(value);
+        void updateDesktopSettings({ weekStartPreference: value });
+    }, [setWeekStartPreference]);
+
+    const lightThemes = React.useMemo(
+        () => availableThemes
+            .filter((theme) => theme.metadata.variant === 'light')
+            .sort((a, b) => a.metadata.name.localeCompare(b.metadata.name)),
+        [availableThemes],
+    );
+
+    const darkThemes = React.useMemo(
+        () => availableThemes
+            .filter((theme) => theme.metadata.variant === 'dark')
+            .sort((a, b) => a.metadata.name.localeCompare(b.metadata.name)),
+        [availableThemes],
+    );
+
+    const selectedLightTheme = React.useMemo(
+        () => lightThemes.find((theme) => theme.metadata.id === lightThemeId) ?? lightThemes[0],
+        [lightThemes, lightThemeId],
+    );
+
+    const selectedDarkTheme = React.useMemo(
+        () => darkThemes.find((theme) => theme.metadata.id === darkThemeId) ?? darkThemes[0],
+        [darkThemes, darkThemeId],
+    );
+
+    const formatThemeLabel = React.useCallback((themeName: string, variant: 'light' | 'dark') => {
+        const suffix = variant === 'dark' ? ' Dark' : ' Light';
+        return themeName.endsWith(suffix) ? themeName.slice(0, -suffix.length) : themeName;
+    }, []);
+
+    const shouldShow = (setting: VisibleSetting): boolean => {
+        if (!visibleSettings) return true;
+        return visibleSettings.includes(setting);
+    };
+
+    const isVSCode = isVSCodeRuntime();
+    const hasThemeSettings = shouldShow('theme') && !isVSCode;
+    const showWindowControlsPositionSetting = shouldShow('windowControlsPosition') && showWindowControlsPosition;
+    const hasLocalizationSettings = shouldShow('theme') || shouldShow('timeFormat') || shouldShow('weekStart');
+    const showMobileLayoutSetting = isMobile && isWebRuntime() && !isDesktopShell() && !isVSCode;
+    const hasAppearanceSettings = isVSCode
+        ? hasLocalizationSettings
+        : (shouldShow('theme') || showWindowControlsPositionSetting || showMobileLayoutSetting || shouldShow('pwaInstallName') || shouldShow('pwaOrientation') || shouldShow('timeFormat') || shouldShow('weekStart'));
+    const hasLayoutSettings = shouldShow('fontSize') || shouldShow('terminalFontSize') || shouldShow('editorFontSize') || shouldShow('spacing') || (shouldShow('inputBarOffset') && isMobile);
+    const hasNavigationSettings = (shouldShow('terminalQuickKeys') && !isMobile) || ((shouldShow('terminalShell') || shouldShow('terminalLoginShell')) && !isVSCode) || shouldShow('fileEditorKeymap') || shouldShow('autoSaveEnabled') || (shouldShow('expandedEditorToolbar') && !isVSCode);
+    const hasBehaviorSettings = shouldShow('mermaidRendering')
+        || (shouldShow('sessionGoal') && !isVSCode)
+        || shouldShow('userMessageRendering')
+        || shouldShow('chatRenderMode')
+        || shouldShow('messageTransport')
+        || (shouldShow('activityRenderMode') && chatRenderMode === 'sorted')
+        || shouldShow('collapsibleUserMessages')
+        || shouldShow('stickyUserHeader')
+        || (shouldShow('promptNavigatorEnabled') && !isVSCode)
+        || shouldShow('wideChatLayout')
+        || shouldShow('codeBlockLineWrap')
+        || shouldShow('splitAssistantMessageActions')
+        || shouldShow('subagentReadOnlyBanner')
+        || shouldShow('diffLayout')
+        || shouldShow('dotfiles')
+        || shouldShow('fileViewerPreview')
+        || shouldShow('reasoning')
+        || shouldShow('followUpBehavior')
+        || shouldShow('persistDraft')
+        || shouldShow('showToolFileIcons')
+        || shouldShow('expandedTools')
+        || (!isMobile && shouldShow('inputSpellcheck'));
+    const showBehaviorDisplaySettings = shouldShow('chatRenderMode')
+        || (shouldShow('activityRenderMode') && chatRenderMode === 'sorted');
+    const showTransportSection = shouldShow('messageTransport');
+    const showBehaviorMessageOptions = shouldShow('userMessageRendering')
+        || shouldShow('mermaidRendering')
+        || (shouldShow('diffLayout') && !isVSCode)
+        || shouldShow('followUpBehavior');
+    const showBehaviorFeatureCheckboxes = shouldShow('sessionAssist')
+        || (shouldShow('sessionGoal') && !isVSCode)
+        || shouldShow('subagentReadOnlyBanner')
+        || shouldShow('collapsibleUserMessages')
+        || shouldShow('stickyUserHeader')
+        || (shouldShow('promptNavigatorEnabled') && !isVSCode)
+        || shouldShow('wideChatLayout')
+        || shouldShow('codeBlockLineWrap')
+        || shouldShow('splitAssistantMessageActions')
+        || shouldShow('dotfiles')
+        || shouldShow('fileViewerPreview')
+        || shouldShow('persistDraft')
+        || shouldShow('showToolFileIcons')
+        || shouldShow('showTurnChangedFiles')
+        || (!isMobile && shouldShow('inputSpellcheck'))
+        || shouldShow('reasoning')
+        || shouldShow('expandedTools');
+    // First behavior section under the page header should not draw a top border on Chat-only;
+    // when Appearance (or earlier sections) already rendered, keep the default divider.
+    const behaviorSectionDivider = hasAppearanceSettings || hasLayoutSettings || hasNavigationSettings;
+
+    const showPwaInstallNameSetting = shouldShow('pwaInstallName') && isWebRuntime() && browserTab && !isDesktopShell() && !isVSCode;
+    const showPwaOrientationSetting = shouldShow('pwaOrientation') && isWebRuntime() && !isDesktopShell() && !isVSCode;
+    const showMobileKeyboardModeSetting = shouldShow('mobileKeyboardMode') && isWebRuntime() && !isDesktopShell() && !isVSCode && supportsMobileKeyboardResizeContent();
+    const showTerminalShellSetting = (shouldShow('terminalShell') || shouldShow('terminalLoginShell')) && !isVSCode;
+    const [availableTerminalShells, setAvailableTerminalShells] = React.useState<TerminalShellOption[]>([]);
+    const [terminalShellRuntimeEpoch, setTerminalShellRuntimeEpoch] = React.useState(0);
+    React.useEffect(() => subscribeRuntimeEndpointChanged(() => {
+        setAvailableTerminalShells([]);
+        setTerminalShellRuntimeEpoch((epoch) => epoch + 1);
+    }), []);
+    React.useEffect(() => {
+        let cancelled = false;
+        if (!showTerminalShellSetting || !terminal.listShells) return;
+        void terminal.listShells()
+            .then((shells) => {
+                if (!cancelled) setAvailableTerminalShells(shells);
+            })
+            .catch(() => {
+                if (!cancelled) setAvailableTerminalShells([]);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [showTerminalShellSetting, terminal, terminalShellRuntimeEpoch]);
+    const terminalShellOptions = React.useMemo(() => {
+        const explicitShells = availableTerminalShells.filter((shell) => shell.id !== 'auto');
+        if (terminalShell === 'auto' || explicitShells.some((shell) => shell.id === terminalShell)) {
+            return explicitShells;
+        }
+        return [{ id: terminalShell, name: terminalShell, supportsLogin: false }, ...explicitShells];
+    }, [availableTerminalShells, terminalShell]);
+    const terminalShellSupportsLogin = availableTerminalShells.find((shell) => shell.id === terminalShell)?.supportsLogin === true;
+    const terminalLoginShellEnabled = terminalLoginShells.includes(terminalShell);
+    const setTerminalLoginShellEnabled = (enabled: boolean) => {
+        setTerminalLoginShells(enabled
+            ? [...terminalLoginShells.filter((shell) => shell !== terminalShell), terminalShell]
+            : terminalLoginShells.filter((shell) => shell !== terminalShell));
+    };
+    const [mobileLayoutPreference, setMobileLayoutPreference] = React.useState<MobileLayoutPreference>(() => getStoredMobileLayoutPreference());
+    const [pwaInstallName, setPwaInstallName] = React.useState('');
+    const [pwaOrientation, setPwaOrientation] = React.useState<'system' | 'portrait' | 'landscape'>('system');
+    const selectedTimeFormatLabel = React.useMemo(() => {
+        const option = TIME_FORMAT_OPTIONS.find((item) => item.id === timeFormatPreference);
+        return tUnsafe(option?.labelKey ?? 'settings.ompchamber.visual.option.timeFormat.auto.label');
+    }, [timeFormatPreference, tUnsafe]);
+    const selectedWeekStartLabel = React.useMemo(() => {
+        const option = WEEK_START_OPTIONS.find((item) => item.id === weekStartPreference);
+        return tUnsafe(option?.labelKey ?? 'settings.ompchamber.visual.option.weekStart.auto.label');
+    }, [weekStartPreference, tUnsafe]);
+    const selectedPwaOrientationLabel = React.useMemo(() => {
+        const option = PWA_ORIENTATION_OPTIONS.find((item) => item.id === pwaOrientation);
+        return option ? tUnsafe(option.labelKey) : undefined;
+    }, [pwaOrientation, tUnsafe]);
+    const selectedMobileKeyboardModeLabel = React.useMemo(() => {
+        const option = MOBILE_KEYBOARD_MODE_OPTIONS.find((item) => item.id === mobileKeyboardMode);
+        return option ? tUnsafe(option.labelKey) : undefined;
+    }, [mobileKeyboardMode, tUnsafe]);
+
+    const handleMobileLayoutPreferenceChange = React.useCallback((value: MobileLayoutPreference) => {
+        if (value === mobileLayoutPreference) {
+            return;
+        }
+
+        setMobileLayoutPreference(value);
+        setStoredMobileLayoutPreference(value);
+        window.location.reload();
+    }, [mobileLayoutPreference]);
+
+    const applyPwaInstallName = React.useCallback(async (value: string) => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const win = window as PwaInstallNameWindow;
+        const normalized = value.trim().replace(/\s+/g, ' ').slice(0, 64);
+        const persistedValue = normalized;
+
+        await updateDesktopSettings({ pwaAppName: persistedValue });
+
+        if (typeof win.__OMPCHAMBER_SET_PWA_INSTALL_NAME__ === 'function') {
+            const resolved = win.__OMPCHAMBER_SET_PWA_INSTALL_NAME__(persistedValue);
+            setPwaInstallName(resolved);
+            return;
+        }
+
+        setPwaInstallName(persistedValue || DEFAULT_PWA_INSTALL_NAME);
+        win.__OMPCHAMBER_UPDATE_PWA_MANIFEST__?.();
+    }, []);
+
+    const applyPwaOrientation = React.useCallback(async (value: 'system' | 'portrait' | 'landscape') => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const win = window as PwaInstallNameWindow;
+        const normalized = normalizePwaOrientation(value);
+
+        await updateDesktopSettings({ pwaOrientation: normalized });
+
+        if (typeof win.__OMPCHAMBER_SET_PWA_ORIENTATION__ === 'function') {
+            const resolved = win.__OMPCHAMBER_SET_PWA_ORIENTATION__(normalized);
+            setPwaOrientation(resolved);
+            return;
+        }
+
+        setPwaOrientation(normalized);
+        win.__OMPCHAMBER_UPDATE_PWA_MANIFEST__?.();
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof window === 'undefined' || (!showPwaInstallNameSetting && !showPwaOrientationSetting && !showMobileKeyboardModeSetting)) {
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadPwaInstallName = async () => {
+            try {
+                const response = await runtimeFetch('/api/config/settings', {
+                    method: 'GET',
+                    headers: { Accept: 'application/json' },
+                    cache: 'no-store',
+                });
+
+                if (!response.ok) {
+                    if (!cancelled) {
+                        setPwaInstallName(DEFAULT_PWA_INSTALL_NAME);
+                    }
+                    return;
+                }
+
+                const settings = await response.json().catch(() => ({}));
+                const raw = typeof settings?.pwaAppName === 'string' ? settings.pwaAppName : '';
+                const normalized = raw.trim().replace(/\s+/g, ' ').slice(0, 64);
+                const orientation = normalizePwaOrientation(settings?.pwaOrientation);
+                const nextMobileKeyboardMode = normalizeMobileKeyboardMode(settings?.mobileKeyboardMode);
+
+                if (!cancelled) {
+                    if (showPwaInstallNameSetting) {
+                        setPwaInstallName(normalized || DEFAULT_PWA_INSTALL_NAME);
+                    }
+                    if (showPwaOrientationSetting) {
+                        setPwaOrientation(orientation);
+                    }
+                    if (showMobileKeyboardModeSetting) {
+                        setMobileKeyboardMode(nextMobileKeyboardMode);
+                    }
+                }
+            } catch {
+                if (!cancelled) {
+                    if (showPwaInstallNameSetting) {
+                        setPwaInstallName(DEFAULT_PWA_INSTALL_NAME);
+                    }
+                    if (showPwaOrientationSetting) {
+                        setPwaOrientation('system');
+                    }
+                    if (showMobileKeyboardModeSetting) {
+                        setMobileKeyboardMode('native');
+                    }
+                }
+            }
+        };
+
+        void loadPwaInstallName();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [setMobileKeyboardMode, showMobileKeyboardModeSetting, showPwaInstallNameSetting, showPwaOrientationSetting]);
+
+    return (
+        <div className="space-y-0">
+
+                {/* --- Appearance & Themes --- */}
+                {hasAppearanceSettings && (
+                    <div className="space-y-0">
+                        {hasThemeSettings && (
+                            <SettingsSection title={t('settings.ompchamber.visual.section.colorModeAndTheme')} divider={false}>
+                                <SettingsTwoColumn>
+                                    <div className={SETTINGS_FIELDS_STACK_CLASS}>
+                                        <SettingsRadioGroup aria-label={t('settings.ompchamber.visual.section.colorMode')}>
+                                            {THEME_MODE_OPTIONS.map((option) => (
+                                                <SettingsRadioOption
+                                                    key={option.value}
+                                                    selected={themeMode === option.value}
+                                                    onSelect={() => setThemeMode(option.value)}
+                                                    label={tUnsafe(option.labelKey)}
+                                                    ariaLabel={tUnsafe(option.labelKey)}
+                                                />
+                                            ))}
+                                        </SettingsRadioGroup>
+
+                                        {showMobileLayoutSetting && (
+                                            <SettingsInset>
+                                                <SettingsStackedField label={t('settings.ompchamber.visual.section.mobileLayout')}>
+                                                    <SettingsChipGroup
+                                                        value={mobileLayoutPreference}
+                                                        options={MOBILE_LAYOUT_OPTIONS.map((option) => ({
+                                                            value: option.value,
+                                                            label: tUnsafe(option.labelKey),
+                                                        }))}
+                                                        onChange={handleMobileLayoutPreferenceChange}
+                                                        aria-label={t('settings.ompchamber.visual.section.mobileLayout')}
+                                                    />
+                                                </SettingsStackedField>
+                                            </SettingsInset>
+                                        )}
+                                    </div>
+
+                                    <div className={SETTINGS_FIELDS_STACK_CLASS}>
+                                        <SettingsStackedField
+                                            label={t('settings.ompchamber.visual.field.lightTheme')}
+                                            settingsItem="appearance.light-theme"
+                                        >
+                                            <Select value={selectedLightTheme?.metadata.id ?? ''} onValueChange={setLightThemePreference}>
+                                                <SelectTrigger aria-label={t('settings.ompchamber.visual.field.selectLightThemeAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                                    <SelectValue placeholder={t('settings.ompchamber.visual.field.selectThemePlaceholder')}>
+                                                        {selectedLightTheme
+                                                            ? formatThemeLabel(selectedLightTheme.metadata.name, 'light')
+                                                            : undefined}
+                                                    </SelectValue>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {lightThemes.map((theme) => (
+                                                        <SelectItem key={theme.metadata.id} value={theme.metadata.id}>
+                                                            {formatThemeLabel(theme.metadata.name, 'light')}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </SettingsStackedField>
+                                        <SettingsStackedField
+                                            label={t('settings.ompchamber.visual.field.darkTheme')}
+                                            settingsItem="appearance.dark-theme"
+                                        >
+                                            <Select value={selectedDarkTheme?.metadata.id ?? ''} onValueChange={setDarkThemePreference}>
+                                                <SelectTrigger aria-label={t('settings.ompchamber.visual.field.selectDarkThemeAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                                    <SelectValue placeholder={t('settings.ompchamber.visual.field.selectThemePlaceholder')}>
+                                                        {selectedDarkTheme
+                                                            ? formatThemeLabel(selectedDarkTheme.metadata.name, 'dark')
+                                                            : undefined}
+                                                    </SelectValue>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {darkThemes.map((theme) => (
+                                                        <SelectItem key={theme.metadata.id} value={theme.metadata.id}>
+                                                            {formatThemeLabel(theme.metadata.name, 'dark')}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </SettingsStackedField>
+
+                                        <div className="flex items-center gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                disabled={customThemesLoading || themesReloading}
+                                                onClick={() => {
+                                                    const startedAt = Date.now();
+                                                    setThemesReloading(true);
+                                                    void reloadCustomThemes().finally(() => {
+                                                        const elapsed = Date.now() - startedAt;
+                                                        if (elapsed < 500) {
+                                                            window.setTimeout(() => {
+                                                                setThemesReloading(false);
+                                                            }, 500 - elapsed);
+                                                            return;
+                                                        }
+                                                        setThemesReloading(false);
+                                                    });
+                                                }}
+                                                className="typography-settings-link inline-flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+                                            >
+                                                <Icon name="restart" className={cn('h-3.5 w-3.5', themesReloading && 'animate-spin')} />
+                                                {themesReloading ? t('settings.ompchamber.visual.actions.reloadingThemes') : t('settings.ompchamber.visual.actions.reloadThemes')}
+                                            </button>
+                                            <SettingsInfoHint>
+                                                {t('settings.ompchamber.visual.field.themeImportInfoTooltip')}
+                                            </SettingsInfoHint>
+                                        </div>
+                                    </div>
+                                </SettingsTwoColumn>
+
+                                {macVibrancySupported && (
+                                    <SettingsInset settingsItem="appearance.window-transparency" className="flex flex-col gap-1.5">
+                                        <SettingsCheckboxRow
+                                            checked={vibrancyChecked}
+                                            onChange={setVibrancyChecked}
+                                            disabled={vibrancyRestarting}
+                                            label={t('settings.ompchamber.visual.field.macVibrancy')}
+                                            info={t('settings.ompchamber.visual.field.macVibrancyHint')}
+                                            ariaLabel={t('settings.ompchamber.visual.field.macVibrancy')}
+                                        />
+                                        {vibrancyChecked !== macVibrancyEnabled && (
+                                            <div className="pl-6">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={vibrancyRestarting}
+                                                    onClick={() => {
+                                                        setVibrancyRestarting(true);
+                                                        void invokeDesktop('desktop_set_vibrancy', { enabled: vibrancyChecked });
+                                                    }}
+                                                >
+                                                    {vibrancyRestarting
+                                                        ? t('settings.ompchamber.visual.actions.restarting')
+                                                        : t('settings.ompchamber.visual.actions.saveAndRestart')}
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </SettingsInset>
+                                )}
+
+                                {dockBadgeSupported && (
+                                    <SettingsInset settingsItem="appearance.dock-badge">
+                                        <SettingsCheckboxRow
+                                            checked={dockBadgeEnabled}
+                                            onChange={setDockBadgeEnabled}
+                                            label={t('settings.ompchamber.visual.field.dockBadge')}
+                                            info={t('settings.ompchamber.visual.field.dockBadgeHint')}
+                                            ariaLabel={t('settings.ompchamber.visual.field.dockBadge')}
+                                        />
+                                    </SettingsInset>
+                                )}
+                            </SettingsSection>
+                        )}
+
+                        {showWindowControlsPositionSetting && (
+                            <SettingsSection
+                                title={t('settings.ompchamber.desktopNetwork.field.windowControls')}
+                                info={t('settings.ompchamber.desktopNetwork.field.windowControlsPositionDescription')}
+                                divider={hasThemeSettings}
+                            >
+                                <SettingsTwoColumn>
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.desktopNetwork.field.windowControlsPosition')}
+                                        settingsItem="sessions.desktop-window-controls-position"
+                                    >
+                                        <SettingsChipGroup
+                                            value={desktopWindowControlsPosition}
+                                            options={WINDOW_CONTROLS_POSITION_OPTIONS.map((option) => ({
+                                                value: option.id,
+                                                label: tUnsafe(option.labelKey),
+                                            }))}
+                                            onChange={handleWindowControlsPositionChange}
+                                            aria-label={t('settings.ompchamber.desktopNetwork.field.windowControlsPositionAria')}
+                                        />
+                                    </SettingsStackedField>
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.desktopNetwork.field.windowControlsStyle')}
+                                        settingsItem="sessions.desktop-window-controls-style"
+                                    >
+                                        <SettingsChipGroup
+                                            value={desktopWindowControlsStyle}
+                                            options={WINDOW_CONTROLS_STYLE_OPTIONS.map((option) => ({
+                                                value: option.id,
+                                                label: tUnsafe(option.labelKey),
+                                            }))}
+                                            onChange={handleWindowControlsStyleChange}
+                                            aria-label={t('settings.ompchamber.desktopNetwork.field.windowControlsStyleAria')}
+                                        />
+                                    </SettingsStackedField>
+                                </SettingsTwoColumn>
+                            </SettingsSection>
+                        )}
+
+                        {hasLocalizationSettings && (
+                            <SettingsSection title={t('settings.ompchamber.visual.section.localization')}>
+                                <SettingsTwoColumn>
+                                    <SettingsStackedField
+                                        label={t('settings.appearance.language.label')}
+                                        info={t('settings.appearance.language.description')}
+                                        settingsItem="appearance.language"
+                                    >
+                                        <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+                                            <SelectTrigger aria-label={t('settings.appearance.language.select')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                                <SelectValue>{label(locale)}</SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {locales.map((availableLocale) => (
+                                                    <SelectItem key={availableLocale} value={availableLocale}>
+                                                        {label(availableLocale)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </SettingsStackedField>
+
+                                    {(shouldShow('timeFormat') || shouldShow('weekStart')) && (
+                                        <div className={SETTINGS_FIELDS_STACK_CLASS}>
+                                            {shouldShow('timeFormat') && (
+                                                <SettingsStackedField
+                                                    label={t('settings.ompchamber.visual.field.timeFormat')}
+                                                    settingsItem="appearance.time-format"
+                                                >
+                                                    <Select value={timeFormatPreference} onValueChange={(value: 'auto' | '12h' | '24h') => handleTimeFormatPreferenceChange(value)}>
+                                                        <SelectTrigger aria-label={t('settings.ompchamber.visual.field.selectTimeFormatAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                                            <SelectValue>{selectedTimeFormatLabel}</SelectValue>
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {TIME_FORMAT_OPTIONS.map((option) => (
+                                                                <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </SettingsStackedField>
+                                            )}
+
+                                            {shouldShow('weekStart') && (
+                                                <SettingsStackedField
+                                                    label={t('settings.ompchamber.visual.field.weekStartsOn')}
+                                                    settingsItem="appearance.week-start"
+                                                >
+                                                    <Select value={weekStartPreference} onValueChange={(value: 'auto' | 'monday' | 'sunday') => handleWeekStartPreferenceChange(value)}>
+                                                        <SelectTrigger aria-label={t('settings.ompchamber.visual.field.selectWeekStartAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                                            <SelectValue>{selectedWeekStartLabel}</SelectValue>
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {WEEK_START_OPTIONS.map((option) => (
+                                                                <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </SettingsStackedField>
+                                            )}
+                                        </div>
+                                    )}
+                                </SettingsTwoColumn>
+                            </SettingsSection>
+                        )}
+
+                        {(showPwaInstallNameSetting || showPwaOrientationSetting || showMobileKeyboardModeSetting) && (
+                            <SettingsSection title={t('settings.ompchamber.visual.section.appInstall')} contentClassName={SETTINGS_FIELDS_STACK_CLASS}>
+
+                            {showPwaInstallNameSetting && (
+                                <SettingsFieldRow
+                                    label={t('settings.ompchamber.visual.field.installAppName')}
+                                    info={t('settings.ompchamber.visual.field.installAppNameHint')}
+                                    settingsItem="appearance.pwa-install-name"
+                                    alignEnd={false}
+                                    controlClassName={SETTINGS_CONTROL_CLUSTER_CLASS}
+                                >
+                                    <Input
+                                        value={pwaInstallName}
+                                        onChange={(event) => {
+                                            setPwaInstallName(event.target.value);
+                                        }}
+                                        onBlur={() => {
+                                            void applyPwaInstallName(pwaInstallName);
+                                        }}
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter') {
+                                                event.preventDefault();
+                                                void applyPwaInstallName(pwaInstallName);
+                                            }
+                                        }}
+                                        className="min-w-0 flex-1"
+                                        maxLength={64}
+                                        aria-label={t('settings.ompchamber.visual.field.pwaInstallAppNameAria')}
+                                    />
+                                    <Button size="sm"
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={() => {
+                                            setPwaInstallName(DEFAULT_PWA_INSTALL_NAME);
+                                            void applyPwaInstallName('');
+                                        }}
+                                        className={SETTINGS_ICON_BUTTON_CLASS}
+                                        aria-label={t('settings.ompchamber.visual.actions.resetInstallAppNameAria')}
+                                        title={t('settings.common.actions.reset')}
+                                    >
+                                        <Icon name="restart" className="h-3.5 w-3.5" />
+                                    </Button>
+                                </SettingsFieldRow>
+                            )}
+
+                            {showPwaOrientationSetting && (
+                                <SettingsFieldRow
+                                    label={t('settings.ompchamber.visual.field.installOrientation')}
+                                    description={t('settings.ompchamber.visual.field.installOrientationHint')}
+                                    settingsItem="appearance.pwa-orientation"
+                                    alignEnd={false}
+                                    controlClassName={SETTINGS_CONTROL_CLUSTER_CLASS}
+                                >
+                                    <Select
+                                        value={pwaOrientation}
+                                        onValueChange={(value) => {
+                                            const orientation = normalizePwaOrientation(value);
+                                            setPwaOrientation(orientation);
+                                            void applyPwaOrientation(orientation);
+                                        }}
+                                    >
+                                        <SelectTrigger aria-label={t('settings.ompchamber.visual.field.pwaInstallOrientationAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_CLUSTER_CONTROL_CLASS}>
+                                            <SelectValue placeholder={t('settings.ompchamber.visual.field.selectOrientationPlaceholder')}>
+                                                {selectedPwaOrientationLabel}
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {PWA_ORIENTATION_OPTIONS.map((option) => (
+                                                <SelectItem key={option.id} value={option.id}>
+                                                    {tUnsafe(option.labelKey)}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button size="sm"
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={() => {
+                                            setPwaOrientation('system');
+                                            void applyPwaOrientation('system');
+                                        }}
+                                        disabled={pwaOrientation === 'system'}
+                                        className={SETTINGS_ICON_BUTTON_CLASS}
+                                        aria-label={t('settings.ompchamber.visual.actions.resetInstallOrientationAria')}
+                                        title={t('settings.common.actions.reset')}
+                                    >
+                                        <Icon name="restart" className="h-3.5 w-3.5" />
+                                    </Button>
+                                </SettingsFieldRow>
+                            )}
+
+                            {showMobileKeyboardModeSetting && (
+                                <SettingsFieldRow
+                                    label={t('settings.ompchamber.visual.field.mobileKeyboardMode')}
+                                    info={t('settings.ompchamber.visual.field.mobileKeyboardModeHint')}
+                                    settingsItem="appearance.mobile-keyboard-mode"
+                                    alignEnd={false}
+                                    controlClassName={SETTINGS_CONTROL_CLUSTER_CLASS}
+                                >
+                                    <Select
+                                        value={mobileKeyboardMode}
+                                        onValueChange={(value) => {
+                                            const mode = normalizeMobileKeyboardMode(value);
+                                            setMobileKeyboardMode(mode);
+                                            void updateDesktopSettings({ mobileKeyboardMode: mode });
+                                        }}
+                                    >
+                                        <SelectTrigger aria-label={t('settings.ompchamber.visual.field.mobileKeyboardModeAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_CLUSTER_CONTROL_CLASS}>
+                                            <SelectValue placeholder={t('settings.ompchamber.visual.field.selectMobileKeyboardModePlaceholder')}>
+                                                {selectedMobileKeyboardModeLabel}
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {MOBILE_KEYBOARD_MODE_OPTIONS.map((option) => (
+                                                <SelectItem key={option.id} value={option.id}>
+                                                    {tUnsafe(option.labelKey)}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button size="sm"
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={() => {
+                                            setMobileKeyboardMode('native');
+                                            void updateDesktopSettings({ mobileKeyboardMode: 'native' });
+                                        }}
+                                        disabled={mobileKeyboardMode === 'native'}
+                                        className={SETTINGS_ICON_BUTTON_CLASS}
+                                        aria-label={t('settings.ompchamber.visual.actions.resetMobileKeyboardModeAria')}
+                                        title={t('settings.common.actions.reset')}
+                                    >
+                                        <Icon name="restart" className="h-3.5 w-3.5" />
+                                    </Button>
+                                </SettingsFieldRow>
+                            )}
+                            </SettingsSection>
+                        )}
+                    </div>
+                )}
+
+                {/* --- Density & type --- */}
+                {hasLayoutSettings && (
+                    <SettingsSection title={t('settings.ompchamber.visual.section.densityAndType')} contentClassName={SETTINGS_FIELDS_STACK_CLASS}>
+                        {(shouldShow('fontSize') && !isMobile) || shouldShow('terminalFontSize') ? (
+                            <SettingsTwoColumn>
+                                {shouldShow('fontSize') && !isMobile && (
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.visual.field.interfaceFont')}
+                                        settingsItem="appearance.interface-font-size"
+                                        controlClassName="w-full"
+                                    >
+                                        <Select value={uiFont} onValueChange={(value) => setUiFont(value as UiFontOption)}>
+                                            <SelectTrigger aria-label={t('settings.ompchamber.visual.field.selectInterfaceFontAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                                <SelectValue>{UI_FONT_OPTIONS.find((option) => option.id === uiFont)?.label}</SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {UI_FONT_OPTIONS.map((option) => (
+                                                    <SelectItem key={option.id} value={option.id}>
+                                                        <span style={{ fontFamily: option.stack }}>{option.label}</span>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button size="sm"
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => setUiFont(DEFAULT_UI_FONT)}
+                                            disabled={uiFont === DEFAULT_UI_FONT}
+                                            className={SETTINGS_ICON_BUTTON_CLASS}
+                                            aria-label={t('settings.ompchamber.visual.actions.resetInterfaceFontAria')}
+                                            title={t('settings.common.actions.reset')}
+                                        >
+                                            <Icon name="restart" className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </SettingsStackedField>
+                                )}
+                                {shouldShow('terminalFontSize') && (
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.visual.field.codeFont')}
+                                        controlClassName="w-full"
+                                    >
+                                        <Select value={monoFont} onValueChange={(value) => setMonoFont(value as MonoFontOption)}>
+                                            <SelectTrigger aria-label={t('settings.ompchamber.visual.field.selectCodeFontAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                                <SelectValue>{CODE_FONT_OPTIONS.find((option) => option.id === monoFont)?.label}</SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {CODE_FONT_OPTIONS.map((option) => (
+                                                    <SelectItem key={option.id} value={option.id}>
+                                                        <span style={{ fontFamily: option.stack }}>{option.label}</span>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button size="sm"
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => setMonoFont(DEFAULT_MONO_FONT)}
+                                            disabled={monoFont === DEFAULT_MONO_FONT}
+                                            className={SETTINGS_ICON_BUTTON_CLASS}
+                                            aria-label={t('settings.ompchamber.visual.actions.resetCodeFontAria')}
+                                            title={t('settings.common.actions.reset')}
+                                        >
+                                            <Icon name="restart" className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </SettingsStackedField>
+                                )}
+                            </SettingsTwoColumn>
+                        ) : null}
+
+                        {(shouldShow('fontSize') && !isMobile) || shouldShow('terminalFontSize') || shouldShow('editorFontSize') ? (
+                            <SettingsTwoColumn>
+                                {shouldShow('fontSize') && !isMobile && (
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.visual.field.interfaceFontSize')}
+                                        controlClassName="w-full"
+                                    >
+                                        <div className={SETTINGS_NUMBER_STEPPER_ROW_CLASS}>
+                                            <NumberInput
+                                                value={fontSize}
+                                                onValueChange={setFontSize}
+                                                min={50}
+                                                max={200}
+                                                step={5}
+                                                aria-label={t('settings.ompchamber.visual.field.fontSizePercentageAria')}
+                                            />
+                                            <span className={SETTINGS_NUMBER_UNIT_CLASS}>%</span>
+                                            <Button size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => setFontSize(100)}
+                                                disabled={fontSize === 100}
+                                                className={SETTINGS_ICON_BUTTON_CLASS}
+                                                aria-label={t('settings.ompchamber.visual.actions.resetFontSizeAria')}
+                                                title={t('settings.common.actions.reset')}
+                                            >
+                                                <Icon name="restart" className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </SettingsStackedField>
+                                )}
+                                {shouldShow('terminalFontSize') && (
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.visual.field.terminalFontSize')}
+                                        settingsItem="appearance.terminal-font-size"
+                                        controlClassName="w-full"
+                                    >
+                                        <div className={SETTINGS_NUMBER_STEPPER_ROW_CLASS}>
+                                            <NumberInput
+                                                value={terminalFontSize}
+                                                onValueChange={setTerminalFontSize}
+                                                min={9}
+                                                max={52}
+                                                step={1}
+                                            />
+                                            <span className={SETTINGS_NUMBER_UNIT_CLASS}>px</span>
+                                            <Button size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => setTerminalFontSize(13)}
+                                                disabled={terminalFontSize === 13}
+                                                className={SETTINGS_ICON_BUTTON_CLASS}
+                                                aria-label={t('settings.ompchamber.visual.actions.resetTerminalFontSizeAria')}
+                                                title={t('settings.common.actions.reset')}
+                                            >
+                                                <Icon name="restart" className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </SettingsStackedField>
+                                )}
+                                {shouldShow('editorFontSize') && (
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.visual.field.editorFontSize')}
+                                        settingsItem="appearance.editor-font-size"
+                                        controlClassName="w-full"
+                                    >
+                                        <div className={SETTINGS_NUMBER_STEPPER_ROW_CLASS}>
+                                            <NumberInput
+                                                value={editorFontSize}
+                                                onValueChange={setEditorFontSize}
+                                                min={9}
+                                                max={32}
+                                                step={1}
+                                            />
+                                            <span className={SETTINGS_NUMBER_UNIT_CLASS}>px</span>
+                                            <Button size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => setEditorFontSize(13)}
+                                                disabled={editorFontSize === 13}
+                                                className={SETTINGS_ICON_BUTTON_CLASS}
+                                                aria-label={t('settings.ompchamber.visual.actions.resetEditorFontSizeAria')}
+                                                title={t('settings.common.actions.reset')}
+                                            >
+                                                <Icon name="restart" className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </SettingsStackedField>
+                                )}
+                            </SettingsTwoColumn>
+                        ) : null}
+
+                        {shouldShow('spacing') || (shouldShow('inputBarOffset') && isMobile) ? (
+                            <SettingsTwoColumn>
+                                {shouldShow('spacing') && (
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.visual.field.spacingDensity')}
+                                        settingsItem="appearance.spacing-density"
+                                        controlClassName="w-full"
+                                    >
+                                        <div className={SETTINGS_NUMBER_STEPPER_ROW_CLASS}>
+                                            <NumberInput
+                                                value={padding}
+                                                onValueChange={setPadding}
+                                                min={50}
+                                                max={200}
+                                                step={5}
+                                            />
+                                            <span className={SETTINGS_NUMBER_UNIT_CLASS}>%</span>
+                                            <Button size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => setPadding(100)}
+                                                disabled={padding === 100}
+                                                className={SETTINGS_ICON_BUTTON_CLASS}
+                                                aria-label={t('settings.ompchamber.visual.actions.resetSpacingAria')}
+                                                title={t('settings.common.actions.reset')}
+                                            >
+                                                <Icon name="restart" className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </SettingsStackedField>
+                                )}
+                                {shouldShow('inputBarOffset') && isMobile && (
+                                    <SettingsStackedField
+                                        label={t('settings.ompchamber.visual.field.inputBarOffset')}
+                                        info={t('settings.ompchamber.visual.field.inputBarOffsetTooltip')}
+                                        settingsItem="appearance.input-bar-offset"
+                                        controlClassName="w-full"
+                                    >
+                                        <div className={SETTINGS_NUMBER_STEPPER_ROW_CLASS}>
+                                            <NumberInput
+                                                value={inputBarOffset}
+                                                onValueChange={setInputBarOffset}
+                                                min={0}
+                                                max={100}
+                                                step={5}
+                                            />
+                                            <span className={SETTINGS_NUMBER_UNIT_CLASS}>px</span>
+                                            <Button size="sm"
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => setInputBarOffset(0)}
+                                                disabled={inputBarOffset === 0}
+                                                className={SETTINGS_ICON_BUTTON_CLASS}
+                                                aria-label={t('settings.ompchamber.visual.actions.resetInputBarOffsetAria')}
+                                                title={t('settings.common.actions.reset')}
+                                            >
+                                                <Icon name="restart" className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </SettingsStackedField>
+                                )}
+                            </SettingsTwoColumn>
+                        ) : null}
+                    </SettingsSection>
+                )}
+
+                {/* --- Navigation --- */}
+                {hasNavigationSettings && (
+                    <SettingsSection title={t('settings.ompchamber.visual.section.navigation')} contentClassName="space-y-4">
+                        {shouldShow('fileEditorKeymap') && (
+                            <SettingsControlGroup
+                                title={t('settings.ompchamber.visual.field.fileEditorKeymap')}
+                                settingsItem="appearance.file-editor-keymap"
+                            >
+                                <SettingsRadioGroup aria-label={t('settings.ompchamber.visual.field.fileEditorKeymap')}>
+                                    {(['default', 'vim'] as const).map((keymap) => (
+                                        <SettingsRadioOption
+                                            key={keymap}
+                                            selected={fileEditorKeymap === keymap}
+                                            onSelect={() => setFileEditorKeymap(keymap)}
+                                            label={t(`settings.ompchamber.visual.option.fileEditorKeymap.${keymap}`)}
+                                            ariaLabel={t(`settings.ompchamber.visual.option.fileEditorKeymap.${keymap}`)}
+                                        />
+                                    ))}
+                                </SettingsRadioGroup>
+                            </SettingsControlGroup>
+                        )}
+                        <div className={SETTINGS_OPTION_STACK_CLASS}>
+                            {shouldShow('autoSaveEnabled') && (
+                                <SettingsCheckboxRow
+                                    checked={autoSaveEnabled}
+                                    onChange={setAutoSaveEnabled}
+                                    label={t('settings.ompchamber.visual.field.autoSaveEnabled')}
+                                    ariaLabel={t('settings.ompchamber.visual.field.autoSaveEnabledAria')}
+                                    info={t('settings.ompchamber.visual.field.autoSaveEnabledInfo')}
+                                    settingsItem="appearance.auto-save-enabled"
+                                />
+                            )}
+                            {shouldShow('expandedEditorToolbar') && !isVSCode && (
+                                <SettingsCheckboxRow
+                                    checked={expandedEditorToolbar}
+                                    onChange={handleExpandedEditorToolbarChange}
+                                    label={t('settings.ompchamber.visual.field.expandedEditorToolbar')}
+                                    ariaLabel={t('settings.ompchamber.visual.field.expandedEditorToolbarAria')}
+                                    settingsItem="appearance.expanded-editor-toolbar"
+                                />
+                            )}
+                            {shouldShow('terminalQuickKeys') && !isMobile && (
+                                <SettingsCheckboxRow
+                                    checked={showTerminalQuickKeysOnDesktop}
+                                    onChange={setShowTerminalQuickKeysOnDesktop}
+                                    label={t('settings.ompchamber.visual.field.terminalQuickKeys')}
+                                    ariaLabel={t('settings.ompchamber.visual.field.terminalQuickKeysAria')}
+                                    settingsItem="appearance.terminal-quick-keys"
+                                    info={t('settings.ompchamber.visual.field.terminalQuickKeysTooltip')}
+                                />
+                            )}
+                            {showTerminalShellSetting && (
+                                <SettingsStackedField
+                                    label={t('settings.ompchamber.visual.field.terminalShell')}
+                                    info={t('settings.ompchamber.visual.field.terminalShellHint')}
+                                    settingsItem="appearance.terminal-shell"
+                                    className="pt-2"
+                                >
+                                    <Select value={terminalShell} onValueChange={(value) => { if (isTerminalShell(value)) setTerminalShell(value); }}>
+                                        <SelectTrigger aria-label={t('settings.ompchamber.visual.field.terminalShellAria')} size={SETTINGS_SELECT_SIZE} className={SETTINGS_SELECT_TRIGGER_CLASS}>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="auto">{t('settings.ompchamber.visual.option.terminalShell.auto')}</SelectItem>
+                                            {terminalShellOptions.map((shell) => (
+                                                <SelectItem key={shell.id} value={shell.id}>{shell.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </SettingsStackedField>
+                            )}
+                            {showTerminalShellSetting && terminalShellSupportsLogin && (
+                                <SettingsCheckboxRow
+                                    checked={terminalLoginShellEnabled}
+                                    onChange={setTerminalLoginShellEnabled}
+                                    label={t('settings.ompchamber.visual.field.terminalLoginShell')}
+                                    ariaLabel={t('settings.ompchamber.visual.field.terminalLoginShell')}
+                                    settingsItem="appearance.terminal-login-shell"
+                                />
+                            )}
+                        </div>
+                    </SettingsSection>
+                )}
+
+                {hasBehaviorSettings && (
+                    <>
+                        {showBehaviorDisplaySettings && (
+                            <SettingsSection
+                                title={t('settings.ompchamber.visual.section.chatDisplay')}
+                                divider={behaviorSectionDivider}
+                                contentClassName="space-y-6"
+                            >
+                                {shouldShow('chatRenderMode') && (
+                                    <SettingsControlGroup
+                                        title={t('settings.ompchamber.visual.section.chatRenderMode')}
+                                        settingsItem="chat.render-mode"
+                                    >
+                                        <div role="radiogroup" aria-label={t('settings.ompchamber.visual.section.chatRenderModeAria')} className="grid w-full max-w-[26rem] grid-cols-1 gap-3 @xl:grid-cols-2">
+                                            {CHAT_RENDER_MODE_OPTIONS.map((option) => {
+                                                const selected = chatRenderMode === option.id;
+                                                const previewPhase = chatRenderPreviewTick % 12;
+                                                return (
+                                                    <button
+                                                        key={option.id}
+                                                        type="button"
+                                                        onClick={() => handleChatRenderModeChange(option.id)}
+                                                        aria-pressed={selected}
+                                                        className={cn(
+                                                            'flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors',
+                                                            selected
+                                                                ? 'border-primary bg-primary/5'
+                                                                : 'border-border hover:border-border/80 hover:bg-muted/50'
+                                                        )}
+                                                    >
+                                                        <span className={cn('typography-ui-label', selected ? 'text-foreground' : 'text-muted-foreground')}>
+                                                            {tUnsafe(option.labelKey)}
+                                                        </span>
+                                                        <div className="mt-2 w-full rounded-md border border-border/60 bg-muted/30 p-2">
+                                                            {option.id === 'live' ? (
+                                                                <div className="space-y-1.5">
+                                                                    {[0, 1, 2].map((index) => {
+                                                                        const rowStart = index * 3 + 1;
+                                                                        const rowProgressPhase = previewPhase - rowStart + 1;
+                                                                        const rowProgress = rowProgressPhase <= 0
+                                                                            ? 0
+                                                                            : rowProgressPhase === 1
+                                                                                ? 42
+                                                                                : rowProgressPhase === 2
+                                                                                    ? 68
+                                                                                    : 92;
+                                                                        const visible = rowProgress > 0;
+                                                                        return (
+                                                                            <div
+                                                                                key={index}
+                                                                                className={cn(
+                                                                                    'flex items-center gap-1.5 transition-all duration-300 motion-reduce:transition-none',
+                                                                                    visible ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'
+                                                                                )}
+                                                                            >
+                                                                                <span className="h-2 w-2 shrink-0 rounded-full bg-muted-foreground/55" />
+                                                                                <span
+                                                                                    className="h-1.5 rounded bg-muted-foreground/30 transition-all duration-300 motion-reduce:transition-none"
+                                                                                    style={{ width: `${rowProgress}%` }}
+                                                                                />
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="space-y-1.5">
+                                                                    {[0, 1, 2].map((index) => {
+                                                                        const visible = previewPhase >= (index + 1) * 3;
+                                                                        return (
+                                                                            <div
+                                                                                key={index}
+                                                                                className={cn(
+                                                                                    'flex items-center gap-1.5 transition-all duration-300 motion-reduce:transition-none',
+                                                                                    visible ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'
+                                                                                )}
+                                                                            >
+                                                                                <span className="h-2 w-2 shrink-0 rounded-full bg-muted-foreground/55" />
+                                                                                <span
+                                                                                    className="h-1.5 rounded bg-muted-foreground/30"
+                                                                                    style={{ width: '92%' }}
+                                                                                />
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </SettingsControlGroup>
+                                )}
+
+                                {shouldShow('activityRenderMode') && chatRenderMode === 'sorted' && (
+                                    <SettingsControlGroup title={t('settings.ompchamber.visual.section.activityDefault')}>
+                                        <SettingsRadioGroup aria-label={t('settings.ompchamber.visual.section.activityDefaultAria')}>
+                                            {ACTIVITY_RENDER_MODE_OPTIONS.map((option) => (
+                                                <SettingsRadioOption
+                                                    key={option.id}
+                                                    selected={activityRenderMode === option.id}
+                                                    onSelect={() => handleActivityRenderModeChange(option.id)}
+                                                    label={tUnsafe(option.labelKey)}
+                                                    ariaLabel={t('settings.ompchamber.visual.field.activityDefaultModeAria', { option: tUnsafe(option.labelKey) })}
+                                                />
+                                            ))}
+                                        </SettingsRadioGroup>
+                                    </SettingsControlGroup>
+                                )}
+                            </SettingsSection>
+                        )}
+
+                        {showTransportSection && (
+                            <SettingsSection
+                                title={t('settings.ompchamber.visual.section.messageStreamTransport')}
+                                divider={showBehaviorDisplaySettings || behaviorSectionDivider}
+                                settingsItem="chat.message-transport"
+                                contentClassName="space-y-2"
+                            >
+                                <SettingsChipGroup
+                                    value={effectiveMessageStreamTransport}
+                                    options={MESSAGE_STREAM_TRANSPORT_OPTIONS.map((option) => ({
+                                        value: option.id,
+                                        label: tUnsafe(option.labelKey),
+                                    }))}
+                                    onChange={handleMessageStreamTransportChange}
+                                    aria-label={t('settings.ompchamber.visual.section.messageStreamTransport')}
+                                />
+                                {(() => {
+                                    const option = MESSAGE_STREAM_TRANSPORT_OPTIONS.find((item) => item.id === effectiveMessageStreamTransport);
+                                    return option?.descriptionKey ? (
+                                        <span className="typography-meta text-muted-foreground">
+                                            {tUnsafe(option.descriptionKey)}
+                                        </span>
+                                    ) : null;
+                                })()}
+                            </SettingsSection>
+                        )}
+
+                        {showBehaviorMessageOptions && (
+                            <SettingsSection
+                                title={t('settings.ompchamber.visual.section.chatMessageOptions')}
+                                divider={showBehaviorDisplaySettings || showTransportSection || behaviorSectionDivider}
+                            >
+                                {/* Flat 2×2 grid so row headers share a baseline (not stacked columns). */}
+                                <SettingsTwoColumn className="lg:gap-y-6">
+                                    {shouldShow('userMessageRendering') && (
+                                        <SettingsControlGroup title={t('settings.ompchamber.visual.section.userMessageRendering')}>
+                                            <SettingsRadioGroup aria-label={t('settings.ompchamber.visual.section.userMessageRenderingAria')}>
+                                                {USER_MESSAGE_RENDERING_OPTIONS.map((option) => (
+                                                    <SettingsRadioOption
+                                                        key={option.id}
+                                                        selected={normalizeUserMessageRenderingMode(userMessageRenderingMode) === option.id}
+                                                        onSelect={() => handleUserMessageRenderingModeChange(option.id)}
+                                                        label={tUnsafe(option.labelKey)}
+                                                        ariaLabel={t('settings.ompchamber.visual.field.userMessageRenderingAria', { option: tUnsafe(option.labelKey) })}
+                                                    />
+                                                ))}
+                                            </SettingsRadioGroup>
+                                        </SettingsControlGroup>
+                                    )}
+
+                                    {shouldShow('mermaidRendering') && (
+                                        <SettingsControlGroup title={t('settings.ompchamber.visual.section.mermaidRendering')}>
+                                            <SettingsRadioGroup aria-label={t('settings.ompchamber.visual.section.mermaidRenderingAria')}>
+                                                {MERMAID_RENDERING_OPTIONS.map((option) => (
+                                                    <SettingsRadioOption
+                                                        key={option.id}
+                                                        selected={mermaidRenderingMode === option.id}
+                                                        onSelect={() => handleMermaidRenderingModeChange(option.id)}
+                                                        label={tUnsafe(option.labelKey)}
+                                                        ariaLabel={t('settings.ompchamber.visual.field.mermaidRenderingAria', { option: tUnsafe(option.labelKey) })}
+                                                    />
+                                                ))}
+                                            </SettingsRadioGroup>
+                                        </SettingsControlGroup>
+                                    )}
+
+                                    {shouldShow('diffLayout') && !isVSCode && (
+                                        <SettingsControlGroup title={t('settings.ompchamber.visual.section.diffLayout')}>
+                                            <SettingsRadioGroup aria-label={t('settings.ompchamber.visual.section.diffLayoutAria')}>
+                                                {DIFF_LAYOUT_OPTIONS.map((option) => (
+                                                    <SettingsRadioOption
+                                                        key={option.id}
+                                                        selected={diffLayoutPreference === option.id}
+                                                        onSelect={() => setDiffLayoutPreference(option.id)}
+                                                        label={tUnsafe(option.labelKey)}
+                                                        ariaLabel={t('settings.ompchamber.visual.field.diffLayoutAria', { option: tUnsafe(option.labelKey) })}
+                                                    />
+                                                ))}
+                                            </SettingsRadioGroup>
+                                        </SettingsControlGroup>
+                                    )}
+
+                                    {shouldShow('followUpBehavior') && (
+                                        <SettingsControlGroup
+                                            title={t('settings.ompchamber.visual.section.followUpBehavior')}
+                                            settingsItem="chat.follow-up-behavior"
+                                        >
+                                            <SettingsRadioGroup aria-label={t('settings.ompchamber.visual.section.followUpBehaviorAria')}>
+                                                {FOLLOW_UP_BEHAVIOR_OPTIONS.map((option) => (
+                                                    <SettingsRadioOption
+                                                        key={option.id}
+                                                        selected={followUpBehavior === option.id}
+                                                        onSelect={() => setFollowUpBehavior(option.id)}
+                                                        label={tUnsafe(option.labelKey)}
+                                                        ariaLabel={t('settings.ompchamber.visual.field.followUpBehaviorAria', { option: tUnsafe(option.labelKey) })}
+                                                    />
+                                                ))}
+                                            </SettingsRadioGroup>
+                                        </SettingsControlGroup>
+                                    )}
+                                </SettingsTwoColumn>
+                            </SettingsSection>
+                        )}
+
+                        {showBehaviorFeatureCheckboxes && (
+                            <>
+                                {shouldShow('expandedTools') && (
+                                    <SettingsSection
+                                        title={t('settings.ompchamber.visual.section.showToolsOpenedByDefault')}
+                                        divider={showBehaviorDisplaySettings || showTransportSection || showBehaviorMessageOptions || behaviorSectionDivider}
+                                        contentClassName={SETTINGS_OPTION_STACK_CLASS}
+                                    >
+                                        <SettingsCheckboxRow
+                                            checked={showExpandedBashTools}
+                                            onChange={handleShowExpandedBashToolsChange}
+                                            label={t('settings.ompchamber.visual.field.bash')}
+                                            ariaLabel={t('settings.ompchamber.visual.field.showExpandedBashToolsAria')}
+                                        />
+                                        <SettingsCheckboxRow
+                                            checked={showExpandedEditTools}
+                                            onChange={handleShowExpandedEditToolsChange}
+                                            label={t('settings.ompchamber.visual.field.editTools')}
+                                            ariaLabel={t('settings.ompchamber.visual.field.showExpandedEditToolsAria')}
+                                        />
+                                    </SettingsSection>
+                                )}
+                                <SettingsSection
+                                    title={t('settings.ompchamber.visual.section.sessionAssistance')}
+                                    settingsItem="chat.session-assistance"
+                                    contentClassName={SETTINGS_OPTION_STACK_CLASS}
+                                >
+                                    <SettingsCheckboxRow
+                                        checked={draftStartersVisible}
+                                        onChange={handleDraftStartersVisibleChange}
+                                        label={t('settings.ompchamber.visual.field.draftStartersVisible')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.draftStartersVisibleAria')}
+                                        settingsItem="chat.draft-starters-visible"
+                                    />
+                                        {shouldShow('sessionAssist') && (
+                                            <>
+                                                <SettingsCheckboxRow
+                                                    checked={sessionRecapEnabled}
+                                                    onChange={setSessionRecapEnabled}
+                                                    label={t('settings.ompchamber.visual.field.sessionRecap')}
+                                                    ariaLabel={t('settings.ompchamber.visual.field.sessionRecapAria')}
+                                                    settingsItem="chat.session-recap"
+                                                />
+                                                <SettingsCheckboxRow
+                                                    checked={sessionSuggestionEnabled}
+                                                    onChange={setSessionSuggestionEnabled}
+                                                    label={t('settings.ompchamber.visual.field.sessionSuggestion')}
+                                                    ariaLabel={t('settings.ompchamber.visual.field.sessionSuggestionAria')}
+                                                    settingsItem="chat.session-suggestion"
+                                                />
+                                            </>
+                                        )}
+                                        {shouldShow('subagentReadOnlyBanner') && (
+                                            <SettingsCheckboxRow
+                                                checked={allowPromptingSubagentSessions}
+                                                onChange={setAllowPromptingSubagentSessions}
+                                                label={t('settings.ompchamber.visual.field.allowPromptingSubagentSessions')}
+                                                ariaLabel={t('settings.ompchamber.visual.field.allowPromptingSubagentSessionsAria')}
+                                                settingsItem="chat.subagent-read-only-banner"
+                                            />
+                                        )}
+                                </SettingsSection>
+                                {/* The goal loop runs in the web server — VS Code only renders
+                                    goal state, so the settings section is hidden there too. */}
+                                {shouldShow('sessionGoal') && !isVSCode && (
+                                    <SettingsSection
+                                        title={t('settings.ompchamber.visual.goal.sectionTitle')}
+                                        info={t('settings.ompchamber.visual.goal.description')}
+                                        contentClassName={SETTINGS_OPTION_STACK_CLASS}
+                                    >
+                                        <SettingsCheckboxRow
+                                            checked={sessionGoalEnabled}
+                                            onChange={setSessionGoalEnabled}
+                                            label={t('settings.ompchamber.visual.field.sessionGoal')}
+                                            ariaLabel={t('settings.ompchamber.visual.field.sessionGoalAria')}
+                                            settingsItem="chat.session-goal"
+                                        />
+                                        <div data-settings-item="chat.session-goal-budget" className="flex items-center gap-2">
+                                            <SettingsCheckboxRow
+                                                checked={sessionGoalDefaultBudgetEnabled}
+                                                onChange={setSessionGoalDefaultBudgetEnabled}
+                                                disabled={!sessionGoalEnabled}
+                                                label={t('settings.ompchamber.visual.goal.budgetLabel')}
+                                                ariaLabel={t('settings.ompchamber.visual.goal.budgetAria')}
+                                            />
+                                            {sessionGoalEnabled && sessionGoalDefaultBudgetEnabled ? (
+                                                <NumberInput
+                                                    value={sessionGoalDefaultBudget}
+                                                    onValueChange={(value) => {
+                                                        if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+                                                            setSessionGoalDefaultBudget(Math.floor(value));
+                                                        }
+                                                    }}
+                                                    min={1000}
+                                                    max={100000000}
+                                                    step={50000}
+                                                />
+                                            ) : null}
+                                        </div>
+                                    </SettingsSection>
+                                )}
+                                {shouldShow('reasoning') && (
+                                    <SettingsSection
+                                        title={t('settings.ompchamber.visual.section.reasoning')}
+                                        settingsItem="chat.reasoning"
+                                        contentClassName={SETTINGS_OPTION_STACK_CLASS}
+                                    >
+                                        <SettingsCheckboxRow
+                                            checked={showReasoningTraces}
+                                            onChange={setShowReasoningTraces}
+                                            label={t('settings.ompchamber.visual.field.showReasoningTraces')}
+                                            ariaLabel={t('settings.ompchamber.visual.field.showReasoningTracesAria')}
+                                            settingsItem="chat.reasoning-traces"
+                                        />
+                                        {showReasoningTraces && (
+                                            <SettingsCheckboxRow
+                                                checked={collapsibleThinkingBlocks}
+                                                onChange={setCollapsibleThinkingBlocks}
+                                                label={t('settings.ompchamber.visual.field.collapsibleThinkingBlocks')}
+                                                ariaLabel={t('settings.ompchamber.visual.field.collapsibleThinkingBlocksAria')}
+                                            />
+                                        )}
+                                    </SettingsSection>
+                                )}
+
+                                {(shouldShow('collapsibleUserMessages') || shouldShow('stickyUserHeader') || (shouldShow('promptNavigatorEnabled') && !isVSCode) || shouldShow('wideChatLayout') || shouldShow('splitAssistantMessageActions') || shouldShow('codeBlockLineWrap')) && (
+                                <SettingsSection
+                                    title={t('settings.ompchamber.visual.section.messageAppearance')}
+                                    settingsItem="chat.message-appearance"
+                                    contentClassName={SETTINGS_OPTION_STACK_CLASS}
+                                >
+                                {shouldShow('collapsibleUserMessages') && (
+                                    <SettingsCheckboxRow
+                                        checked={collapsibleUserMessages}
+                                        onChange={handleCollapsibleUserMessagesChange}
+                                        label={t('settings.ompchamber.visual.field.collapsibleUserMessages')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.collapsibleUserMessagesAria')}
+                                        settingsItem="chat.collapsible-user-messages"
+                                    />
+                                )}
+
+                                {shouldShow('stickyUserHeader') && (
+                                    <SettingsCheckboxRow
+                                        checked={stickyUserHeader}
+                                        onChange={handleStickyUserHeaderChange}
+                                        label={t('settings.ompchamber.visual.field.stickyUserHeader')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.stickyUserHeaderAria')}
+                                        settingsItem="chat.sticky-user-header"
+                                    />
+                                )}
+
+                                {shouldShow('promptNavigatorEnabled') && !isVSCode && (
+                                    <SettingsCheckboxRow
+                                        checked={promptNavigatorEnabled}
+                                        onChange={handlePromptNavigatorEnabledChange}
+                                        label={t('settings.ompchamber.visual.field.promptNavigatorEnabled')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.promptNavigatorEnabledAria')}
+                                        settingsItem="chat.prompt-navigator"
+                                    />
+                                )}
+
+                                {shouldShow('wideChatLayout') && (
+                                    <SettingsCheckboxRow
+                                        checked={wideChatLayoutEnabled}
+                                        onChange={handleWideChatLayoutChange}
+                                        label={t('settings.ompchamber.visual.field.wideChatLayout')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.wideChatLayoutAria')}
+                                        settingsItem="chat.wide-layout"
+                                    />
+                                )}
+
+                                {shouldShow('splitAssistantMessageActions') && (
+                                    <SettingsCheckboxRow
+                                        checked={showSplitAssistantMessageActions}
+                                        onChange={handleShowSplitAssistantMessageActionsChange}
+                                        label={t('settings.ompchamber.visual.field.showSplitAssistantMessageActions')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.showSplitAssistantMessageActionsAria')}
+                                        settingsItem="chat.inline-assistant-actions"
+                                        info={t('settings.ompchamber.visual.field.showSplitAssistantMessageActionsTooltip')}
+                                    />
+                                )}
+
+                                {shouldShow('codeBlockLineWrap') && (
+                                    <SettingsCheckboxRow
+                                        checked={codeBlockLineWrap}
+                                        onChange={setCodeBlockLineWrap}
+                                        label={t('settings.ompchamber.visual.field.codeBlockLineWrap')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.codeBlockLineWrapAria')}
+                                        settingsItem="chat.code-block-line-wrap"
+                                    />
+                                )}
+                                </SettingsSection>
+                                )}
+
+                                {(shouldShow('showToolFileIcons') || shouldShow('showTurnChangedFiles') || (shouldShow('dotfiles') && !isVSCodeRuntime()) || shouldShow('fileViewerPreview')) && (
+                                <SettingsSection
+                                    title={t('settings.ompchamber.visual.section.toolsAndFiles')}
+                                    settingsItem="chat.tools-and-files"
+                                    contentClassName={SETTINGS_OPTION_STACK_CLASS}
+                                >
+                                {shouldShow('showToolFileIcons') && (
+                                    <SettingsCheckboxRow
+                                        checked={showToolFileIcons}
+                                        onChange={handleShowToolFileIconsChange}
+                                        label={t('settings.ompchamber.visual.field.showToolFileIcons')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.showToolFileIconsAria')}
+                                        settingsItem="chat.tool-file-icons"
+                                    />
+                                )}
+
+                                {shouldShow('showTurnChangedFiles') && (
+                                    <SettingsCheckboxRow
+                                        checked={showTurnChangedFiles}
+                                        onChange={handleShowTurnChangedFilesChange}
+                                        label={t('settings.ompchamber.visual.field.showTurnChangedFiles')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.showTurnChangedFilesAria')}
+                                        settingsItem="chat.changed-files"
+                                    />
+                                )}
+
+                                {shouldShow('dotfiles') && !isVSCodeRuntime() && (
+                                    <SettingsCheckboxRow
+                                        checked={directoryShowHidden}
+                                        onChange={setDirectoryShowHidden}
+                                        label={t('settings.ompchamber.visual.field.showDotfiles')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.showDotfilesAria')}
+                                        settingsItem="chat.dotfiles"
+                                    />
+                                )}
+
+                                {shouldShow('fileViewerPreview') && (
+                                    <SettingsCheckboxRow
+                                        checked={settingsDefaultFileViewerPreview}
+                                        onChange={handleFileViewerPreviewChange}
+                                        label={t('settings.ompchamber.defaults.field.openFilesPreview')}
+                                        ariaLabel={t('settings.ompchamber.defaults.field.openFilesPreviewAria')}
+                                    />
+                                )}
+                                </SettingsSection>
+                                )}
+
+                                {(shouldShow('persistDraft') || (!isMobile && shouldShow('inputSpellcheck'))) && (
+                                <SettingsSection
+                                    title={t('settings.ompchamber.visual.section.composer')}
+                                    settingsItem="chat.composer"
+                                    contentClassName={SETTINGS_OPTION_STACK_CLASS}
+                                >
+                                {shouldShow('persistDraft') && (
+                                    <SettingsCheckboxRow
+                                        checked={persistChatDraft}
+                                        onChange={setPersistChatDraft}
+                                        label={t('settings.ompchamber.visual.field.persistDraftMessages')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.persistDraftMessagesAria')}
+                                        settingsItem="chat.persist-drafts"
+                                    />
+                                )}
+
+                                {!isMobile && shouldShow('inputSpellcheck') && (
+                                    <SettingsCheckboxRow
+                                        checked={inputSpellcheckEnabled}
+                                        onChange={handleInputSpellcheckChange}
+                                        label={t('settings.ompchamber.visual.field.enableSpellcheckInTextInputs')}
+                                        ariaLabel={t('settings.ompchamber.visual.field.enableSpellcheckInTextInputsAria')}
+                                        settingsItem="chat.spellcheck"
+                                    />
+                                )}
+                                </SettingsSection>
+                                )}
+                            </>
+                        )}
+                    </>
+                )}
+
+                {/* --- Privacy & Data --- */}
+                {shouldShow('reportUsage') && (
+                    <SettingsSection title={t('settings.ompchamber.visual.section.privacy')}>
+                        <SettingsCheckboxRow
+                            checked={reportUsage}
+                            onChange={handleReportUsageChange}
+                            label={t('settings.ompchamber.visual.field.sendAnonymousUsageReports')}
+                            info={t('settings.ompchamber.visual.field.sendAnonymousUsageReportsHint')}
+                            ariaLabel={t('settings.ompchamber.visual.field.sendAnonymousUsageReportsAria')}
+                            settingsItem="appearance.usage-reports"
+                        />
+                    </SettingsSection>
+                )}
+
+            </div>
+    );
+};

@@ -1,47 +1,47 @@
 ---
 title: Variables de entorno
-description: Configura la integración de OpenChamber y OpenCode con variables de entorno.
+description: Configura la integración de OMPChamber y OpenCode con variables de entorno.
 ---
 
 # Variables de entorno
 
-OpenChamber lee estas variables al arrancar. Para servicios de inicio, `openchamber startup enable` guarda por defecto una copia del entorno actual, así que vuelve a ejecutarlo después de cambiar variables que quieras usar en el servicio.
+OMPChamber lee estas variables al arrancar. Para servicios de inicio, `ompchamber startup enable` guarda por defecto una copia del entorno actual, así que vuelve a ejecutarlo después de cambiar variables que quieras usar en el servicio.
 
-## Servidor OpenChamber
+## Servidor OMPChamber
 
-### `OPENCHAMBER_HOST`
+### `OMPCHAMBER_HOST`
 
-Dirección donde escucha el servidor web de OpenChamber. Usa `0.0.0.0` para permitir acceso desde otras máquinas.
+Dirección donde escucha el servidor web de OMPChamber. Usa `0.0.0.0` para permitir acceso desde otras máquinas.
 
-### `OPENCHAMBER_UI_PASSWORD`
+### `OMPCHAMBER_UI_PASSWORD`
 
 Contraseña para la interfaz del navegador. Úsala cuando no te limites a localhost, o cuando uses túneles o un proxy inverso.
 
-### `OPENCHAMBER_API_ONLY`
+### `OMPCHAMBER_API_ONLY`
 
-Inicia OpenChamber en modo headless cuando vale `true` o `1`. Las rutas API siguen disponibles para clientes de escritorio y móviles, pero no se sirve la UI del navegador.
+Inicia OMPChamber en modo headless cuando vale `true` o `1`. Las rutas API siguen disponibles para clientes de escritorio y móviles, pero no se sirve la UI del navegador.
 
-### `OPENCHAMBER_DATA_DIR`
+### `OMPCHAMBER_DATA_DIR`
 
-Cambia el directorio de datos de OpenChamber. Por defecto es `~/.config/openchamber`.
+Cambia el directorio de datos de OMPChamber. Por defecto es `~/.config/ompchamber`.
 
-### `OPENCHAMBER_COMPRESS_API`
+### `OMPCHAMBER_COMPRESS_API`
 
 Controla la compresión de respuestas de la API. `true` o `1` la activa; `false` o `0` la desactiva.
 
-### `OPENCHAMBER_SKIP_API_COMPRESSION`
+### `OMPCHAMBER_SKIP_API_COMPRESSION`
 
-Desactiva la compresión de respuestas de la API si vale `true` o `1`. Tiene prioridad sobre `OPENCHAMBER_COMPRESS_API`.
+Desactiva la compresión de respuestas de la API si vale `true` o `1`. Tiene prioridad sobre `OMPCHAMBER_COMPRESS_API`.
 
-### `OPENCHAMBER_VERBOSE_REQUEST_LOGS`
+### `OMPCHAMBER_VERBOSE_REQUEST_LOGS`
 
 Activa logs HTTP detallados si vale `true` o `1`.
 
-### `OPENCHAMBER_UPDATE_API_URL`
+### `OMPCHAMBER_UPDATE_API_URL`
 
 Cambia el endpoint de comprobación de actualizaciones. La mayoría de usuarios no debería tocarlo.
 
-### `OPENCHAMBER_PACKAGE_MANAGER`
+### `OMPCHAMBER_PACKAGE_MANAGER`
 
 Fuerza el gestor de paquetes usado para actualizar cuando la detección automática se equivoca.
 
@@ -49,7 +49,7 @@ Fuerza el gestor de paquetes usado para actualizar cuando la detección automát
 
 ### `OPENCODE_HOST`
 
-Conecta OpenChamber a un servidor OpenCode existente. Debe ser un origin `http` o `https` con puerto explícito y sin ruta, query ni hash. `OPENCODE_HOST` tiene prioridad sobre `OPENCODE_PORT`.
+Conecta OMPChamber a un servidor OpenCode existente. Debe ser un origin `http` o `https` con puerto explícito y sin ruta, query ni hash. `OPENCODE_HOST` tiene prioridad sobre `OPENCODE_PORT`.
 
 ### `OPENCODE_PORT`
 
@@ -57,15 +57,15 @@ Define el puerto del servidor OpenCode. Con OpenCode gestionado pide ese puerto;
 
 ### `OPENCODE_SKIP_START`
 
-Evita que OpenChamber arranque su propio servidor OpenCode cuando vale `true`.
+Evita que OMPChamber arranque su propio servidor OpenCode cuando vale `true`.
 
-### `OPENCHAMBER_OPENCODE_HOSTNAME`
+### `OMPCHAMBER_OPENCODE_HOSTNAME`
 
-Hostname para el servidor OpenCode gestionado por OpenChamber. Por defecto es `127.0.0.1`.
+Hostname para el servidor OpenCode gestionado por OMPChamber. Por defecto es `127.0.0.1`.
 
 ### `OPENCODE_BINARY`
 
-Ruta al ejecutable `opencode` que debe usar OpenChamber.
+Ruta al ejecutable `opencode` que debe usar OMPChamber.
 
 ### `OPENCODE_CONFIG`
 
@@ -83,9 +83,9 @@ Directorio de datos personalizado para el servidor OpenCode gestionado.
 
 Elige la distro WSL usada para la integración con OpenCode en Windows.
 
-### `OPENCHAMBER_OPENCODE_WSL_DISTRO`
+### `OMPCHAMBER_OPENCODE_WSL_DISTRO`
 
-Alias específico de OpenChamber para elegir la distro WSL. `OPENCODE_WSL_DISTRO` tiene prioridad si ambas están definidas.
+Alias específico de OMPChamber para elegir la distro WSL. `OPENCODE_WSL_DISTRO` tiene prioridad si ambas están definidas.
 
 ### `OPENCODE_JWT_SECRET`
 
@@ -93,19 +93,19 @@ Secreto para firmar tokens de autenticación de la UI. En servicios persistentes
 
 ## Terminal y Git
 
-### `OPENCHAMBER_TERMINAL_SHELL`
+### `OMPCHAMBER_TERMINAL_SHELL`
 
-Ejecutable de shell para las sesiones de terminal en OpenChamber.
+Ejecutable de shell para las sesiones de terminal en OMPChamber.
 
-### `OPENCHAMBER_GIT_BINARY`
+### `OMPCHAMBER_GIT_BINARY`
 
-Ejecutable de Git usado por las funciones Git de OpenChamber.
+Ejecutable de Git usado por las funciones Git de OMPChamber.
 
 ### `GIT_BINARY`
 
-Override alternativo para el ejecutable de Git. Para ajustes específicos de OpenChamber, prefiere `OPENCHAMBER_GIT_BINARY`.
+Override alternativo para el ejecutable de Git. Para ajustes específicos de OMPChamber, prefiere `OMPCHAMBER_GIT_BINARY`.
 
-### `OPENCHAMBER_GIT_READ_CACHE_TTL_MS`
+### `OMPCHAMBER_GIT_READ_CACHE_TTL_MS`
 
 TTL, en milisegundos, para lecturas de archivos con cache respaldadas por Git. Usa `0` para desactivar la cache al depurar.
 
@@ -113,25 +113,25 @@ TTL, en milisegundos, para lecturas de archivos con cache respaldadas por Git. U
 
 ### `OPENAI_API_KEY`
 
-API key para funciones de voz de OpenChamber que llaman a servicios compatibles con OpenAI.
+API key para funciones de voz de OMPChamber que llaman a servicios compatibles con OpenAI.
 
-### `OPENCHAMBER_ALLOW_REMOTE_OPENAI_COMPAT_URLS`
+### `OMPCHAMBER_ALLOW_REMOTE_OPENAI_COMPAT_URLS`
 
 Permite base URLs remotas compatibles con OpenAI para funciones de voz cuando vale `true` o `1`.
 
 ### `NGROK_AUTHTOKEN`
 
-Token de autenticación de ngrok usado por los comandos de túnel de OpenChamber. También puedes configurarlo con `ngrok config add-authtoken <token>`.
+Token de autenticación de ngrok usado por los comandos de túnel de OMPChamber. También puedes configurarlo con `ngrok config add-authtoken <token>`.
 
 ## Ayudas de runtime
 
 ### `BUN_BINARY`
 
-Ejecutable de Bun que OpenChamber debe usar al iniciar procesos daemon.
+Ejecutable de Bun que OMPChamber debe usar al iniciar procesos daemon.
 
 ### `BUN_INSTALL`
 
-Raíz de instalación de Bun. OpenChamber la usa para encontrar `bin/bun` al iniciar daemons y actualizar.
+Raíz de instalación de Bun. OMPChamber la usa para encontrar `bin/bun` al iniciar daemons y actualizar.
 
 ### `VITE_OPENCODE_URL`
 

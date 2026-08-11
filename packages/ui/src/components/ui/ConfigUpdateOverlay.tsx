@@ -3,7 +3,7 @@ import {
   getConfigUpdateSnapshot,
   subscribeConfigUpdate,
 } from "@/lib/configUpdate";
-import { OpenChamberLogo } from "./OpenChamberLogo";
+import { OMPChamberLogo } from "./OMPChamberLogo";
 
 export const ConfigUpdateOverlay: React.FC = () => {
   const [{ isUpdating }, setState] = React.useState(() => getConfigUpdateSnapshot());
@@ -20,7 +20,7 @@ export const ConfigUpdateOverlay: React.FC = () => {
   // The animated logo alone signals "working".
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/90">
-      <OpenChamberLogo width={80} height={80} isAnimated />
+      <OMPChamberLogo width={80} height={80} isAnimated />
     </div>
   );
 };

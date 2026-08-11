@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import { createRemoteClientAuthRuntime } from './remote-clients.js';
 
 const createRuntime = async () => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'openchamber-remote-clients-test-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ompchamber-remote-clients-test-'));
   const runtime = createRemoteClientAuthRuntime({
     fsPromises: fs,
     path,

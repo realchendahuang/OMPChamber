@@ -21,7 +21,7 @@ function writeSnippet(relativePath, content) {
 
 describe('snippets', () => {
   beforeEach(() => {
-    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-snippets-'));
+    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-snippets-'));
   });
 
   afterEach(() => {

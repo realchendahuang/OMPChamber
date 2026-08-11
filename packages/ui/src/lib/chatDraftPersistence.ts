@@ -24,7 +24,7 @@ type PersistedChatDraftEnvelope = {
   drafts: Record<string, PersistedChatDraft>;
 };
 
-const STORAGE_KEY = 'openchamber.chatDrafts.v2';
+const STORAGE_KEY = 'ompchamber.chatDrafts.v2';
 const MAX_DRAFTS = 50;
 const storage = getDeferredSafeStorage();
 const deletionListeners = new Set<(identity: ChatDraftIdentity) => void>();

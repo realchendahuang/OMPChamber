@@ -13,7 +13,7 @@ export type DraftStarterRef = {
     name: string;
 };
 
-// Our built-in openchamber commands (Session magic prompts). They are always
+// Our built-in ompchamber commands (Session magic prompts). They are always
 // available to pin, keep their bespoke icons, and seed the default global set.
 export type BuiltInStarter = {
     name: string;

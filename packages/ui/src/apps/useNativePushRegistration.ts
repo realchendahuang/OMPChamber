@@ -28,7 +28,7 @@ import { useUIStore } from '@/stores/useUIStore';
 // server then defaults to production, matching released builds.
 const getApnsEnvironment = (): 'sandbox' | 'production' | undefined => {
   if (typeof window === 'undefined') return undefined;
-  const env = (window as typeof window & { __OPENCHAMBER_APNS_ENV__?: string }).__OPENCHAMBER_APNS_ENV__;
+  const env = (window as typeof window & { __OMPCHAMBER_APNS_ENV__?: string }).__OMPCHAMBER_APNS_ENV__;
   if (env === 'development') return 'sandbox';
   if (env === 'production') return 'production';
   return undefined;

@@ -27,7 +27,7 @@ export const buildLocalDesktopHost = (localOrigin?: string | null): DesktopHost 
 
 export const getLocalDesktopOrigin = (): string => {
   if (typeof window === 'undefined') return '';
-  return window.__OPENCHAMBER_LOCAL_ORIGIN__ || window.location.origin;
+  return window.__OMPCHAMBER_LOCAL_ORIGIN__ || window.location.origin;
 };
 
 export const runtimeKeyForDesktopHost = (host: DesktopHost): string => {
@@ -83,7 +83,7 @@ export const resolveCurrentDesktopHost = (hosts: DesktopHost[]): ResolvedDesktop
     return { id: match.id, label: match.label, url: normalizeHostUrl(match.url) || match.url };
   }
 
-  if (currentHref.startsWith('openchamber-ui://')) {
+  if (currentHref.startsWith('ompchamber-ui://')) {
     return { id: LOCAL_HOST_ID, label: 'Local', url: normalizedLocal };
   }
 

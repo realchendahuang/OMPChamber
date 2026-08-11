@@ -28,7 +28,7 @@ function readJson(filePath) {
 
 describe('opencode plugins data layer', () => {
   beforeAll(async () => {
-    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-plugins-'));
+    rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-plugins-'));
     userConfigPath = path.join(rootDir, 'user-opencode.json');
     process.env.OPENCODE_CONFIG = userConfigPath;
     plugins = await import('./plugins.js');

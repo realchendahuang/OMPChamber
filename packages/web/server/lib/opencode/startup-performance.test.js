@@ -3,16 +3,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { recordStartupPerformance } from './startup-performance.js';
 
 describe('startup performance diagnostics', () => {
-  const previousValue = process.env.OPENCHAMBER_STARTUP_PERF;
+  const previousValue = process.env.OMPCHAMBER_STARTUP_PERF;
 
   afterEach(() => {
-    if (previousValue === undefined) delete process.env.OPENCHAMBER_STARTUP_PERF;
-    else process.env.OPENCHAMBER_STARTUP_PERF = previousValue;
+    if (previousValue === undefined) delete process.env.OMPCHAMBER_STARTUP_PERF;
+    else process.env.OMPCHAMBER_STARTUP_PERF = previousValue;
     vi.restoreAllMocks();
   });
 
   it('is disabled by default', () => {
-    delete process.env.OPENCHAMBER_STARTUP_PERF;
+    delete process.env.OMPCHAMBER_STARTUP_PERF;
     const info = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     recordStartupPerformance('opencode.health.ready', { durationMs: 5 });
@@ -21,7 +21,7 @@ describe('startup performance diagnostics', () => {
   });
 
   it('records only approved labels and numeric metadata', () => {
-    process.env.OPENCHAMBER_STARTUP_PERF = '1';
+    process.env.OMPCHAMBER_STARTUP_PERF = '1';
     const info = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     recordStartupPerformance('proxy.readiness-hold', {
@@ -50,7 +50,7 @@ describe('startup performance diagnostics', () => {
   });
 
   it('rejects unknown phases and invalid field values', () => {
-    process.env.OPENCHAMBER_STARTUP_PERF = 'true';
+    process.env.OMPCHAMBER_STARTUP_PERF = 'true';
     const info = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     recordStartupPerformance('secret.phase', { durationMs: 1 });

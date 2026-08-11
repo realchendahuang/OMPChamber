@@ -1,7 +1,7 @@
 import type { Session } from '@opencode-ai/sdk/v2';
 
 // Session goal driven by the server's session-goal runtime, stored under
-// session.metadata.openchamber.goal. The UI writes goals (create/edit/
+// session.metadata.ompchamber.goal. The UI writes goals (create/edit/
 // pause/resume/clear) by patching this metadata; the server loop accounts
 // usage, audits progress with the small model, and auto-continues the
 // session until the goal settles.
@@ -39,7 +39,7 @@ const isGoalStatus = (value: unknown): value is SessionGoalStatus =>
 export function getSessionGoal(session: Session | null | undefined): SessionGoalPayload | null {
   const metadata = (session as { metadata?: unknown } | null | undefined)?.metadata;
   if (!isRecord(metadata)) return null;
-  const namespace = metadata.openchamber;
+  const namespace = metadata.ompchamber;
   if (!isRecord(namespace)) return null;
   const goal = namespace.goal;
   if (!isRecord(goal)) return null;

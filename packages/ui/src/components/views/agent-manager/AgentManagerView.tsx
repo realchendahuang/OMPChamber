@@ -21,7 +21,7 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ className })
   const [connectionStatus, setConnectionStatus] = React.useState<'connecting' | 'connected' | 'error' | 'disconnected'>(
     () =>
       (typeof window !== 'undefined'
-        ? (window as unknown as { __OPENCHAMBER_CONNECTION__?: { status?: string } }).__OPENCHAMBER_CONNECTION__?.status as
+        ? (window as unknown as { __OMPCHAMBER_CONNECTION__?: { status?: string } }).__OMPCHAMBER_CONNECTION__?.status as
             'connecting' | 'connected' | 'error' | 'disconnected' | undefined
         : 'connecting') || 'connecting'
   );
@@ -50,7 +50,7 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ className })
 
     const current =
       (typeof window !== 'undefined'
-        ? (window as unknown as { __OPENCHAMBER_CONNECTION__?: { status?: string } }).__OPENCHAMBER_CONNECTION__?.status
+        ? (window as unknown as { __OMPCHAMBER_CONNECTION__?: { status?: string } }).__OMPCHAMBER_CONNECTION__?.status
         : undefined) as 'connecting' | 'connected' | 'error' | 'disconnected' | undefined;
     if (current) setConnectionStatus(current);
 
@@ -60,8 +60,8 @@ export const AgentManagerView: React.FC<AgentManagerViewProps> = ({ className })
         setConnectionStatus(status);
       }
     };
-    window.addEventListener('openchamber:connection-status', handler as EventListener);
-    return () => window.removeEventListener('openchamber:connection-status', handler as EventListener);
+    window.addEventListener('ompchamber:connection-status', handler as EventListener);
+    return () => window.removeEventListener('ompchamber:connection-status', handler as EventListener);
   }, [isVSCodeRuntime]);
 
   React.useEffect(() => {

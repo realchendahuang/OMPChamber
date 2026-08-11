@@ -7,21 +7,21 @@ description: Problemas comunes de configuración y ejecución con soluciones rá
 
 ¿Te topaste con un problema? Busca el síntoma abajo y prueba la solución.
 
-## El comando OpenChamber se cierra o no arranca
+## El comando OMPChamber se cierra o no arranca
 
 - confirma que Node.js es `>=22`
-- ejecuta `openchamber --version`
+- ejecuta `ompchamber --version`
 - reinstala la última CLI si hace falta
 
 ## No se puede acceder a la UI web
 
-- revisa los logs del servidor con `openchamber logs`
+- revisa los logs del servidor con `ompchamber logs`
 - verifica el puerto activo (por defecto `3000`)
 - abre primero `http://localhost:3000` directamente antes de probar enlaces de túnel
 
 ## El enlace remoto/de túnel no funciona
 
-- ejecuta `openchamber tunnel status --all`
+- ejecuta `ompchamber tunnel status --all`
 - reinicia el túnel desde la misma instancia/puerto
 - regenera el enlace de conexión si el token anterior ya se usó
 
@@ -29,7 +29,7 @@ Consulta [Túneles](/es/tunnels/) para la configuración completa, y [Proxy inve
 
 ## La extensión de VS Code no se conecta
 
-- confirma que el servidor de OpenChamber está en marcha
+- confirma que el servidor de OMPChamber está en marcha
 - verifica que la extensión está actualizada
 - recarga la ventana de VS Code y reintenta la conexión
 

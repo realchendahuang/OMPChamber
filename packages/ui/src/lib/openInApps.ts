@@ -39,7 +39,7 @@ export const getPlatformOpenInApp = (app: OpenInApp): OpenInApp => {
     return app;
   }
 
-  const platform = window.__OPENCHAMBER_PLATFORM__;
+  const platform = window.__OMPCHAMBER_PLATFORM__;
   if (app.id === 'finder') {
     if (platform === 'win32') {
       return { ...app, label: 'Explorer', appName: 'File Explorer' };

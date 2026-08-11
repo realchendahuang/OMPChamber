@@ -5,13 +5,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { registerQuotaRoutes } from './routes.js';
 
-const previousDataDir = process.env.OPENCHAMBER_DATA_DIR;
-const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-go-routes-'));
-process.env.OPENCHAMBER_DATA_DIR = temporaryDirectory;
+const previousDataDir = process.env.OMPCHAMBER_DATA_DIR;
+const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-go-routes-'));
+process.env.OMPCHAMBER_DATA_DIR = temporaryDirectory;
 
 afterAll(() => {
-  if (previousDataDir === undefined) delete process.env.OPENCHAMBER_DATA_DIR;
-  else process.env.OPENCHAMBER_DATA_DIR = previousDataDir;
+  if (previousDataDir === undefined) delete process.env.OMPCHAMBER_DATA_DIR;
+  else process.env.OMPCHAMBER_DATA_DIR = previousDataDir;
   fs.rmSync(temporaryDirectory, { recursive: true, force: true });
 });
 

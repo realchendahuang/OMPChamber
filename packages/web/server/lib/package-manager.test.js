@@ -55,7 +55,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=true when both API and npm confirm a newer version', async () => {
     fetchMock
-      .when('api.openchamber.dev', {
+      .when('api.ompchamber.dev', {
         ok: true,
         json: async () => ({
           latestVersion: '1.10.0',
@@ -85,7 +85,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=false when API claims update but npm has same version', async () => {
     fetchMock
-      .when('api.openchamber.dev', {
+      .when('api.ompchamber.dev', {
         ok: true,
         json: async () => ({
           latestVersion: '1.10.0',
@@ -107,7 +107,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=false when npm only has a prerelease of the current version', async () => {
     fetchMock
-      .when('api.openchamber.dev', Promise.reject(new Error('Network error')))
+      .when('api.ompchamber.dev', Promise.reject(new Error('Network error')))
       .when('registry.npmjs.org', {
         ok: true,
         json: async () => ({
@@ -122,7 +122,7 @@ describe('checkForUpdates', () => {
 
   it('accepts electron desktop update claims without npm cross-checking', async () => {
     fetchMock
-      .when('api.openchamber.dev', {
+      .when('api.ompchamber.dev', {
         ok: true,
         json: async () => ({
           latestVersion: '1.10.0',
@@ -151,29 +151,29 @@ describe('checkForUpdates', () => {
 
   it('resolves an Android APK asset when the update API returns an AAB', async () => {
     fetchMock
-      .when('api.openchamber.dev', {
+      .when('api.ompchamber.dev', {
         ok: true,
         json: async () => ({
           latestVersion: '1.10.0',
           updateAvailable: true,
-          downloadUrl: 'https://github.com/openchamber/openchamber/releases/download/v1.10.0/OpenChamber-1.10.0-42-android.aab',
+          downloadUrl: 'https://github.com/realchendahuang/OMPChamber/releases/download/v1.10.0/OMPChamber-1.10.0-42-android.aab',
         }),
       })
-      .when('api.github.com/repos/openchamber/openchamber/releases/tags/v1.10.0', {
+      .when('api.github.com/repos/realchendahuang/OMPChamber/releases/tags/v1.10.0', {
         ok: true,
         json: async () => ({
           assets: [
             {
-              name: 'OpenChamber-1.10.0-42-android.aab',
-              browser_download_url: 'https://downloads.example/OpenChamber-1.10.0-42-android.aab',
+              name: 'OMPChamber-1.10.0-42-android.aab',
+              browser_download_url: 'https://downloads.example/OMPChamber-1.10.0-42-android.aab',
             },
             {
               name: 'app-release.apk',
               browser_download_url: 'https://downloads.example/app-release.apk',
             },
             {
-              name: 'OpenChamber-1.10.0-42-android.apk',
-              browser_download_url: 'https://downloads.example/OpenChamber-1.10.0-42-android.apk',
+              name: 'OMPChamber-1.10.0-42-android.apk',
+              browser_download_url: 'https://downloads.example/OMPChamber-1.10.0-42-android.apk',
             },
           ],
         }),
@@ -185,12 +185,12 @@ describe('checkForUpdates', () => {
       currentVersion: '1.9.10',
     });
 
-    expect(result.downloadUrl).toBe('https://downloads.example/OpenChamber-1.10.0-42-android.apk');
+    expect(result.downloadUrl).toBe('https://downloads.example/OMPChamber-1.10.0-42-android.apk');
   });
 
   it('keeps a direct Android APK URL from the update API', async () => {
-    const apkUrl = 'https://github.com/openchamber/openchamber/releases/download/v1.10.0/OpenChamber-1.10.0-42-android.apk';
-    fetchMock.when('api.openchamber.dev', {
+    const apkUrl = 'https://github.com/realchendahuang/OMPChamber/releases/download/v1.10.0/OMPChamber-1.10.0-42-android.apk';
+    fetchMock.when('api.ompchamber.dev', {
       ok: true,
       json: async () => ({
         latestVersion: '1.10.0',
@@ -211,7 +211,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=false when API claims update but npm is behind', async () => {
     fetchMock
-      .when('api.openchamber.dev', {
+      .when('api.ompchamber.dev', {
         ok: true,
         json: async () => ({
           latestVersion: '1.10.0',
@@ -234,7 +234,7 @@ describe('checkForUpdates', () => {
   // --- Scenario: API says no update, npm agrees ---
 
   it('returns available=false when API says no update and versions match', async () => {
-    fetchMock.when('api.openchamber.dev', {
+    fetchMock.when('api.ompchamber.dev', {
       ok: true,
       json: async () => ({
         latestVersion: '1.9.10',
@@ -251,7 +251,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=true from npm fallback when API is unreachable and npm has newer version', async () => {
     fetchMock
-      .when('api.openchamber.dev', Promise.reject(new Error('Network error')))
+      .when('api.ompchamber.dev', Promise.reject(new Error('Network error')))
       .when('registry.npmjs.org', {
         ok: true,
         json: async () => ({
@@ -271,7 +271,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=false from npm fallback when API is unreachable and versions match', async () => {
     fetchMock
-      .when('api.openchamber.dev', Promise.reject(new Error('Network error')))
+      .when('api.ompchamber.dev', Promise.reject(new Error('Network error')))
       .when('registry.npmjs.org', {
         ok: true,
         json: async () => ({
@@ -288,7 +288,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=false when API returns non-ok status and versions match on npm', async () => {
     fetchMock
-      .when('api.openchamber.dev', {
+      .when('api.ompchamber.dev', {
         ok: false,
         status: 500,
         json: async () => ({}),
@@ -309,7 +309,7 @@ describe('checkForUpdates', () => {
 
   it('returns available=false when both sources are unreachable', async () => {
     fetchMock
-      .when('api.openchamber.dev', Promise.reject(new Error('Network error')))
+      .when('api.ompchamber.dev', Promise.reject(new Error('Network error')))
       .when('registry.npmjs.org', Promise.reject(new Error('Registry unreachable')));
 
     const result = await checkForUpdates({ currentVersion: '1.9.10' });

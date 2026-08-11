@@ -14,7 +14,7 @@ export const isCapacitorApp = (): boolean => {
 export const isWindowsArm64 = (): boolean => {
   if (typeof window === 'undefined') return false;
 
-  const electronArch = window.__OPENCHAMBER_ELECTRON__?.arch?.toLowerCase?.();
+  const electronArch = window.__OMPCHAMBER_ELECTRON__?.arch?.toLowerCase?.();
   if (electronArch === 'arm64' || electronArch === 'aarch64') {
     const platform = (navigator.platform || '').toLowerCase();
     return platform.includes('win');

@@ -187,8 +187,8 @@ const TOOL_METADATA: Record<string, ToolMetadata> = {
       ]
     },
 
-    openchamber: {
-      displayName: 'OpenChamber',
+    ompchamber: {
+      displayName: 'OMPChamber',
       category: 'system',
       outputLanguage: 'json',
       inputFields: []

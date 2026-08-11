@@ -33,7 +33,7 @@ export const COMPOSER_EDITOR_THEME_SPEC = {
     // does nothing at all — the border is what has to be coloured.
     //
     // CodeMirror recolours it for dark editors through `&dark .cm-cursor`,
-    // which needs the theme to declare itself dark. OpenChamber themes are not
+    // which needs the theme to declare itself dark. OMPChamber themes are not
     // only light or dark, so the cursor takes the surface foreground directly
     // instead. `&.cm-editor` matches the specificity of that `&dark` rule, and
     // theme styles mount after the base theme, so this wins in every variant.

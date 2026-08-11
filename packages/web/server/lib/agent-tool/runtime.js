@@ -1,14 +1,14 @@
 import { parse as parseJsonc } from 'jsonc-parser';
 import { pathToFileURL } from 'node:url';
 import {
-  OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS,
-  OPENCHAMBER_AGENT_TOOL_ACTIONS,
-} from '../openchamber-control/actions.js';
+  OMPCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS,
+  OMPCHAMBER_AGENT_TOOL_ACTIONS,
+} from '../ompchamber-control/actions.js';
 
 const TOOL_SCHEMA_VERSION = 1;
-const ACTIONS = new Set(OPENCHAMBER_AGENT_TOOL_ACTIONS);
+const ACTIONS = new Set(OMPCHAMBER_AGENT_TOOL_ACTIONS);
 const AGENT_TOOL_ACTION_TITLES = Object.fromEntries(
-  OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS.map(({ action, title }) => [action, title]),
+  OMPCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS.map(({ action, title }) => [action, title]),
 );
 
 const PLUGIN_PARAMETER_PROPERTIES = {
@@ -69,12 +69,12 @@ const isLoopbackAddress = (value) => {
 };
 
 const createPluginSource = () => String.raw`
-export const OpenChamberPlugin = async () => ({
+export const OMPChamberPlugin = async () => ({
   tool: {
-    openchamber: {
-      description: "Control OpenChamber projects, sessions, and scheduled tasks on the user's behalf. Sessions and scheduled tasks you create are for the user to follow and interact with; never use this tool to delegate parts of your own current task. Use one action per call. Scope with projectId or directory; omit both to use the current session directory. Session dispatches return immediately by default and you receive no notification when a dispatched session finishes, so never promise to report back on it; the user follows it in OpenChamber; a dispatched session needs no follow-up from you. If the user later asks how it went, use session.messages (add wait to block until it is idle, lastAssistant for just the final answer) — session.send always sends a NEW prompt and never just waits. Set wait only when the user asks or the next step requires the completed result. Session and worktree deletion are unavailable.",
+    ompchamber: {
+      description: "Control OMPChamber projects, sessions, and scheduled tasks on the user's behalf. Sessions and scheduled tasks you create are for the user to follow and interact with; never use this tool to delegate parts of your own current task. Use one action per call. Scope with projectId or directory; omit both to use the current session directory. Session dispatches return immediately by default and you receive no notification when a dispatched session finishes, so never promise to report back on it; the user follows it in OMPChamber; a dispatched session needs no follow-up from you. If the user later asks how it went, use session.messages (add wait to block until it is idle, lastAssistant for just the final answer) — session.send always sends a NEW prompt and never just waits. Set wait only when the user asks or the next step requires the completed result. Session and worktree deletion are unavailable.",
       args: {
-        action: { type: "string", enum: ${JSON.stringify(OPENCHAMBER_AGENT_TOOL_ACTIONS)}, oneOf: ${JSON.stringify(OPENCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS.map(({ action, description }) => ({ const: action, description })))}, description: "OpenChamber action to perform" },
+        action: { type: "string", enum: ${JSON.stringify(OMPCHAMBER_AGENT_TOOL_ACTIONS)}, oneOf: ${JSON.stringify(OMPCHAMBER_AGENT_TOOL_ACTION_DEFINITIONS.map(({ action, description }) => ({ const: action, description })))}, description: "OMPChamber action to perform" },
         parameters: { type: "object", properties: ${JSON.stringify(PLUGIN_PARAMETER_PROPERTIES)}, additionalProperties: false, description: "Inputs for the action; use an empty object when none are needed" },
       },
       async execute(input, context) {
@@ -84,22 +84,22 @@ export const OpenChamberPlugin = async () => ({
         context.metadata({
           title,
           metadata: {
-            openchamber: {
+            ompchamber: {
               schemaVersion: ${TOOL_SCHEMA_VERSION},
               action: args.action,
               description: title,
             },
           },
         })
-        const endpoint = process.env.OPENCHAMBER_AGENT_TOOL_URL
-        const token = process.env.OPENCHAMBER_AGENT_TOOL_TOKEN
+        const endpoint = process.env.OMPCHAMBER_AGENT_TOOL_URL
+        const token = process.env.OMPCHAMBER_AGENT_TOOL_TOKEN
         const failure = (payload) => ({
           title,
           output: JSON.stringify(payload),
-          metadata: { openchamber: { schemaVersion: ${TOOL_SCHEMA_VERSION}, action: args.action, description: title, ok: false } },
+          metadata: { ompchamber: { schemaVersion: ${TOOL_SCHEMA_VERSION}, action: args.action, description: title, ok: false } },
         })
         if (!endpoint || !token) {
-          return failure({ schemaVersion: ${TOOL_SCHEMA_VERSION}, ok: false, action: args.action, error: { message: "OpenChamber managed tool connection is unavailable" } })
+          return failure({ schemaVersion: ${TOOL_SCHEMA_VERSION}, ok: false, action: args.action, error: { message: "OMPChamber managed tool connection is unavailable" } })
         }
 
         try {
@@ -119,7 +119,7 @@ export const OpenChamberPlugin = async () => ({
           context.metadata({
             title,
             metadata: {
-              openchamber: {
+              ompchamber: {
                 schemaVersion: ${TOOL_SCHEMA_VERSION},
                 action: args.action,
                 description: title,
@@ -127,8 +127,8 @@ export const OpenChamberPlugin = async () => ({
               },
             },
           })
-          if (valid) return { title, output, metadata: { openchamber: { schemaVersion: ${TOOL_SCHEMA_VERSION}, action: args.action, description: title, ok: result.ok === true } } }
-          return failure({ schemaVersion: ${TOOL_SCHEMA_VERSION}, ok: false, action: args.action, error: { message: "OpenChamber returned an invalid response", kind: "runtime", status: response.status } })
+          if (valid) return { title, output, metadata: { ompchamber: { schemaVersion: ${TOOL_SCHEMA_VERSION}, action: args.action, description: title, ok: result.ok === true } } }
+          return failure({ schemaVersion: ${TOOL_SCHEMA_VERSION}, ok: false, action: args.action, error: { message: "OMPChamber returned an invalid response", kind: "runtime", status: response.status } })
         } catch (error) {
           if (context.abort.aborted) throw error
           return failure({ schemaVersion: ${TOOL_SCHEMA_VERSION}, ok: false, action: args.action, error: { message: error instanceof Error ? error.message : String(error), kind: "runtime" } })
@@ -143,10 +143,10 @@ const mergePluginConfig = (rawConfig, pluginUrl) => {
   const errors = [];
   const parsed = asNonEmptyString(rawConfig) ? parseJsonc(rawConfig, errors, { allowTrailingComma: true }) : {};
   if (errors.length > 0 || !parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('OPENCODE_CONFIG_CONTENT must contain a valid JSON object before OpenChamber can inject its managed tool');
+    throw new Error('OPENCODE_CONFIG_CONTENT must contain a valid JSON object before OMPChamber can inject its managed tool');
   }
   if (parsed.plugin !== undefined && !Array.isArray(parsed.plugin)) {
-    throw new Error('OPENCODE_CONFIG_CONTENT plugin must be an array before OpenChamber can inject its managed tool');
+    throw new Error('OPENCODE_CONFIG_CONTENT plugin must be an array before OMPChamber can inject its managed tool');
   }
   const configured = Array.isArray(parsed.plugin) ? parsed.plugin : [];
   parsed.plugin = [
@@ -167,13 +167,13 @@ export const createAgentToolRuntime = (dependencies) => {
     env = process.env,
   } = dependencies;
   const pluginDirectory = path.join(dataDir, 'agent-tool');
-  const pluginPath = path.join(pluginDirectory, 'openchamber-plugin.js');
+  const pluginPath = path.join(pluginDirectory, 'ompchamber-plugin.js');
   let activeToken = null;
 
   const prepareManagedOpenCodeEnv = async () => {
     const port = getActivePort();
     if (!Number.isInteger(port) || port <= 0) {
-      throw new Error('OpenChamber listener port is unavailable for managed tool injection');
+      throw new Error('OMPChamber listener port is unavailable for managed tool injection');
     }
     await fsPromises.mkdir(pluginDirectory, { recursive: true });
     await fsPromises.writeFile(pluginPath, createPluginSource(), { mode: 0o600 });
@@ -181,8 +181,8 @@ export const createAgentToolRuntime = (dependencies) => {
     const pluginUrl = pathToFileURL(pluginPath).href;
     return {
       OPENCODE_CONFIG_CONTENT: mergePluginConfig(env.OPENCODE_CONFIG_CONTENT, pluginUrl),
-      OPENCHAMBER_AGENT_TOOL_URL: `http://127.0.0.1:${port}/api/openchamber/agent-tool`,
-      OPENCHAMBER_AGENT_TOOL_TOKEN: activeToken,
+      OMPCHAMBER_AGENT_TOOL_URL: `http://127.0.0.1:${port}/api/ompchamber/agent-tool`,
+      OMPCHAMBER_AGENT_TOOL_TOKEN: activeToken,
     };
   };
 
@@ -198,10 +198,10 @@ export const createAgentToolRuntime = (dependencies) => {
   const execute = async (payload = {}, options = {}) => {
     const action = asNonEmptyString(payload.input?.action);
     if (!action || !ACTIONS.has(action)) {
-      return createResult({ ok: false, action, error: { message: `Unsupported OpenChamber action: ${action || 'missing'}`, kind: 'usage' } });
+      return createResult({ ok: false, action, error: { message: `Unsupported OMPChamber action: ${action || 'missing'}`, kind: 'usage' } });
     }
     if (typeof executeAction !== 'function') {
-      return createResult({ ok: false, action, error: { message: 'OpenChamber control service is unavailable', kind: 'runtime' } });
+      return createResult({ ok: false, action, error: { message: 'OMPChamber control service is unavailable', kind: 'runtime' } });
     }
     try {
       const data = await executeAction(action, payload.input, payload.contextDirectory, options);
@@ -225,7 +225,7 @@ export const createAgentToolRuntime = (dependencies) => {
   };
 
   const registerRoutes = (app, express) => {
-    app.post('/api/openchamber/agent-tool', express.json({ limit: '1mb' }), async (req, res) => {
+    app.post('/api/ompchamber/agent-tool', express.json({ limit: '1mb' }), async (req, res) => {
       if (!authorize(req)) return res.status(401).json({ error: 'Unauthorized' });
       const controller = new AbortController();
       const abortOnDisconnect = () => {

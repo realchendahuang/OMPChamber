@@ -1,4 +1,4 @@
-import type { OpenChamberProjectAction } from './openchamberConfig';
+import type { OMPChamberProjectAction } from './ompchamberConfig';
 import { getRegisteredRuntimeAPIs } from '@/contexts/runtimeAPIRegistry';
 import { runtimeFetch } from '@/lib/runtime-fetch';
 
@@ -31,7 +31,7 @@ const COMMON_DEV_COMMANDS = [
  */
 export async function detectDevServerCommand(
   directory: string,
-  projectActions: OpenChamberProjectAction[],
+  projectActions: OMPChamberProjectAction[],
   packageJsonScripts: Record<string, string> | null,
 ): Promise<DevServerInfo | null> {
   if (!directory) return null;
@@ -97,7 +97,7 @@ async function allocatePreviewPort(): Promise<number | null> {
 /**
  * Find a project action that looks like a dev server
  */
-function findDevServerAction(actions: OpenChamberProjectAction[]): OpenChamberProjectAction | null {
+function findDevServerAction(actions: OMPChamberProjectAction[]): OMPChamberProjectAction | null {
   // Look for actions with "dev", "preview", "start" in the name or command
   for (const action of actions) {
     const nameAndCommand = `${action.name} ${action.command}`.toLowerCase();

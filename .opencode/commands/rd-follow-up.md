@@ -3,7 +3,7 @@ description: Follow up on a React Doctor PR by addressing Greptile review feedba
 agent: build
 ---
 
-You are working in the OpenChamber repository.
+You are working in the OMPChamber repository.
 
 Goal: follow up on an existing React Doctor maintenance PR, address Greptile/review bot feedback, and clean up the local batch handoff files when done.
 

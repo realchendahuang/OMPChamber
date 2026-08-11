@@ -29,7 +29,7 @@ import {
 import {
   assertAuthenticatedNetworkExposure,
   commands,
-  discoverOpenChamberInstanceOnPort,
+  discoverOMPChamberInstanceOnPort,
   discoverLifecycleInstances,
   discoverRunningInstances,
   discoverUnconfirmedRegistryInstanceOnPort,
@@ -37,24 +37,24 @@ import {
   generateUiPassword,
   getInstanceFilePath,
   getPidFilePath,
-  isOpenchamberCmdline,
-  isOpenchamberProcessRunning,
+  isOMPChamberCmdline,
+  isOMPChamberProcessRunning,
   parseArgs,
   resolveServeHost,
   resolveServeUiPassword,
 } from './cli.js';
 
-async function withTempOpenChamberDataDir(fn) {
-  const previous = process.env.OPENCHAMBER_DATA_DIR;
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-cli-test-'));
-  process.env.OPENCHAMBER_DATA_DIR = dir;
+async function withTempOMPChamberDataDir(fn) {
+  const previous = process.env.OMPCHAMBER_DATA_DIR;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-cli-test-'));
+  process.env.OMPCHAMBER_DATA_DIR = dir;
   try {
     return await fn(dir);
   } finally {
     if (typeof previous === 'string') {
-      process.env.OPENCHAMBER_DATA_DIR = previous;
+      process.env.OMPCHAMBER_DATA_DIR = previous;
     } else {
-      delete process.env.OPENCHAMBER_DATA_DIR;
+      delete process.env.OMPCHAMBER_DATA_DIR;
     }
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -84,7 +84,7 @@ async function captureStdout(fn) {
   }
 }
 
-async function startMockOpenChamberServer(options = {}) {
+async function startMockOMPChamberServer(options = {}) {
   const runtime = options.runtime || 'web';
   const pid = Number.isFinite(options.pid) ? options.pid : null;
   let shutdownRequested = false;
@@ -172,11 +172,11 @@ async function waitForTcpPort(port, timeoutMs = 3000) {
   return false;
 }
 
-function spawnOpenChamberLikeIdleProcess() {
-  return spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)', 'openchamber-idle'], { stdio: 'ignore' });
+function spawnOMPChamberLikeIdleProcess() {
+  return spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)', 'ompchamber-idle'], { stdio: 'ignore' });
 }
 
-function spawnOpenChamberLikeHungServer(port) {
+function spawnOMPChamberLikeHungServer(port) {
   const script = `
     const net = require('net');
     const sockets = new Set();
@@ -187,7 +187,7 @@ function spawnOpenChamberLikeHungServer(port) {
     server.listen(${port}, '127.0.0.1');
     setInterval(() => {}, 1000);
   `;
-  return spawn(process.execPath, ['-e', script, 'openchamber-hung-server'], { stdio: 'ignore' });
+  return spawn(process.execPath, ['-e', script, 'ompchamber-hung-server'], { stdio: 'ignore' });
 }
 
 describe('cli args', () => {
@@ -204,10 +204,10 @@ describe('cli args', () => {
   });
 
   it('parses explicit connect-url server overrides', () => {
-    const parsed = parseArgs(['connect-url', '--server', 'https://openchamber.example.com', '--port', '3002']);
+    const parsed = parseArgs(['connect-url', '--server', 'https://ompchamber.example.com', '--port', '3002']);
 
     expect(parsed.command).toBe('connect-url');
-    expect(parsed.options.server).toBe('https://openchamber.example.com');
+    expect(parsed.options.server).toBe('https://ompchamber.example.com');
     expect(parsed.options.port).toBe(3002);
   });
 
@@ -314,7 +314,7 @@ describe('cli args', () => {
       '--worktree',
       'side-task',
       '--branch',
-      'openchamber/side-task',
+      'ompchamber/side-task',
       '--base',
       'main',
       '--no-upstream',
@@ -327,7 +327,7 @@ describe('cli args', () => {
     expect(parsed.options.prompt).toBe('Investigate cache invalidation');
     expect(parsed.options.model).toBe('openai/gpt-5.5');
     expect(parsed.options.worktree).toBe('side-task');
-    expect(parsed.options.branch).toBe('openchamber/side-task');
+    expect(parsed.options.branch).toBe('ompchamber/side-task');
     expect(parsed.options.startRef).toBe('main');
     expect(parsed.options.setUpstream).toBe(false);
   });
@@ -346,7 +346,7 @@ describe('cli args', () => {
       model: 'openai/gpt-5.5',
       agent: 'build',
       worktree: 'side-task',
-      branch: 'openchamber/side-task',
+      branch: 'ompchamber/side-task',
       startRef: 'main',
       setUpstream: true,
     })).toEqual({
@@ -354,7 +354,7 @@ describe('cli args', () => {
       title: 'Side task',
       worktree: {
         name: 'side-task',
-        branchName: 'openchamber/side-task',
+        branchName: 'ompchamber/side-task',
         startRef: 'main',
       },
       prompt: 'Investigate cache invalidation',
@@ -552,9 +552,9 @@ describe('cli args', () => {
   it('formats projects compactly', () => {
     expect(formatProjectLine({
       id: 'path_repo',
-      label: 'Openchamber',
-      path: '/repo/openchamber',
-    })).toBe('- `Openchamber` — `path_repo` — `/repo/openchamber`');
+      label: 'OMPChamber',
+      path: '/repo/ompchamber',
+    })).toBe('- `OMPChamber` — `path_repo` — `/repo/ompchamber`');
   });
 
   it('formats model defaults and favorites compactly', () => {
@@ -659,7 +659,7 @@ describe('cli API target resolution', () => {
       discoverDesktopInstance: async () => null,
       discoverLifecycleInstances: async () => [{ port: 3001 }, { port: 3002 }],
       isServerHealthReady: async () => false,
-    })).rejects.toThrow('Multiple OpenChamber instances are running');
+    })).rejects.toThrow('Multiple OMPChamber instances are running');
   });
 });
 
@@ -680,15 +680,15 @@ describe('network-exposed auth validation', () => {
   });
 
   it('allows explicit unsafe LAN override from process env only', () => {
-    const previous = process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN;
-    process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN = 'true';
+    const previous = process.env.OMPCHAMBER_ALLOW_UNAUTHENTICATED_LAN;
+    process.env.OMPCHAMBER_ALLOW_UNAUTHENTICATED_LAN = 'true';
     try {
       expect(() => assertAuthenticatedNetworkExposure({ host: '0.0.0.0' })).not.toThrow();
     } finally {
       if (typeof previous === 'string') {
-        process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN = previous;
+        process.env.OMPCHAMBER_ALLOW_UNAUTHENTICATED_LAN = previous;
       } else {
-        delete process.env.OPENCHAMBER_ALLOW_UNAUTHENTICATED_LAN;
+        delete process.env.OMPCHAMBER_ALLOW_UNAUTHENTICATED_LAN;
       }
     }
   });
@@ -732,30 +732,30 @@ describe('serve UI password resolution', () => {
 });
 
 describe('serve host resolution', () => {
-  it('uses OPENCHAMBER_HOST when --host is not provided', () => {
-    const previous = process.env.OPENCHAMBER_HOST;
-    process.env.OPENCHAMBER_HOST = '192.0.2.20';
+  it('uses OMPCHAMBER_HOST when --host is not provided', () => {
+    const previous = process.env.OMPCHAMBER_HOST;
+    process.env.OMPCHAMBER_HOST = '192.0.2.20';
     try {
       expect(resolveServeHost(undefined)).toBe('192.0.2.20');
     } finally {
       if (typeof previous === 'string') {
-        process.env.OPENCHAMBER_HOST = previous;
+        process.env.OMPCHAMBER_HOST = previous;
       } else {
-        delete process.env.OPENCHAMBER_HOST;
+        delete process.env.OMPCHAMBER_HOST;
       }
     }
   });
 
-  it('prefers explicit --host over OPENCHAMBER_HOST', () => {
-    const previous = process.env.OPENCHAMBER_HOST;
-    process.env.OPENCHAMBER_HOST = '192.0.2.20';
+  it('prefers explicit --host over OMPCHAMBER_HOST', () => {
+    const previous = process.env.OMPCHAMBER_HOST;
+    process.env.OMPCHAMBER_HOST = '192.0.2.20';
     try {
       expect(resolveServeHost('192.0.2.21')).toBe('192.0.2.21');
     } finally {
       if (typeof previous === 'string') {
-        process.env.OPENCHAMBER_HOST = previous;
+        process.env.OMPCHAMBER_HOST = previous;
       } else {
-        delete process.env.OPENCHAMBER_HOST;
+        delete process.env.OMPCHAMBER_HOST;
       }
     }
   });
@@ -763,7 +763,7 @@ describe('serve host resolution', () => {
 
 describe('compatibility exports', () => {
   it('allows tunnel profile migration before command options are initialized', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const store = ensureTunnelProfilesMigrated();
 
       expect(store).toEqual({ version: 1, profiles: [] });
@@ -771,7 +771,7 @@ describe('compatibility exports', () => {
   });
 
   it('includes ngrok in fallback tunnel providers when no server is reachable', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = await allocateLoopbackPort();
       const output = await captureStdout(async () => {
         await commands.tunnel({ json: true, explicitPort: true, port }, 'providers');
@@ -784,7 +784,7 @@ describe('compatibility exports', () => {
   });
 
   it('supports ngrok quick dry-run with an explicit port', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const output = await captureStdout(async () => {
         await commands.tunnel({
           json: true,
@@ -811,7 +811,7 @@ describe('CLI HTTP helpers', () => {
   it('sends one typed request to the shared control endpoint', async () => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (url, options = {}) => {
-      expect(new URL(String(url)).pathname).toBe('/api/openchamber/control');
+      expect(new URL(String(url)).pathname).toBe('/api/ompchamber/control');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({
         action: 'session.status',
@@ -830,7 +830,7 @@ describe('CLI HTTP helpers', () => {
   });
 
   it('retries UI-authenticated API requests with the stored instance password', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45678;
       fs.writeFileSync(await getInstanceFilePath(port), JSON.stringify({ port, uiPassword: 'secret' }, null, 2));
       const originalFetch = globalThis.fetch;
@@ -856,7 +856,7 @@ describe('CLI HTTP helpers', () => {
       };
 
       try {
-        const { response, body } = await requestJson(port, '/api/openchamber/tunnel/start', {
+        const { response, body } = await requestJson(port, '/api/ompchamber/tunnel/start', {
           method: 'POST',
           body: JSON.stringify({ provider: 'ngrok', mode: 'quick' }),
         });
@@ -864,9 +864,9 @@ describe('CLI HTTP helpers', () => {
         expect(response.ok).toBe(true);
         expect(body).toEqual({ ok: true });
         expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
-          '/api/openchamber/tunnel/start',
+          '/api/ompchamber/tunnel/start',
           '/auth/session',
-          '/api/openchamber/tunnel/start',
+          '/api/ompchamber/tunnel/start',
         ]);
       } finally {
         globalThis.fetch = originalFetch;
@@ -875,7 +875,7 @@ describe('CLI HTTP helpers', () => {
   });
 
   it('prefers the stored instance password over a non-explicit env password', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45679;
       fs.writeFileSync(await getInstanceFilePath(port), JSON.stringify({ port, uiPassword: 'stored-secret' }, null, 2));
       const originalFetch = globalThis.fetch;
@@ -899,7 +899,7 @@ describe('CLI HTTP helpers', () => {
       };
 
       try {
-        const { response, body } = await requestJson(port, '/api/openchamber/scheduled-tasks/status', {
+        const { response, body } = await requestJson(port, '/api/ompchamber/scheduled-tasks/status', {
           uiPassword: 'stale-env-secret',
           explicitUiPassword: false,
         });
@@ -913,7 +913,7 @@ describe('CLI HTTP helpers', () => {
   });
 
   it('authenticates desktop-local API requests with the stored client token', async () => {
-    await withTempOpenChamberDataDir(async (dir) => {
+    await withTempOMPChamberDataDir(async (dir) => {
       const port = 57123;
       fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({
         desktopLocalPort: port,
@@ -932,7 +932,7 @@ describe('CLI HTTP helpers', () => {
       };
 
       try {
-        const { response, body } = await requestJson(port, '/api/openchamber/scheduled-tasks/status');
+        const { response, body } = await requestJson(port, '/api/ompchamber/scheduled-tasks/status');
 
         expect(response.ok).toBe(true);
         expect(body).toEqual({ ok: true });
@@ -944,11 +944,11 @@ describe('CLI HTTP helpers', () => {
 });
 
 describe('cli entry detection', () => {
-  const modulePath = '/tmp/openchamber/bin/cli.js';
+  const modulePath = '/tmp/ompchamber/bin/cli.js';
   const moduleUrl = pathToFileURL(modulePath).href;
 
   it('resolves symlinked entry paths before comparing', () => {
-    const symlinkPath = '/usr/local/bin/openchamber';
+    const symlinkPath = '/usr/local/bin/ompchamber';
     const realpath = (filePath) => {
       if (filePath === path.resolve(symlinkPath)) {
         return modulePath;
@@ -980,8 +980,8 @@ describe('cli entry detection', () => {
   });
 
   it('accepts wrapper binary name fallback when requested', () => {
-    const wrapperPath = '/home/user/.local/bin/openchamber';
-    expect(isModuleCliExecution(wrapperPath, moduleUrl, undefined, 'openchamber')).toBe(true);
+    const wrapperPath = '/home/user/.local/bin/ompchamber';
+    expect(isModuleCliExecution(wrapperPath, moduleUrl, undefined, 'ompchamber')).toBe(true);
   });
 
   it('normalizes direct paths when realpath fails', () => {
@@ -994,36 +994,36 @@ describe('cli entry detection', () => {
   });
 });
 
-describe('isOpenchamberCmdline', () => {
-  it('accepts OpenChamber CLI and daemon cmdlines', () => {
-    expect(isOpenchamberCmdline('node /x/@openchamber/web/bin/cli.js serve')).toBe(true);
-    expect(isOpenchamberCmdline('node /x/@openchamber/web/server/index.js --port 9090')).toBe(true);
-    expect(isOpenchamberCmdline('bun /home/u/projects/openchamber/packages/web/server/index.js --port 3001')).toBe(true);
+describe('isOMPChamberCmdline', () => {
+  it('accepts OMPChamber CLI and daemon cmdlines', () => {
+    expect(isOMPChamberCmdline('node /x/@ompchamber/web/bin/cli.js serve')).toBe(true);
+    expect(isOMPChamberCmdline('node /x/@ompchamber/web/server/index.js --port 9090')).toBe(true);
+    expect(isOMPChamberCmdline('bun /home/u/projects/ompchamber/packages/web/server/index.js --port 3001')).toBe(true);
   });
 
   it('rejects recycled and unrelated processes (issue #1721)', () => {
-    expect(isOpenchamberCmdline('node /home/herjarsa/npm-global/bin/agentmemory')).toBe(false);
-    expect(isOpenchamberCmdline('node /usr/lib/node_modules/npm/bin/npm-cli.js install')).toBe(false);
-    expect(isOpenchamberCmdline('')).toBe(false);
-    expect(isOpenchamberCmdline(null)).toBe(false);
+    expect(isOMPChamberCmdline('node /home/herjarsa/npm-global/bin/agentmemory')).toBe(false);
+    expect(isOMPChamberCmdline('node /usr/lib/node_modules/npm/bin/npm-cli.js install')).toBe(false);
+    expect(isOMPChamberCmdline('')).toBe(false);
+    expect(isOMPChamberCmdline(null)).toBe(false);
   });
 });
 
-describe('isOpenchamberProcessRunning', () => {
+describe('isOMPChamberProcessRunning', () => {
   it('returns false for a dead PID', () => {
-    expect(isOpenchamberProcessRunning(2147483646)).toBe(false);
+    expect(isOMPChamberProcessRunning(2147483646)).toBe(false);
   });
 
   // Identity verification is available on Linux (/proc) and macOS (ps); on those
   // platforms a live but unrelated process (a recycled stale PID) must read as
   // not-running so it can't trip the "already running" guard (issue #1721).
   it.skipIf(process.platform !== 'linux' && process.platform !== 'darwin')(
-    'returns false for a live non-OpenChamber PID',
+    'returns false for a live non-OMPChamber PID',
     async () => {
       const child = spawn('sleep', ['30'], { stdio: 'ignore' });
       try {
         await new Promise((resolve) => setTimeout(resolve, 150));
-        expect(isOpenchamberProcessRunning(child.pid)).toBe(false);
+        expect(isOMPChamberProcessRunning(child.pid)).toBe(false);
       } finally {
         child.kill('SIGKILL');
       }
@@ -1033,10 +1033,10 @@ describe('isOpenchamberProcessRunning', () => {
 
 describe('lifecycle instance discovery', () => {
   it('does not attribute a desktop runtime response to a different explicit port', async () => {
-    await withTempOpenChamberDataDir(async (dir) => {
+    await withTempOMPChamberDataDir(async (dir) => {
       fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ desktopLocalPort: 57123 }, null, 2));
 
-      const instance = await discoverOpenChamberInstanceOnPort(3003, {
+      const instance = await discoverOMPChamberInstanceOnPort(3003, {
         fetchImpl: async () => createMockJsonResponse({ runtime: 'desktop', pid: 934 }),
       });
 
@@ -1045,10 +1045,10 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('attributes a desktop runtime response to its configured desktop port', async () => {
-    await withTempOpenChamberDataDir(async (dir) => {
+    await withTempOMPChamberDataDir(async (dir) => {
       fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ desktopLocalPort: 57123 }, null, 2));
 
-      const instance = await discoverOpenChamberInstanceOnPort(57123, {
+      const instance = await discoverOMPChamberInstanceOnPort(57123, {
         fetchImpl: async () => createMockJsonResponse({ runtime: 'desktop', pid: 934 }),
       });
 
@@ -1061,7 +1061,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('does not mark tunnel attachability as desktop for a different explicit port', async () => {
-    await withTempOpenChamberDataDir(async (dir) => {
+    await withTempOMPChamberDataDir(async (dir) => {
       fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ desktopLocalPort: 57123 }, null, 2));
       const originalFetch = globalThis.fetch;
       globalThis.fetch = async () => createMockJsonResponse({ runtime: 'desktop', pid: 934 });
@@ -1076,7 +1076,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('keeps pid and instance files when live port probe confirms a cmdline mismatch', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45123;
       const pid = 12345;
       const pidFile = await getPidFilePath(port);
@@ -1086,7 +1086,7 @@ describe('lifecycle instance discovery', () => {
 
       const instances = await discoverRunningInstances({
         fetchImpl: async () => createMockJsonResponse({ runtime: 'web', pid }),
-        getOpenchamberProcessState: () => 'mismatched',
+        getOMPChamberProcessState: () => 'mismatched',
       });
 
       expect(instances).toEqual([
@@ -1098,7 +1098,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('removes stale pid and instance files when a cmdline mismatch is not confirmed by live probe', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45124;
       const pid = 12346;
       const pidFile = await getPidFilePath(port);
@@ -1108,7 +1108,7 @@ describe('lifecycle instance discovery', () => {
 
       const instances = await discoverRunningInstances({
         fetchImpl: async () => createMockJsonResponse(null, false),
-        getOpenchamberProcessState: () => 'mismatched',
+        getOMPChamberProcessState: () => 'mismatched',
       });
 
       expect(instances).toEqual([]);
@@ -1118,7 +1118,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('preserves matched pid and instance files when the recorded port probe is inconclusive', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45126;
       const pid = 12347;
       const pidFile = await getPidFilePath(port);
@@ -1128,7 +1128,7 @@ describe('lifecycle instance discovery', () => {
 
       const instances = await discoverRunningInstances({
         fetchImpl: async () => createMockJsonResponse(null, false),
-        getOpenchamberProcessState: () => 'matched',
+        getOMPChamberProcessState: () => 'matched',
       });
 
       expect(instances).toEqual([]);
@@ -1138,7 +1138,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('preserves unknown-identity pid and instance files when the recorded port probe is inconclusive', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45129;
       const pid = 12350;
       const pidFile = await getPidFilePath(port);
@@ -1148,7 +1148,7 @@ describe('lifecycle instance discovery', () => {
 
       const instances = await discoverRunningInstances({
         fetchImpl: async () => createMockJsonResponse(null, false),
-        getOpenchamberProcessState: () => 'unknown',
+        getOMPChamberProcessState: () => 'unknown',
       });
 
       expect(instances).toEqual([]);
@@ -1157,8 +1157,8 @@ describe('lifecycle instance discovery', () => {
     });
   });
 
-  it('uses the live system-info pid instead of a stale OpenChamber-looking pid-file pid', async () => {
-    await withTempOpenChamberDataDir(async () => {
+  it('uses the live system-info pid instead of a stale OMPChamber-looking pid-file pid', async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45127;
       const stalePid = 12348;
       const livePid = 54321;
@@ -1169,7 +1169,7 @@ describe('lifecycle instance discovery', () => {
 
       const instances = await discoverRunningInstances({
         fetchImpl: async () => createMockJsonResponse({ runtime: 'web', pid: livePid }),
-        getOpenchamberProcessState: () => 'matched',
+        getOMPChamberProcessState: () => 'matched',
       });
 
       expect(instances).toEqual([
@@ -1179,7 +1179,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('uses the explicit host when probing a pid-file entry without a stored host', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45128;
       const pid = 12349;
       const host = '192.0.2.10';
@@ -1194,7 +1194,7 @@ describe('lifecycle instance discovery', () => {
             urls.push(String(url));
             return createMockJsonResponse({ runtime: 'web', pid });
           },
-          getOpenchamberProcessState: () => 'matched',
+          getOMPChamberProcessState: () => 'matched',
         },
       );
 
@@ -1206,7 +1206,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('tries loopback before treating an explicit-host pid-file probe as inconclusive', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45130;
       const pid = 12351;
       const host = '192.0.2.11';
@@ -1223,7 +1223,7 @@ describe('lifecycle instance discovery', () => {
               ? createMockJsonResponse({ runtime: 'web', pid })
               : createMockJsonResponse(null, false);
           },
-          getOpenchamberProcessState: () => 'matched',
+          getOMPChamberProcessState: () => 'matched',
         },
       );
 
@@ -1236,7 +1236,7 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('does not accept a fallback loopback probe with a different pid for a concrete host registry', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45131;
       const pid = 12352;
       const otherPid = 54322;
@@ -1254,7 +1254,7 @@ describe('lifecycle instance discovery', () => {
               ? createMockJsonResponse({ runtime: 'web', pid: otherPid })
               : createMockJsonResponse(null, false);
           },
-          getOpenchamberProcessState: () => 'matched',
+          getOMPChamberProcessState: () => 'matched',
         },
       );
 
@@ -1264,8 +1264,8 @@ describe('lifecycle instance discovery', () => {
     });
   });
 
-  it('discovers an explicit live OpenChamber port without a pid-file registry entry', async () => {
-    await withTempOpenChamberDataDir(async () => {
+  it('discovers an explicit live OMPChamber port without a pid-file registry entry', async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = 45125;
       const instances = await discoverLifecycleInstances(
         { explicitPort: true, port },
@@ -1279,9 +1279,9 @@ describe('lifecycle instance discovery', () => {
   });
 
   it('cleans a matched pid-file entry without stopping it when the recorded port is free', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = await allocateLoopbackPort();
-      const child = spawnOpenChamberLikeIdleProcess();
+      const child = spawnOMPChamberLikeIdleProcess();
       const pidFile = await getPidFilePath(port);
       const instanceFile = await getInstanceFilePath(port);
       try {
@@ -1303,9 +1303,9 @@ describe('lifecycle instance discovery', () => {
 });
 
 describe('lifecycle commands with unmanaged explicit ports', () => {
-  it('serve refuses to start on a live OpenChamber port without requiring pid files', async () => {
-    await withTempOpenChamberDataDir(async () => {
-      const server = await startMockOpenChamberServer();
+  it('serve refuses to start on a live OMPChamber port without requiring pid files', async () => {
+    await withTempOMPChamberDataDir(async () => {
+      const server = await startMockOMPChamberServer();
       try {
         await expect(commands.serve({ explicitPort: true, port: server.port, quiet: true })).rejects.toThrow(
           /already running on port/
@@ -1317,8 +1317,8 @@ describe('lifecycle commands with unmanaged explicit ports', () => {
   });
 
   it('status --port reports a live unmanaged server when the registry is empty', async () => {
-    await withTempOpenChamberDataDir(async () => {
-      const server = await startMockOpenChamberServer();
+    await withTempOMPChamberDataDir(async () => {
+      const server = await startMockOMPChamberServer();
       try {
         const output = await captureStdout(() => commands.status({ explicitPort: true, port: server.port, json: true }));
         const payload = JSON.parse(output);
@@ -1334,8 +1334,8 @@ describe('lifecycle commands with unmanaged explicit ports', () => {
   });
 
   it('stop --port reaches unmanaged shutdown when the registry is empty', async () => {
-    await withTempOpenChamberDataDir(async () => {
-      const server = await startMockOpenChamberServer();
+    await withTempOMPChamberDataDir(async () => {
+      const server = await startMockOMPChamberServer();
       try {
         await commands.stop({ explicitPort: true, port: server.port, quiet: true, suppressQuietOutput: true });
         expect(server.shutdownRequested).toBe(true);
@@ -1346,9 +1346,9 @@ describe('lifecycle commands with unmanaged explicit ports', () => {
   });
 
   it('stop --port can recover a matched pid-file instance whose HTTP endpoint is unresponsive', async () => {
-    await withTempOpenChamberDataDir(async () => {
+    await withTempOMPChamberDataDir(async () => {
       const port = await allocateLoopbackPort();
-      const child = spawnOpenChamberLikeHungServer(port);
+      const child = spawnOMPChamberLikeHungServer(port);
       const pidFile = await getPidFilePath(port);
       const instanceFile = await getInstanceFilePath(port);
       try {
@@ -1368,8 +1368,8 @@ describe('lifecycle commands with unmanaged explicit ports', () => {
   });
 
   it('plain stop ignores a stale CLI registry entry that resolves to desktop runtime', async () => {
-    await withTempOpenChamberDataDir(async () => {
-      const server = await startMockOpenChamberServer({ runtime: 'desktop' });
+    await withTempOMPChamberDataDir(async () => {
+      const server = await startMockOMPChamberServer({ runtime: 'desktop' });
       const child = spawn('sleep', ['30'], { stdio: 'ignore' });
       const pidFile = await getPidFilePath(server.port);
       const instanceFile = await getInstanceFilePath(server.port);
@@ -1391,8 +1391,8 @@ describe('lifecycle commands with unmanaged explicit ports', () => {
   });
 
   it('restart --port restarts a live unmanaged server through the shared explicit-port discovery path', async () => {
-    await withTempOpenChamberDataDir(async () => {
-      const server = await startMockOpenChamberServer();
+    await withTempOMPChamberDataDir(async () => {
+      const server = await startMockOMPChamberServer();
       const calls = [];
       const host = '127.0.0.1';
       try {

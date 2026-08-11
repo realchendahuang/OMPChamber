@@ -16,7 +16,7 @@ const COPILOT_MODELS_TIMEOUT_MS = 5_000;
 // Qwen, …) spend part of this budget on reasoning before the actual answer.
 const DEFAULT_MAX_OUTPUT_TOKENS = 4_000;
 
-const USER_AGENT = 'opencode/1.0 openchamber';
+const USER_AGENT = 'opencode/1.0 ompchamber';
 
 const CODEX_TOKEN_URL = 'https://auth.openai.com/oauth/token';
 const CODEX_CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann';

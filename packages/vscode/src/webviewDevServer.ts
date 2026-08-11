@@ -23,11 +23,11 @@ export const resolveWebviewDevServerUrl = (context: vscode.ExtensionContext): st
     return null;
   }
 
-  if (process.env.OPENCHAMBER_DISABLE_WEBVIEW_HMR === '1') {
+  if (process.env.OMPCHAMBER_DISABLE_WEBVIEW_HMR === '1') {
     return null;
   }
 
-  const configured = normalizeUrl(process.env.OPENCHAMBER_VSCODE_WEBVIEW_URL ?? '');
+  const configured = normalizeUrl(process.env.OMPCHAMBER_VSCODE_WEBVIEW_URL ?? '');
   if (configured) {
     return configured;
   }

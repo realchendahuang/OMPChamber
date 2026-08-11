@@ -32,9 +32,9 @@ type ManagedProcessEntry = {
 };
 
 const resolveRegistryDir = (): string => {
-  const override = process.env.OPENCHAMBER_MANAGED_PROCESS_REGISTRY;
+  const override = process.env.OMPCHAMBER_MANAGED_PROCESS_REGISTRY;
   if (override && override.trim()) return override.trim();
-  return path.join(os.homedir(), '.config', 'openchamber', 'managed-opencode');
+  return path.join(os.homedir(), '.config', 'ompchamber', 'managed-opencode');
 };
 
 const entryFilePath = (pid: number): string => path.join(resolveRegistryDir(), `${pid}.json`);

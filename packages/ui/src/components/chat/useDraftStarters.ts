@@ -6,7 +6,7 @@ import { useCommandsStore } from '@/stores/useCommandsStore';
 import { useSkillsStore } from '@/stores/useSkillsStore';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { updateDesktopSettings } from '@/lib/persistence';
-import { getProjectDraftStarters, saveProjectDraftStarters } from '@/lib/openchamberConfig';
+import { getProjectDraftStarters, saveProjectDraftStarters } from '@/lib/ompchamberConfig';
 import { isVSCodeRuntime } from '@/lib/desktop';
 import type { IconName } from '@/components/icon/icons';
 import {

@@ -14,7 +14,7 @@ const storage = getDeferredSafeStorage();
 
 describe('chatDraftPersistence', () => {
   beforeEach(() => {
-    storage.removeItem('openchamber.chatDrafts.v2');
+    storage.removeItem('ompchamber.chatDrafts.v2');
   });
 
   test('isolates drafts by runtime, directory, and session', () => {
@@ -63,14 +63,14 @@ describe('chatDraftPersistence', () => {
       writeChatDraft(identity, `draft-${index}`, []);
     }
 
-    const envelope = JSON.parse(storage.getItem('openchamber.chatDrafts.v2') ?? '{}') as { drafts?: object };
+    const envelope = JSON.parse(storage.getItem('ompchamber.chatDrafts.v2') ?? '{}') as { drafts?: object };
     expect(Object.keys(envelope.drafts ?? {})).toHaveLength(50);
   });
 
   test('reuses a parsed envelope while the stored value is unchanged', () => {
     const identity = createChatDraftIdentity('runtime-cache', '/repo', 'session-1')!;
     const key = getChatDraftIdentityKey(identity);
-    storage.setItem('openchamber.chatDrafts.v2', JSON.stringify({
+    storage.setItem('ompchamber.chatDrafts.v2', JSON.stringify({
       version: 2,
       drafts: { [key]: { text: 'cached', confirmedMentions: [], touchedAt: 1 } },
     }));

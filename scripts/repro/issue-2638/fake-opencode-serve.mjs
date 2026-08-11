@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Fake `opencode serve` used to reproduce https://github.com/openchamber/openchamber/issues/2638
+// Fake `opencode serve` used to reproduce https://github.com/realchendahuang/OMPChamber/issues/2638
 //
 // Modes (controlled by env):
 //   FAKE_OPENCODE_CORE=1      – server-core mode: binds the port, serves

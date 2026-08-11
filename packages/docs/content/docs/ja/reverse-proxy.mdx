@@ -1,15 +1,15 @@
 ---
 title: リバースプロキシ
-description: Nginx、Nginx Proxy Manager、その他のリバースプロキシの背後で OpenChamber を正しく設定します。
+description: Nginx、Nginx Proxy Manager、その他のリバースプロキシの背後で OMPChamber を正しく設定します。
 ---
 
 # リバースプロキシ
 
-Nginx、Nginx Proxy Manager、Caddy、Cloudflare、その他のリバースプロキシの背後で OpenChamber を実行する場合は、このページを使ってください。
+Nginx、Nginx Proxy Manager、Caddy、Cloudflare、その他のリバースプロキシの背後で OMPChamber を実行する場合は、このページを使ってください。
 
 ## プロキシする前に
 
-1. まず OpenChamber が直接動くことを確認します。
+1. まず OMPChamber が直接動くことを確認します。
 2. 同じネットワークから `http://<server-ip>:3000` またはカスタムポートを開きます。
 3. 直接接続が動いてから、リバースプロキシを追加します。
 
@@ -23,7 +23,7 @@ Nginx、Nginx Proxy Manager、Caddy、Cloudflare、その他のリバースプ�
   - `/api/event`
   - `/api/global/event`
   - `/api/notifications/stream`
-  - `/api/openchamber/events`
+  - `/api/ompchamber/events`
   - `/api/terminal/:sessionId/stream`
 - 添付ファイルとファイル操作向けの大きなリクエストボディ
 - ライブストリームとターミナルセッション向けの長い read timeout
@@ -32,14 +32,14 @@ Nginx、Nginx Proxy Manager、Caddy、Cloudflare、その他のリバースプ�
 
 - WebSocket プロキシを有効にします。
 - SSE ルートではバッファリングを無効にします。
-- OpenChamber がすでにレスポンスを圧縮している場合、プロキシ側の gzip を無効にします。
+- OMPChamber がすでにレスポンスを圧縮している場合、プロキシ側の gzip を無効にします。
 - 圧縮を有効にする層は 1 つだけにします。
 - `Host`、`X-Forwarded-For`、`X-Forwarded-Proto` など通常のプロキシヘッダーを転送します。
 - ユーザーがファイルをアップロードする場合は body size limit を増やします。
 
 ## クイックチェックリスト
 
-- OpenChamber に LAN から直接到達できる
+- OMPChamber に LAN から直接到達できる
 - プロキシで WebSocket が有効
 - SSE ルートのバッファリングがオフ
 - プロキシホストで `gzip off`、または別の方法でプロキシ圧縮が無効
@@ -96,7 +96,7 @@ location = /api/event/ws {
     proxy_send_timeout 3600s;
 }
 
-location ~ ^/api/(event|global/event|notifications/stream|openchamber/events)$ {
+location ~ ^/api/(event|global/event|notifications/stream|ompchamber/events)$ {
     proxy_pass http://127.0.0.1:3000;
     proxy_set_header Accept "text/event-stream";
     proxy_set_header Cache-Control "no-cache";
@@ -230,7 +230,7 @@ location = /api/notifications/stream {
     proxy_connect_timeout 30s;
 }
 
-location = /api/openchamber/events {
+location = /api/ompchamber/events {
     proxy_pass http://127.0.0.1:3000;
     proxy_set_header Accept "text/event-stream";
     proxy_set_header Cache-Control "no-cache";
@@ -329,7 +329,7 @@ Caddy は WebSocket upgrade を自動で処理します。追加設定は不要�
 
 リバースプロキシの前に Cloudflare などの CDN を置く場合、二重圧縮に注意してください。
 
-- OpenChamber は HTTP レスポンスを gzip 圧縮します（しきい値 1 KB）。
+- OMPChamber は HTTP レスポンスを gzip 圧縮します（しきい値 1 KB）。
 - Cloudflare や他の CDN もデフォルトでレスポンスを圧縮します。
 - これにより、二重圧縮されたレスポンスや誤った `Content-Encoding` ヘッダーが発生することがあります。
 
@@ -339,7 +339,7 @@ Caddy は WebSocket upgrade を自動で処理します。追加設定は不要�
 - **Nginx:** `gzip off`（上の例に含まれています）。
 - **Caddy:** upstream がすでに圧縮済みコンテンツを送る場合、Caddy はデフォルトでは再圧縮しません。
 
-SSE ストリーミングルートは OpenChamber 側で圧縮対象外ですが、CDN がまだバッファリングする場合があります。SSE パスでバッファリングを無効にする方法は、CDN のドキュメントを確認してください。
+SSE ストリーミングルートは OMPChamber 側で圧縮対象外ですが、CDN がまだバッファリングする場合があります。SSE パスでバッファリングを無効にする方法は、CDN のドキュメントを確認してください。
 
 ## 関連
 

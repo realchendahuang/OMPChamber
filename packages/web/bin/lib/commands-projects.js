@@ -7,7 +7,7 @@ const formatProjectLine = (project) => `- \`${project.label}\` — \`${project.i
 
 async function projectsCommand(options = {}, action = 'list') {
   if (action === 'help') {
-    process.stdout.write(`OpenChamber Projects Commands\n\nUSAGE:\n  openchamber projects [OPTIONS]\n\nOUTPUT OPTIONS:\n  -p, --port <port>       OpenChamber server port\n  --json                  Output machine-readable JSON\n`);
+    process.stdout.write(`OMPChamber Projects Commands\n\nUSAGE:\n  ompchamber projects [OPTIONS]\n\nOUTPUT OPTIONS:\n  -p, --port <port>       OMPChamber server port\n  --json                  Output machine-readable JSON\n`);
     return;
   }
   if (action !== 'list') {

@@ -19,7 +19,7 @@ registered them — so a leaked device token alone can't be used to push.
    message content — plus a **`badge`** count (see below) — and POSTs `{ tokens, title, body,
    badge, env, data:{sessionId}, publicKeyJwk, ts, sig }` to `POST /v1/push/send`
    (`apns-runtime.js` → `sendViaRelay`). It does **not** gate on UI visibility (see below).
-4. The **relay** (`openchamber-website/apps/api`, Cloudflare Worker) verifies the signature +
+4. The **relay** (`ompchamber-website/apps/api`, Cloudflare Worker) verifies the signature +
    `ts` freshness, derives `serverId`, and only delivers to tokens bound to that server. It holds
    the single project APNs `.p8` key, signs an ES256 JWT with `crypto.subtle`, and sends each
    token to APNs over HTTP/2, returning per-token results; the server drops tokens flagged `drop`
@@ -67,22 +67,22 @@ device token of a server sees the same badge.
 
 ## Modes
 
-- **Relay (default):** server has no Apple key; `OPENCHAMBER_PUSH_RELAY_URL` defaults to
-  `https://api.openchamber.dev/v1/push/send` (register URL is derived as `…/register-token`).
-- **Direct (fallback):** set `OPENCHAMBER_PUSH_RELAY_DISABLED=true` + `OPENCHAMBER_APNS_KEY_ID/
+- **Relay (default):** server has no Apple key; `OMPCHAMBER_PUSH_RELAY_URL` defaults to
+  `https://api.ompchamber.dev/v1/push/send` (register URL is derived as `…/register-token`).
+- **Direct (fallback):** set `OMPCHAMBER_PUSH_RELAY_DISABLED=true` + `OMPCHAMBER_APNS_KEY_ID/
   TEAM_ID/P8` to sign+send from the server itself (HTTP/2 + ES256 JWT); no relay binding needed.
 
 ## Config
 
 Server (`apns-runtime.js`):
-- `OPENCHAMBER_PUSH_RELAY_URL` (default the public relay), `OPENCHAMBER_APNS_ENVIRONMENT`
+- `OMPCHAMBER_PUSH_RELAY_URL` (default the public relay), `OMPCHAMBER_APNS_ENVIRONMENT`
   (optional override forcing every send to `sandbox` or `production`; normally unset — each
   token is delivered to the environment it registered with: the iOS shell reads the
   `aps-environment` entitlement from the embedded provisioning profile and reports it at
   registration, so Xcode dev builds go to sandbox and TestFlight/App Store to production).
   The signing keypair is auto-generated — nothing to set.
-- Direct fallback: `OPENCHAMBER_APNS_KEY_ID`, `OPENCHAMBER_APNS_TEAM_ID`, `OPENCHAMBER_APNS_P8`
-  (or `_P8_PATH`), `OPENCHAMBER_APNS_BUNDLE_ID`, `OPENCHAMBER_PUSH_RELAY_DISABLED=true`.
+- Direct fallback: `OMPCHAMBER_APNS_KEY_ID`, `OMPCHAMBER_APNS_TEAM_ID`, `OMPCHAMBER_APNS_P8`
+  (or `_P8_PATH`), `OMPCHAMBER_APNS_BUNDLE_ID`, `OMPCHAMBER_PUSH_RELAY_DISABLED=true`.
 
 Relay (Cloudflare Worker secrets via `wrangler secret put` / GitHub Actions): `APNS_P8`,
 `APNS_KEY_ID`, `APNS_TEAM_ID`, optional `APNS_BUNDLE_ID` / `APNS_DEFAULT_ENV`. The `push_tokens`
@@ -91,8 +91,8 @@ binding table is created by `migrations/0002_push_tokens.sql` (applied on deploy
 ## Apple setup (one-time)
 
 1. Apple **Keys** (not Certificates) → create an **APNs Auth Key** (`.p8`) → Key ID + Team ID;
-   enable **Push Notifications** on App ID `com.openchamber.app`.
-2. In the **openchamber-website** repo → Actions secrets: `APNS_P8` (PEM), `APNS_KEY_ID`,
+   enable **Push Notifications** on App ID `com.ompchamber.app`.
+2. In the **ompchamber-website** repo → Actions secrets: `APNS_P8` (PEM), `APNS_KEY_ID`,
    `APNS_TEAM_ID`. Push to `main` → relay deploys, secrets sync, D1 migrations apply.
 3. Xcode: confirm the Push Notifications capability; Clean Build Folder; run on device.
 

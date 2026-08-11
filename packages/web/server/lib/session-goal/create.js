@@ -105,7 +105,7 @@ export const createSessionGoal = async ({
       'content-type': 'application/json',
       accept: 'application/json',
     },
-    body: JSON.stringify({ metadata: { openchamber: { goal } } }),
+    body: JSON.stringify({ metadata: { ompchamber: { goal } } }),
   });
   if (!response.ok) throw new Error(`goal metadata patch failed (${response.status})`);
   return goal;

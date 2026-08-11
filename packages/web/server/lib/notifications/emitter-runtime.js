@@ -66,7 +66,7 @@ export const createNotificationEmitterRuntime = (dependencies) => {
     const desktopNotificationDelivered = options.desktopNotificationDelivered === true;
 
     const syntheticPayload = {
-      type: 'openchamber:notification',
+      type: 'ompchamber:notification',
       properties: {
         ...payload,
         // Tell local desktop UI whether a native channel already accepted this

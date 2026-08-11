@@ -1,9 +1,9 @@
-# Managed OpenChamber Agent Tool
+# Managed OMPChamber Agent Tool
 
 ## Purpose
 
-This module exposes OpenChamber orchestration to agents as one typed OpenCode
-custom tool named `openchamber`. It is injected only when OpenChamber launches
+This module exposes OMPChamber orchestration to agents as one typed OpenCode
+custom tool named `ompchamber`. It is injected only when OMPChamber launches
 and owns the OpenCode process, and only while the persisted
 `agentControlToolEnabled` setting is not `false` (default on; toggled in
 Settings → General → OpenCode CLI and applied on the next managed OpenCode
@@ -11,16 +11,16 @@ restart).
 
 ## Runtime flow
 
-1. The OpenChamber HTTP listener binds and publishes its authoritative port.
+1. The OMPChamber HTTP listener binds and publishes its authoritative port.
 2. `prepareManagedOpenCodeEnv()` materializes the plugin under
-   `<openchamber-data-dir>/agent-tool/` and appends its `file://` URL to
+   `<ompchamber-data-dir>/agent-tool/` and appends its `file://` URL to
    `OPENCODE_CONFIG_CONTENT` without replacing existing plugin entries.
 3. A random per-child token and loopback callback URL are added only to the
    managed OpenCode child environment.
-4. The plugin calls `POST /api/openchamber/agent-tool` with its typed input and
+4. The plugin calls `POST /api/ompchamber/agent-tool` with its typed input and
    OpenCode's authoritative session directory.
 5. The route delegates the fixed action allowlist directly to the shared
-   OpenChamber control service. The CLI uses the same service through its
+   OMPChamber control service. The CLI uses the same service through its
    authenticated HTTP adapter, so Goal Mode ordering, wait behavior,
    partial-failure reporting, and scheduled-task contracts have one owner.
 6. Each action definition owns a short presentation title and a separate
@@ -39,7 +39,7 @@ restart).
 - Session dispatches do not wait by default. Agents are told to set `wait` only
   when the user asks or the next step requires the completed result.
 - The tool exposes only agent-relevant actions
-  (`OPENCHAMBER_AGENT_TOOL_ACTIONS`): `schedule.status` stays CLI-only because
+  (`OMPCHAMBER_AGENT_TOOL_ACTIONS`): `schedule.status` stays CLI-only because
   `schedule.list` already returns scheduler status, and enable/disable are one
   `schedule.toggle` action driven by the `disabled` boolean.
 - The tool description frames intent: created sessions and scheduled tasks are
@@ -84,7 +84,7 @@ error state.
 
 - Web and Desktop managed OpenCode: injected automatically.
 - External OpenCode selected with `OPENCODE_HOST` or skip-start: not injected,
-  because OpenChamber does not control that process environment.
+  because OMPChamber does not control that process environment.
 - VS Code: not injected; the extension owns a separate OpenCode lifecycle.
 - Hosted and Capacitor mobile clients use the server's managed OpenCode tool
   when connected to such a server; no tool runs in the client runtime.

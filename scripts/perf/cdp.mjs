@@ -1,5 +1,5 @@
 /**
- * Shared Chrome DevTools Protocol helpers for OpenChamber performance tooling.
+ * Shared Chrome DevTools Protocol helpers for OMPChamber performance tooling.
  *
  * `scripts/profile-browser.mjs` and `scripts/profile-idle.mjs` both drive Chrome
  * over CDP. Launching, target discovery, and the minimal protocol client live

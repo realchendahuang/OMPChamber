@@ -18,8 +18,8 @@ export const createServerStartupRuntime = (dependencies) => {
 
   const resolveBindHost = (host) =>
     host
-    || (typeof process.env.OPENCHAMBER_HOST === 'string' && process.env.OPENCHAMBER_HOST.trim().length > 0
-      ? process.env.OPENCHAMBER_HOST.trim()
+    || (typeof process.env.OMPCHAMBER_HOST === 'string' && process.env.OMPCHAMBER_HOST.trim().length > 0
+      ? process.env.OMPCHAMBER_HOST.trim()
       : '127.0.0.1');
 
   const startListeningAndMaybeTunnel = async ({
@@ -44,12 +44,12 @@ export const createServerStartupRuntime = (dependencies) => {
 
           if (typeof process.send === 'function') {
             if (!process.connected) {
-              throw new Error('OpenChamber startup IPC channel disconnected before ready notification');
+              throw new Error('OMPChamber startup IPC channel disconnected before ready notification');
             }
 
             await new Promise((resolveReadyNotification, rejectReadyNotification) => {
               try {
-                process.send({ type: 'openchamber:ready', port: activePort }, (error) => {
+                process.send({ type: 'ompchamber:ready', port: activePort }, (error) => {
                   if (error) {
                     rejectReadyNotification(error);
                     return;
@@ -65,7 +65,7 @@ export const createServerStartupRuntime = (dependencies) => {
           const displayHost = (bindHost === '0.0.0.0' || bindHost === '::' || bindHost === '[::]')
             ? 'localhost'
             : (bindHost.includes(':') ? `[${bindHost}]` : bindHost);
-          console.log(`OpenChamber server listening on ${bindHost}:${activePort}`);
+          console.log(`OMPChamber server listening on ${bindHost}:${activePort}`);
           console.log(`Health check: http://${displayHost}:${activePort}/health`);
           console.log(`Web interface: http://${displayHost}:${activePort}`);
 

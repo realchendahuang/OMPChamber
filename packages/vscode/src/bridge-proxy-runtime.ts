@@ -48,7 +48,7 @@ const collectProxyResponseHeaders = (headers: Headers, deps: Pick<ProxyRuntimeDe
 
 const isSseProxyPath = (requestPath: string): boolean => {
   try {
-    const parsed = new URL(requestPath, 'https://openchamber.invalid');
+    const parsed = new URL(requestPath, 'https://ompchamber.invalid');
     return parsed.pathname === '/event' || parsed.pathname === '/global/event';
   } catch {
     return requestPath === '/event' || requestPath === '/global/event';

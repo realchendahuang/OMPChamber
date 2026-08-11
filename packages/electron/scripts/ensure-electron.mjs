@@ -13,8 +13,8 @@
  * back to Node).
  *
  * Test hooks (env, never used in normal operation):
- *   OPENCHAMBER_ELECTRON_PKG_DIR       - resolve the electron package here.
- *   OPENCHAMBER_ELECTRON_INSTALL_COMMANDS - JSON array of [bin, args] repair
+ *   OMPCHAMBER_ELECTRON_PKG_DIR       - resolve the electron package here.
+ *   OMPCHAMBER_ELECTRON_INSTALL_COMMANDS - JSON array of [bin, args] repair
  *                                        commands, e.g.
  *                                        `[["bun",["install.js"]],["node",["install.js"]]]`.
  *
@@ -226,9 +226,9 @@ export function isComplete(electronDir, expected = expectedArch()) {
 }
 
 function resolveInstallCommands(env) {
-  if (env.OPENCHAMBER_ELECTRON_INSTALL_COMMANDS) {
+  if (env.OMPCHAMBER_ELECTRON_INSTALL_COMMANDS) {
     try {
-      const parsed = JSON.parse(env.OPENCHAMBER_ELECTRON_INSTALL_COMMANDS);
+      const parsed = JSON.parse(env.OMPCHAMBER_ELECTRON_INSTALL_COMMANDS);
       if (
         Array.isArray(parsed) &&
         parsed.every((command) => Array.isArray(command) && typeof command[0] === 'string')
@@ -282,7 +282,7 @@ export function repair(electronDir, options = {}) {
 export async function main(argv = process.argv.slice(2), env = process.env) {
   const bestEffort = argv.includes('--best-effort');
 
-  const overrideDir = env.OPENCHAMBER_ELECTRON_PKG_DIR;
+  const overrideDir = env.OMPCHAMBER_ELECTRON_PKG_DIR;
   const electronDir = overrideDir
     ? fs.existsSync(path.join(overrideDir, 'package.json'))
       ? overrideDir

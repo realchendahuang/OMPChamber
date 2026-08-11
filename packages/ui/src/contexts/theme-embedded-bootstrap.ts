@@ -3,7 +3,7 @@ import type { Theme } from '@/types/theme';
 import { isValidTheme } from './theme-validation';
 
 type ThemeBootstrapWindow = Window & {
-  __openchamberEmbeddedThemeBootstrap?: unknown;
+  __ompchamberEmbeddedThemeBootstrap?: unknown;
 };
 
 export const readEmbeddedThemeSearchParams = (): URLSearchParams | null => {
@@ -18,7 +18,7 @@ export const publishEmbeddedThemeBootstrap = (theme: Theme): void => {
     return;
   }
 
-  (window as ThemeBootstrapWindow).__openchamberEmbeddedThemeBootstrap = theme;
+  (window as ThemeBootstrapWindow).__ompchamberEmbeddedThemeBootstrap = theme;
 };
 
 export const readEmbeddedThemeBootstrap = (): Theme | null => {
@@ -31,8 +31,8 @@ export const readEmbeddedThemeBootstrap = (): Theme | null => {
     if (parent === window) {
       return null;
     }
-    return isValidTheme(parent.__openchamberEmbeddedThemeBootstrap)
-      ? parent.__openchamberEmbeddedThemeBootstrap
+    return isValidTheme(parent.__ompchamberEmbeddedThemeBootstrap)
+      ? parent.__ompchamberEmbeddedThemeBootstrap
       : null;
   } catch {
     return null;

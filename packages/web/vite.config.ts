@@ -8,13 +8,13 @@ import { themeStoragePlugin } from '../../vite-theme-plugin';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
-const pwaDevEnabled = process.env.OPENCHAMBER_DISABLE_PWA_DEV !== '1';
+const pwaDevEnabled = process.env.OMPCHAMBER_DISABLE_PWA_DEV !== '1';
 const reactScanToggle = (process.env.VITE_ENABLE_REACT_SCAN ?? '').toLowerCase();
 const enableReactScan = reactScanToggle === '1' || reactScanToggle === 'true' || reactScanToggle === 'on' || reactScanToggle === 'yes';
 const themeDirectory = path.resolve(__dirname, '../ui/src/lib/theme/themes');
 
 const themeJsonHmrPlugin = () => ({
-  name: 'openchamber-theme-json-hmr',
+  name: 'ompchamber-theme-json-hmr',
   handleHotUpdate({ file, server }: { file: string; server: { ws: { send: (payload: unknown) => void } } }) {
     if (!file.startsWith(`${themeDirectory}${path.sep}`) || path.extname(file) !== '.json') {
       return;
@@ -23,7 +23,7 @@ const themeJsonHmrPlugin = () => ({
     try {
       server.ws.send({
         type: 'custom',
-        event: 'openchamber:theme-updated',
+        event: 'ompchamber:theme-updated',
         data: JSON.parse(readFileSync(file, 'utf-8')),
       });
       // Theme JSON is applied by the runtime event listener. Returning no
@@ -88,7 +88,8 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@opencode-ai/sdk/v2', replacement: path.resolve(__dirname, '../../node_modules/@opencode-ai/sdk/dist/v2/client.js') },
-      { find: '@openchamber/ui', replacement: path.resolve(__dirname, '../ui/src') },
+      { find: '@ompchamber/ui', replacement: path.resolve(__dirname, '../ui/src') },
+      { find: '@ompchamber/agent-protocol', replacement: path.resolve(__dirname, '../agent-protocol/src') },
       { find: '@web', replacement: path.resolve(__dirname, './src') },
       { find: '@', replacement: path.resolve(__dirname, '../ui/src') },
     ],
@@ -108,15 +109,15 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/auth': {
-        target: `http://127.0.0.1:${process.env.OPENCHAMBER_PORT || 3001}`,
+        target: `http://127.0.0.1:${process.env.OMPCHAMBER_PORT || 3001}`,
         changeOrigin: true,
       },
       '/health': {
-        target: `http://127.0.0.1:${process.env.OPENCHAMBER_PORT || 3001}`,
+        target: `http://127.0.0.1:${process.env.OMPCHAMBER_PORT || 3001}`,
         changeOrigin: true,
       },
       '/api': {
-        target: `http://127.0.0.1:${process.env.OPENCHAMBER_PORT || 3001}`,
+        target: `http://127.0.0.1:${process.env.OMPCHAMBER_PORT || 3001}`,
         changeOrigin: true,
         ws: true,
       },

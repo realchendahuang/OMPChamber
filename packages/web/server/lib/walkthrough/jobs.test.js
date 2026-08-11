@@ -4,7 +4,7 @@ import path from 'path';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const TEMP_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'walkthrough-jobs-'));
-process.env.OPENCHAMBER_DATA_DIR = TEMP_DATA_DIR;
+process.env.OMPCHAMBER_DATA_DIR = TEMP_DATA_DIR;
 
 // Mocking git rather than this module's own source loading: fewer of our own
 // seams faked means the test exercises the real digest and prompt path.

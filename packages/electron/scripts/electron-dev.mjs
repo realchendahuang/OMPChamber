@@ -8,8 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '../../..');
 const electronDir = path.join(repoRoot, 'packages/electron');
-const preferredHmrUiPort = Number(process.env.OPENCHAMBER_HMR_UI_PORT || '5173');
-const preferredHmrApiPort = Number(process.env.OPENCHAMBER_HMR_API_PORT || '3901');
+const preferredHmrUiPort = Number(process.env.OMPCHAMBER_HMR_UI_PORT || '5173');
+const preferredHmrApiPort = Number(process.env.OMPCHAMBER_HMR_API_PORT || '3901');
 
 const quoteWindowsCommandArg = (value) => `"${String(value).replace(/"/g, '""')}"`;
 
@@ -37,7 +37,7 @@ function spawnProcess(command, args, options = {}) {
 
   return spawn(spawnCommand, spawnArgs, {
     cwd: repoRoot,
-    env: { ...process.env, OPENCHAMBER_ELECTRON_DEV: '1' },
+    env: { ...process.env, OMPCHAMBER_ELECTRON_DEV: '1' },
     stdio: 'inherit',
     detached: process.platform !== 'win32',
     windowsVerbatimArguments: isWindowsCommandScript,
@@ -68,7 +68,7 @@ function runProcess(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: repoRoot,
-      env: { ...process.env, OPENCHAMBER_ELECTRON_DEV: '1' },
+      env: { ...process.env, OMPCHAMBER_ELECTRON_DEV: '1' },
       stdio: 'inherit',
       ...options,
     });
@@ -197,7 +197,7 @@ async function stopChildTree(child) {
 }
 
 async function main() {
-  const useBundledUi = process.env.OPENCHAMBER_ELECTRON_USE_BUNDLED_UI === '1';
+  const useBundledUi = process.env.OMPCHAMBER_ELECTRON_USE_BUNDLED_UI === '1';
   let devServer = null;
   let hmrApiPort = '';
   let hmrUiPort = '';
@@ -212,10 +212,10 @@ async function main() {
     devServer = spawnProcess('node', ['./scripts/dev-web-hmr.mjs'], {
       env: {
         ...process.env,
-        OPENCHAMBER_ELECTRON_DEV: '1',
-        OPENCHAMBER_HMR_UI_PORT: hmrUiPort,
-        OPENCHAMBER_HMR_API_PORT: hmrApiPort,
-        OPENCHAMBER_DISABLE_PWA_DEV: '1',
+        OMPCHAMBER_ELECTRON_DEV: '1',
+        OMPCHAMBER_HMR_UI_PORT: hmrUiPort,
+        OMPCHAMBER_HMR_API_PORT: hmrApiPort,
+        OMPCHAMBER_DISABLE_PWA_DEV: '1',
       },
     });
   }
@@ -224,11 +224,11 @@ async function main() {
     cwd: electronDir,
     env: {
       ...process.env,
-      OPENCHAMBER_ELECTRON_DEV: '1',
-      ...(useBundledUi ? { OPENCHAMBER_ELECTRON_USE_BUNDLED_UI: '1' } : {}),
-      OPENCHAMBER_HMR_UI_PORT: hmrUiPort,
-      OPENCHAMBER_HMR_API_PORT: hmrApiPort,
-      OPENCHAMBER_DISABLE_PWA_DEV: '1',
+      OMPCHAMBER_ELECTRON_DEV: '1',
+      ...(useBundledUi ? { OMPCHAMBER_ELECTRON_USE_BUNDLED_UI: '1' } : {}),
+      OMPCHAMBER_HMR_UI_PORT: hmrUiPort,
+      OMPCHAMBER_HMR_API_PORT: hmrApiPort,
+      OMPCHAMBER_DISABLE_PWA_DEV: '1',
     },
   });
 

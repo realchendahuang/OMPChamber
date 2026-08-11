@@ -103,7 +103,7 @@ describe("content cache owner", () => {
       } as unknown as FilesAPI)
 
       expect((await owner.files.readFile!("notes.txt")).content).toBe("value-1")
-      window.dispatchEvent(new CustomEvent("openchamber:runtime-endpoint-will-change", {
+      window.dispatchEvent(new CustomEvent("ompchamber:runtime-endpoint-will-change", {
         detail: {
           apiBaseUrl: "http://127.0.0.1:3902",
           previousApiBaseUrl: "http://127.0.0.1:3901",

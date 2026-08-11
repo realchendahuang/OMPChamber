@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 const mobileRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APK_PATH = join(mobileRoot, 'android', 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
-const APP_ID = 'com.openchamber.app';
+const APP_ID = 'com.ompchamber.app';
 const LAUNCH_ACTIVITY = `${APP_ID}/.MainActivity`;
 
 const adb = (args, { capture = false, allowFail = false } = {}) => {

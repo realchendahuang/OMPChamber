@@ -17,8 +17,10 @@
     "paths": {
       "@/*": ["../ui/src/*", "./src/*"],
       "@web/*": ["./src/*"],
-      "@openchamber/ui/*": ["../ui/src/*"],
-      "@openchamber/web/*": ["./src/*"]
+      "@ompchamber/ui/*": ["../ui/src/*"],
+      "@ompchamber/web/*": ["./src/*"],
+      "@ompchamber/agent-protocol": ["../agent-protocol/src/index.ts"],
+      "@ompchamber/agent-protocol/*": ["../agent-protocol/src/*"]
     }
   },
   "include": ["src", "../ui/src", "../ui/src/types/**/*"]

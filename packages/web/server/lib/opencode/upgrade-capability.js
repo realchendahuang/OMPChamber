@@ -13,7 +13,7 @@ export const resolveOpenCodeUpgradeCapability = ({
   if (isWindowsArm64()) {
     return {
       supported: false,
-      manager: 'openchamber',
+      manager: 'ompchamber',
       reason: 'windows-arm64-workaround',
     };
   }
@@ -37,7 +37,7 @@ export const resolveOpenCodeUpgradeCapability = ({
   if (isBundledBinary(activeBinary)) {
     return {
       supported: false,
-      manager: 'openchamber',
+      manager: 'ompchamber',
       reason: 'bundled',
     };
   }

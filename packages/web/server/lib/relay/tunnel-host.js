@@ -150,7 +150,7 @@ export const createTunnelHost = ({ connectionId, getLocalPort, sendFrame, getBuf
       if (/[\r\n]/.test(name) || /[\r\n]/.test(value)) continue;
       headers[lower] = value;
     }
-    headers['x-openchamber-relay-connection'] = connectionId;
+    headers['x-ompchamber-relay-connection'] = connectionId;
     // Browser-generated Origin is not visible to the tunnel client. Present the
     // loopback origin being dialed and overwrite any client-supplied value.
     headers.origin = loopbackOrigin;
@@ -315,7 +315,7 @@ export const createTunnelHost = ({ connectionId, getLocalPort, sendFrame, getBuf
     // otherwise — a no-origin upgrade is rejected 403. The request itself is still
     // authenticated by the tunneled oc_url_token, not by this origin.
     const dialHeaders = {
-      'x-openchamber-relay-connection': connectionId,
+      'x-ompchamber-relay-connection': connectionId,
       origin: `http://127.0.0.1:${getLocalPort()}`,
     };
     let socket;

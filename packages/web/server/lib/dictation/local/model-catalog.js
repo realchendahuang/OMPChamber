@@ -1,7 +1,7 @@
 /**
  * Catalog of local sherpa-onnx STT models available for dictation.
  * Models are downloaded on demand from the k2-fsa GitHub releases and
- * extracted under the OpenChamber speech-models directory.
+ * extracted under the OMPChamber speech-models directory.
  *
  * `type` selects the recognizer construction path in the worker:
  * - 'nemo_transducer': encoder/decoder/joiner transducer (Parakeet)

@@ -82,7 +82,7 @@ describe('ElectronSshManager', () => {
   });
 
   test('creates a PowerShell-backed askpass helper on Windows', async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-ssh-askpass-test-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-ssh-askpass-test-'));
     tempDirs.push(tempDir);
     const manager = new ElectronSshManager({
       settingsFilePath: path.join(tempDir, 'settings.json'),
@@ -96,7 +96,7 @@ describe('ElectronSshManager', () => {
     expect(path.basename(result.askpassPath)).toBe('askpass.cmd');
     expect(result.cleanupPaths.map((filePath) => path.basename(filePath))).toEqual(['askpass.cmd', 'askpass.ps1']);
     expect(await fsp.readFile(path.join(tempDir, 'askpass.cmd'), 'utf8')).toContain('WindowsPowerShell');
-    expect(await fsp.readFile(path.join(tempDir, 'askpass.ps1'), 'utf8')).toContain('OPENCHAMBER_SSH_ASKPASS_VALUE');
+    expect(await fsp.readFile(path.join(tempDir, 'askpass.ps1'), 'utf8')).toContain('OMPCHAMBER_SSH_ASKPASS_VALUE');
   });
 
   test('runs each Windows port forward as an independent hidden SSH process', async () => {
@@ -113,7 +113,7 @@ describe('ElectronSshManager', () => {
     });
     const parsed = { destination: 'user@example.test', args: [] };
     manager.sshAuth.set(parsed, {
-      askpassPath: 'C:\\OpenChamber\\askpass.cmd',
+      askpassPath: 'C:\\OMPChamber\\askpass.cmd',
       sshPassword: 'secret-value',
       children: new Set(),
     });
@@ -132,8 +132,8 @@ describe('ElectronSshManager', () => {
       expect(call.args).toContain('ControlPath=none');
       expect(call.args).toContain('-N');
       expect(call.options.windowsHide).toBe(true);
-      expect(call.options.env.SSH_ASKPASS).toBe('C:\\OpenChamber\\askpass.cmd');
-      expect(call.options.env.OPENCHAMBER_SSH_ASKPASS_VALUE).toBe('secret-value');
+      expect(call.options.env.SSH_ASKPASS).toBe('C:\\OMPChamber\\askpass.cmd');
+      expect(call.options.env.OMPCHAMBER_SSH_ASKPASS_VALUE).toBe('secret-value');
     }
     expect(calls[0].args).toContain('-L');
     expect(calls[1].args).toContain('-D');
@@ -192,12 +192,12 @@ describe('ElectronSshManager', () => {
       };
     }
     manager.sshAuth.set(parsed, {
-      askpassPath: 'C:\\OpenChamber\\askpass.cmd',
+      askpassPath: 'C:\\OMPChamber\\askpass.cmd',
       sshPassword: null,
       children: new Set(),
     });
     manager.sessions.set('ssh-1', {
-      instance: { remoteOpenchamber: { mode: 'external', keepRunning: true } },
+      instance: { remoteOMPChamber: { mode: 'external', keepRunning: true } },
       parsed,
       controlPath: 'C:\\Temp\\unused.sock',
       askpassCleanupPaths: [],
@@ -257,7 +257,7 @@ describe('ElectronSshManager', () => {
     }
   });
 
-  test('stores a client token for forwarded OpenChamber hosts when UI password is configured', async () => {
+  test('stores a client token for forwarded OMPChamber hosts when UI password is configured', async () => {
     let loginPayload = null;
     const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && req.url === '/auth/session') {
@@ -269,7 +269,7 @@ describe('ElectronSshManager', () => {
       res.writeHead(404).end();
     });
     const localUrl = await listen(server);
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openchamber-ssh-manager-test-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-ssh-manager-test-'));
     tempDirs.push(tempDir);
     const settingsFilePath = path.join(tempDir, 'settings.json');
     const manager = new ElectronSshManager({

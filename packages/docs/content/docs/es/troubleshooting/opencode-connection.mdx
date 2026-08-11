@@ -1,26 +1,26 @@
 ---
 title: Conexión de OpenCode
-description: Soluciona que OpenChamber no se conecte a su servidor de OpenCode.
+description: Soluciona que OMPChamber no se conecte a su servidor de OpenCode.
 ---
 
 # Conexión de OpenCode
 
-Si OpenChamber carga pero nunca pasa de "OpenCode is restarting", o el chat no responde, el servidor con el que se comunica no es accesible. Repasa estos pasos.
+Si OMPChamber carga pero nunca pasa de "OpenCode is restarting", o el chat no responde, el servidor con el que se comunica no es accesible. Repasa estos pasos.
 
 ## Se queda atascado en "OpenCode is restarting"
 
 - dale un momento justo después de iniciar: este estado es normal mientras el servidor arranca
-- comprueba si el servidor está vivo con `openchamber status`
-- reinícialo con `openchamber restart`
-- ve los detalles de arranque con `openchamber logs`
+- comprueba si el servidor está vivo con `ompchamber status`
+- reinícialo con `ompchamber restart`
+- ve los detalles de arranque con `ompchamber logs`
 
 ## Te conectas a tu propio servidor
 
-Si configuraste OpenChamber para usar un servidor existente, revisa de nuevo la configuración de [OpenCode Server](/es/opencode-server/):
+Si configuraste OMPChamber para usar un servidor existente, revisa de nuevo la configuración de [OpenCode Server](/es/opencode-server/):
 
 - `OPENCODE_HOST` debe incluir el puerto, sin ruta; por ejemplo `http://localhost:4096`
-- define `OPENCODE_SKIP_START=true` para que OpenChamber no inicie también el suyo
-- si la dirección es inválida, OpenChamber la ignora e inicia su propio servidor en su lugar; busca una advertencia `[config]` en los registros
+- define `OPENCODE_SKIP_START=true` para que OMPChamber no inicie también el suyo
+- si la dirección es inválida, OMPChamber la ignora e inicia su propio servidor en su lugar; busca una advertencia `[config]` en los registros
 
 ## Sigue fallando
 
@@ -30,5 +30,5 @@ Si configuraste OpenChamber para usar un servidor existente, revisa de nuevo la 
 
 ## Relacionado
 
-- [OpenCode Server](/es/opencode-server/) — cómo encuentra y gestiona OpenChamber el servidor
+- [OpenCode Server](/es/opencode-server/) — cómo encuentra y gestiona OMPChamber el servidor
 - [Resolución de problemas](/es/troubleshooting/) — otros problemas comunes

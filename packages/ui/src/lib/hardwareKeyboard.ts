@@ -5,7 +5,7 @@
  * Two sources, in priority order:
  *
  * 1. The native answer. On iOS the shell reads `GCKeyboard` and stamps
- *    `window.__OPENCHAMBER_HARDWARE_KEYBOARD__` at document start, then keeps it
+ *    `window.__OMPCHAMBER_HARDWARE_KEYBOARD__` at document start, then keeps it
  *    live via `oc:hardware-keyboard` (see BridgeViewController). This is
  *    authoritative and — crucially — known BEFORE the user focuses anything, so
  *    the draft screen and composer start in the right shape instead of
@@ -32,7 +32,7 @@ const KEYBOARD_EVENT_GRACE_MS = 600;
 
 declare global {
   interface Window {
-    __OPENCHAMBER_HARDWARE_KEYBOARD__?: boolean;
+    __OMPCHAMBER_HARDWARE_KEYBOARD__?: boolean;
   }
 }
 
@@ -40,8 +40,8 @@ declare global {
 // document start, and the very first render of the draft screen / composer must
 // already see it — otherwise the layout still settles one frame late.
 const initialNativeAnswer = typeof window !== 'undefined'
-  && typeof window.__OPENCHAMBER_HARDWARE_KEYBOARD__ === 'boolean'
-  ? window.__OPENCHAMBER_HARDWARE_KEYBOARD__
+  && typeof window.__OMPCHAMBER_HARDWARE_KEYBOARD__ === 'boolean'
+  ? window.__OMPCHAMBER_HARDWARE_KEYBOARD__
   : null;
 
 let hardwareKeyboardAttached = initialNativeAnswer === true;
@@ -83,8 +83,8 @@ export const startHardwareKeyboardBridge = (): (() => void) => {
     setHardwareKeyboardAttached(value);
   };
 
-  if (typeof window.__OPENCHAMBER_HARDWARE_KEYBOARD__ === 'boolean') {
-    adopt(window.__OPENCHAMBER_HARDWARE_KEYBOARD__);
+  if (typeof window.__OMPCHAMBER_HARDWARE_KEYBOARD__ === 'boolean') {
+    adopt(window.__OMPCHAMBER_HARDWARE_KEYBOARD__);
   }
 
   if (bridgeStarted) return () => {};

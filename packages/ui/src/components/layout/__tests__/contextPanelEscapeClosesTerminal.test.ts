@@ -1,5 +1,5 @@
 /**
- * Regression guard for https://github.com/openchamber/openchamber/issues/2644
+ * Regression guard for https://github.com/realchendahuang/OMPChamber/issues/2644
  *
  * Escape while focus is inside the terminal must reach the PTY (e.g. Vim
  * Normal mode). The context panel still closes on Escape when focus is on

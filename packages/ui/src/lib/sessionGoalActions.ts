@@ -21,7 +21,7 @@ const writeGoal = (
   update: (currentGoal: Record<string, unknown> | null) => Record<string, unknown> | null,
 ) =>
   patchSessionMetadata(sessionId, directory, (metadata) => {
-    const namespace = isRecord(metadata.openchamber) ? metadata.openchamber : {};
+    const namespace = isRecord(metadata.ompchamber) ? metadata.ompchamber : {};
     const currentGoal = isRecord(namespace.goal) ? namespace.goal : null;
     const nextGoal = update(currentGoal);
     const nextNamespace = { ...namespace };
@@ -30,7 +30,7 @@ const writeGoal = (
     } else {
       delete nextNamespace.goal;
     }
-    return { ...metadata, openchamber: nextNamespace };
+    return { ...metadata, ompchamber: nextNamespace };
   });
 
 // File-backed objectives: the text lives in a server-side file keyed by the
