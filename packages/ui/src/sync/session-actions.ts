@@ -340,11 +340,11 @@ export async function moveSessionToDirectory(
   destinationDirectory: string,
   moveChanges = true,
 ): Promise<void> {
-  const result = await opencodeClient.getSdkClient().experimental.controlPlane.moveSession({
-    sessionID: session.id,
-    destination: { directory: destinationDirectory },
+  const result = await opencodeClient.moveSessionToDirectory(
+    session.id,
+    destinationDirectory,
     moveChanges,
-  })
+  )
   assertSdkSuccess(result, "Move session")
 
   invalidateSessionLoads(session.id, [sourceDirectory, destinationDirectory])
@@ -465,16 +465,6 @@ function findSessionDirectoryInChildStores(sessionId: string): string | null {
   }
 
   return null
-}
-
-function getSessionReplyClient(sessionId?: string): OpencodeClient {
-  const directory = sessionId
-    ? useSessionUIStore.getState().getDirectoryForSession(sessionId)
-    : null
-  if (directory) {
-    return opencodeClient.getScopedSdkClient(directory)
-  }
-  return sdk()
 }
 
 function restoreFilePartsToInput(fileParts: Array<Record<string, unknown>>): void {
@@ -703,17 +693,9 @@ function removePermissionRequestFromChildStores(sessionId: string, requestId: st
   return removed
 }
 
-function getRequestReplyClient(
-  type: "permission" | "question",
-  sessionId: string,
-  requestId: string,
-): OpencodeClient {
-  const requestDirectory = resolveDirectoryForBlockingRequest(type, sessionId, requestId)
-  if (requestDirectory) {
-    return opencodeClient.getScopedSdkClient(requestDirectory)
-  }
-  return getSessionReplyClient(sessionId)
-}
+// NOTE: the old getRequestReplyClient / getSessionReplyClient direct-SDK
+// bridges were removed. Permission/question replies go through the
+// OpencodeService facade (replyToPermission, replyToQuestion, rejectQuestion).
 
 // ---------------------------------------------------------------------------
 // Session CRUD
@@ -745,7 +727,7 @@ export async function createSession(
       registerSessionDirectory(session.id, sessionDirectory)
     }
     useSessionUIStore.getState().setCurrentSession(session.id, sessionDirectory)
-    useSessionUIStore.getState().markSessionAsOpenChamberCreated(session.id)
+    useSessionUIStore.getState().markSessionAsOMPChamberCreated(session.id)
     useGlobalSessionsStore.getState().upsertSession(session)
     return session
   } catch (error) {
@@ -1555,15 +1537,10 @@ export async function respondToPermission(
     || resolveDirectoryForBlockingRequest("permission", sessionId, requestId)
     || getSessionDirectory(sessionId)
     || dir()
-  const client = directoryOverride
-    ? opencodeClient.getScopedSdkClient(directoryOverride)
-    : getRequestReplyClient("permission", sessionId, requestId)
-  const result = await client.permission.reply({
-    requestID: requestId,
-    reply: response,
-    ...(directory ? { directory } : {}),
+  const ok = await opencodeClient.replyToPermission(requestId, response, {
+    directory: directoryOverride ?? directory,
   })
-  if (assertSdkData(result, "permission.reply") !== true) {
+  if (!ok) {
     throw new Error("Permission reply failed")
   }
 }
@@ -1577,12 +1554,8 @@ export async function dismissPermission(
     || getSessionDirectory(sessionId)
     || dir()
   try {
-    const result = await getRequestReplyClient("permission", sessionId, requestId).permission.reply({
-      requestID: requestId,
-      reply: "reject",
-      ...(directory ? { directory } : {}),
-    })
-    if (assertSdkData(result, "permission.reply") !== true) {
+    const ok = await opencodeClient.replyToPermission(requestId, "reject", { directory })
+    if (!ok) {
       throw new Error("Permission dismissal failed")
     }
   } catch (error) {
@@ -1678,12 +1651,8 @@ export async function respondToQuestion(
       : Array.isArray(answers[0])
         ? answers as string[][]
         : [answers as string[]]
-    const result = await getRequestReplyClient("question", sessionId, requestId).question.reply({
-      requestID: requestId,
-      answers: normalizedAnswers,
-      ...(directory ? { directory } : {}),
-    })
-    if (assertSdkData(result, "question.reply") !== true) {
+    const ok = await opencodeClient.replyToQuestion(requestId, normalizedAnswers, directory)
+    if (!ok) {
       throw new Error("Question reply failed")
     }
   } catch (error) {
@@ -1704,11 +1673,8 @@ export async function rejectQuestion(
     || getSessionDirectory(sessionId)
     || dir()
   try {
-    const result = await getRequestReplyClient("question", sessionId, requestId).question.reject({
-      requestID: requestId,
-      ...(directory ? { directory } : {}),
-    })
-    if (assertSdkData(result, "question.reject") !== true) {
+    const ok = await opencodeClient.rejectQuestion(requestId, directory)
+    if (!ok) {
       throw new Error("Question rejection failed")
     }
   } catch (error) {

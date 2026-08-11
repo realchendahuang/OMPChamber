@@ -128,11 +128,37 @@ mock.module("@/lib/opencode/client", () => ({
     getSdkClient: () => mockSdk,
     replyToPermission: mock((requestId: string, reply: string, options?: { directory?: string | null }) => {
       replyCalls.push({ method: "permission.reply", params: { requestID: requestId, reply, directory: options?.directory } })
+      if (options?.directory) {
+        scopedClientDirectories.push(options.directory)
+      }
+      if (permissionReplyError) {
+        throw permissionReplyError
+      }
       return Promise.resolve(true)
     }),
     replyToQuestion: mock((requestId: string, answers: string[] | string[][], directory?: string | null) => {
       replyCalls.push({ method: "question.reply", params: { requestID: requestId, answers, directory } })
+      if (directory) {
+        scopedClientDirectories.push(directory)
+      }
+      if (questionReplyError) {
+        throw questionReplyError
+      }
       return Promise.resolve(true)
+    }),
+    rejectQuestion: mock((requestId: string, directory?: string | null) => {
+      replyCalls.push({ method: "question.reject", params: { requestID: requestId, directory } })
+      if (directory) {
+        scopedClientDirectories.push(directory)
+      }
+      if (questionRejectError) {
+        throw questionRejectError
+      }
+      return Promise.resolve(true)
+    }),
+    moveSessionToDirectory: mock((sessionId: string, destinationDirectory: string, moveChanges = true) => {
+      replyCalls.push({ method: "controlPlane.moveSession", params: { sessionID: sessionId, destination: { directory: destinationDirectory }, moveChanges } })
+      return Promise.resolve({ data: {} })
     }),
     revertSession: mock((sessionId: string, messageId: string, partId?: string, directory?: string | null) => {
       replyCalls.push({

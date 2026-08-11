@@ -1044,6 +1044,23 @@ class OpencodeService {
     return unwrapSdkData(response, 'session.fork');
   }
 
+  /**
+   * Move a session between directories (used by the session move UX).
+   * Encapsulates the SDK `experimental.controlPlane.moveSession` call so the
+   * sync layer does not reach through the facade for a raw SDK client.
+   */
+  async moveSessionToDirectory(
+    sessionId: string,
+    destinationDirectory: string,
+    moveChanges = true,
+  ): Promise<SdkResult<unknown>> {
+    return await this.client.experimental.controlPlane.moveSession({
+      sessionID: sessionId,
+      destination: { directory: destinationDirectory },
+      moveChanges,
+    });
+  }
+
   async getSessionStatus(): Promise<
     Record<string, { type: "idle" | "busy" | "retry"; attempt?: number; message?: string; next?: number }>
   > {
@@ -1135,7 +1152,10 @@ class OpencodeService {
     options?: { message?: string; directory?: string | null }
   ): Promise<boolean> {
     const requestDirectory = this.normalizeCandidatePath(options?.directory ?? null) ?? this.currentDirectory;
-    const response = await this.client.permission.reply({
+    const client = requestDirectory
+      ? this.getScopedSdkClient(requestDirectory)
+      : this.client;
+    const response = await client.permission.reply({
       requestID: requestId,
       ...(requestDirectory ? { directory: requestDirectory } : {}),
       reply,
@@ -1309,7 +1329,10 @@ class OpencodeService {
     })();
 
     const requestDirectory = this.normalizeCandidatePath(directory) ?? this.currentDirectory;
-    const response = await this.client.question.reply({
+    const client = requestDirectory
+      ? this.getScopedSdkClient(requestDirectory)
+      : this.client;
+    const response = await client.question.reply({
       requestID: requestId,
       ...(requestDirectory ? { directory: requestDirectory } : {}),
       answers: normalizedAnswers,
@@ -1317,10 +1340,14 @@ class OpencodeService {
     return unwrapSdkOptional(response, 'question.reply') === true;
   }
 
-  async rejectQuestion(requestId: string): Promise<boolean> {
-    const result = await this.client.question.reject({
+  async rejectQuestion(requestId: string, directory?: string | null): Promise<boolean> {
+    const requestDirectory = this.normalizeCandidatePath(directory) ?? this.currentDirectory;
+    const client = requestDirectory
+      ? this.getScopedSdkClient(requestDirectory)
+      : this.client;
+    const result = await client.question.reject({
       requestID: requestId,
-      ...(this.currentDirectory ? { directory: this.currentDirectory } : {}),
+      ...(requestDirectory ? { directory: requestDirectory } : {}),
     });
     return unwrapSdkOptional(result, 'question.reject') === true;
   }
