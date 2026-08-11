@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import type { Session, SessionStatus } from '@opencode-ai/sdk/v2/client'
+import type { Session, SessionStatus } from '@ompchamber/agent-protocol/domain-types'
 
 import { aggregateLiveSessionStatuses } from './live-aggregate'
 import {

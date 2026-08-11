@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { buildLinkedIssue, buildLinkedIssueId, getLinkedIssues, withLinkedIssue, type LinkedIssue } from './linkedIssues';
 
 const issue = (overrides: Partial<LinkedIssue> = {}): LinkedIssue => ({

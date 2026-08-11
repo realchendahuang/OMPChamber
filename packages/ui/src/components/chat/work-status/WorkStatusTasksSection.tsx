@@ -7,7 +7,7 @@ import { useTodosPersistStore } from '@/stores/useTodosPersistStore';
 import { WorkStatusRow, WorkStatusSection } from './WorkStatusPrimitives';
 import { useReportWorkStatusPresence } from './presenceContext';
 import type { State } from '@/sync/types';
-import type { Todo } from '@opencode-ai/sdk/v2';
+import type { Todo } from '@ompchamber/agent-protocol/domain-types';
 
 type Props = {
   sessionId: string | null;

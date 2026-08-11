@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu as BaseMenu } from '@base-ui/react/menu';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 
 import {
   DropdownMenu,

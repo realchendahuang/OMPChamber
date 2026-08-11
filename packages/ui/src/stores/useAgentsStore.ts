@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { StoreApi, UseBoundStore } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import type { Agent, PermissionConfig } from "@opencode-ai/sdk/v2";
+import type { Agent, PermissionConfig } from "@ompchamber/agent-protocol/domain-types";
 import { opencodeClient } from "@/lib/opencode/client";
 import { emitConfigChange, scopeMatches, subscribeToConfigChanges, type ConfigChangeScope } from "@/lib/configSync";
 import {

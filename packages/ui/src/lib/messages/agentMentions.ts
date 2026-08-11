@@ -1,4 +1,4 @@
-import type { Agent } from "@opencode-ai/sdk/v2";
+import type { Agent } from "@ompchamber/agent-protocol/domain-types";
 
 interface AgentMentionSource {
   value: string;

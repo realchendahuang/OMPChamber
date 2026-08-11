@@ -13,7 +13,7 @@
  */
 
 import { create } from "zustand"
-import type { Session, Part, Message, TextPart } from "@opencode-ai/sdk/v2/client"
+import type { Session, Part, Message, TextPart } from "@ompchamber/agent-protocol/domain-types"
 import type { AttachedFile, SessionContextUsage, SessionWorktreeAttachment } from "@/stores/types/sessionTypes"
 import type { WorktreeMetadata } from "@/types/worktree"
 import { opencodeClient } from "@/lib/opencode/client"

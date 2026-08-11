@@ -1,4 +1,4 @@
-import type { Message, Part, ToolPart } from "@opencode-ai/sdk/v2/client"
+import type { Message, Part, ToolPart } from "@ompchamber/agent-protocol/domain-types"
 
 type MessageRecord = {
   info: Message

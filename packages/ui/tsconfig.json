@@ -16,7 +16,9 @@
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"],
-      "@ompchamber/ui/*": ["./*"]
+      "@ompchamber/ui/*": ["./*"],
+      "@ompchamber/agent-protocol": ["../../agent-protocol/src/index.ts"],
+      "@ompchamber/agent-protocol/*": ["../../agent-protocol/src/*"]
     }
   },
   "include": ["src"]

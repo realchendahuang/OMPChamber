@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { getRuntimeKey } from '@/lib/runtime-switch';
 import { getPinnedSessionKey } from '@/stores/useSessionPinnedStore';
 import { computeNodeStructureKey, nodeHasPinnedMembershipChange, selectFolderRootNodes, selectQuestionBadgeSessionScopes } from './sessionNodeItemUtils';

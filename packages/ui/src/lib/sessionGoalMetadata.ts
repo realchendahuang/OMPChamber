@@ -1,4 +1,4 @@
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 
 // Session goal driven by the server's session-goal runtime, stored under
 // session.metadata.ompchamber.goal. The UI writes goals (create/edit/

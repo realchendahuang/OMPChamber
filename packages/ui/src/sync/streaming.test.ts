@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test"
-import type { Message, SessionStatus } from "@opencode-ai/sdk/v2/client"
+import type { Message, SessionStatus } from "@ompchamber/agent-protocol/domain-types"
 import { INITIAL_STATE, type State } from "./types"
 import {
   touchStreamingSession,

@@ -1,4 +1,4 @@
-import type { PermissionRequest, Session } from "@opencode-ai/sdk/v2/client"
+import type { PermissionRequest, Session } from "@ompchamber/agent-protocol/domain-types"
 import { opencodeClient } from "@/lib/opencode/client"
 import { usePermissionStore } from "@/stores/permissionStore"
 import { getAllSyncSessionMap, getDirectoryState } from "./sync-refs"

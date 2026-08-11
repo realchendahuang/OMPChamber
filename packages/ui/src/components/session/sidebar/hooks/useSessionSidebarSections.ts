@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import type { SessionGroup, SessionNode, GroupSearchData } from '../types';
 import { dedupeSessionsById, normalizePath } from '../utils';
 import type { WorktreeMetadata } from '@/types/worktree';

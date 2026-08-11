@@ -3,7 +3,7 @@
  * Replaces the action methods from the old useSessionStore.
  */
 
-import type { OpencodeClient, Session, Message, Part } from "@opencode-ai/sdk/v2/client"
+import type { OpencodeClient, Session, Message, Part } from "@ompchamber/agent-protocol/domain-types"
 import { Binary } from "./binary"
 import { useSessionUIStore } from "./session-ui-store"
 import { useInputStore } from "./input-store"

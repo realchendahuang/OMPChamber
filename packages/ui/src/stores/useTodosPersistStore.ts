@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { Todo } from '@opencode-ai/sdk/v2/client';
+import type { Todo } from '@ompchamber/agent-protocol/domain-types';
 import { getRuntimeKey } from '@/lib/runtime-switch';
 import { normalizePath } from '@/lib/pathNormalization';
 import { createDeferredSafeJSONStorage } from './utils/safeStorage';

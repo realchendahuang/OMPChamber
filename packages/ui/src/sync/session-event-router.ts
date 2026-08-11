@@ -1,4 +1,4 @@
-import type { Event, Session } from "@opencode-ai/sdk/v2/client"
+import type { Event, Session } from "@ompchamber/agent-protocol/domain-types"
 import { isGlobalSessionRecencyOnlyUpdate, useGlobalSessionsStore } from "@/stores/useGlobalSessionsStore"
 import { getRuntimeKey, subscribeRuntimeEndpointWillChange } from "@/lib/runtime-switch"
 import { streamPerfCount, streamPerfMark } from "@/stores/utils/streamDebug"

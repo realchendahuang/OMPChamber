@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createOpencodeClient } from '@opencode-ai/sdk/v2';
+import { createDomainClient } from './opencode/domain-client';
 import { buildRuntimeFetchUrl, isLatin1Safe, runtimeFetch, sanitizeHeadersForBrowser } from './runtime-fetch';
 import { clearRuntimeAuthCredentialProvider, setRuntimeBearerToken } from './runtime-auth';
 import { configureRuntimeUrlResolver, getRuntimeUrlResolver, setRuntimeUrlResolver } from './runtime-url';
@@ -75,7 +75,7 @@ describe('runtimeFetch transport contract', () => {
         });
       }) as typeof fetch;
 
-      const client = createOpencodeClient({
+      const client = createDomainClient({
         baseUrl: 'https://app.example/api',
         fetch: runtimeFetch,
       });

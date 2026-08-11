@@ -34,7 +34,7 @@ import { useRuntimeAPIs } from '@/hooks/useRuntimeAPIs';
 import { getContextFileOpenFailureMessage, validateContextFileOpen } from '@/lib/contextFileOpenGuard';
 import { toast } from '@/components/ui';
 import { FileTypeIcon } from '@/components/icons/FileTypeIcon';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { createWorktreeSession } from '@/lib/worktreeSessionCreator';
 import { formatShortcutForDisplay, getEffectiveShortcutCombo } from '@/lib/shortcuts';
 import { canUseElectronDesktopIPC, invokeDesktop, isDesktopShell, isVSCodeRuntime, isWebRuntime } from '@/lib/desktop';

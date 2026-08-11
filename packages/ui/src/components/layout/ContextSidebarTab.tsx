@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Message, Part } from '@opencode-ai/sdk/v2';
+import type { Message, Part } from '@ompchamber/agent-protocol/domain-types';
 import { WorkerHighlightedCode } from '@/components/code/WorkerHighlightedCode';
 
 import { deriveMessageRole } from '@/components/chat/message/messageRole';

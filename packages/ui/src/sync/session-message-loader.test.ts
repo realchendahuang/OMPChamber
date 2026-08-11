@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { Message, OpencodeClient, Part } from "@opencode-ai/sdk/v2/client"
+import type { Message, OpencodeClient, Part } from "@ompchamber/agent-protocol/domain-types"
 import { ChildStoreManager } from "./child-store"
 import { SessionMessageLoader } from "./session-message-loader"
 import {

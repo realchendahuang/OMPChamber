@@ -14,7 +14,7 @@ import {
   RiFolderAddLine,
   RiSearchLine,
 } from '@remixicon/react';
-import type { Session } from '@opencode-ai/sdk/v2/client';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import {
   DndContext,
   type DragEndEvent,

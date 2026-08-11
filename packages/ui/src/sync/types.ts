@@ -16,7 +16,7 @@ import type {
   SessionStatus,
   Todo,
   VcsInfo,
-} from "@opencode-ai/sdk/v2/client"
+} from "@ompchamber/agent-protocol/domain-types"
 
 export type FileDiff = {
   file?: string

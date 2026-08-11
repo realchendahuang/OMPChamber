@@ -1,4 +1,4 @@
-import type { OpencodeClient, PermissionRequest, Project, QuestionRequest } from "@opencode-ai/sdk/v2/client"
+import type { OpencodeClient, PermissionRequest, Project, QuestionRequest } from "@ompchamber/agent-protocol/domain-types"
 import { retry } from "./retry"
 import type { GlobalState, State } from "./types"
 import { runtimeFetch } from "../lib/runtime-fetch"

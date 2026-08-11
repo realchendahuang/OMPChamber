@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { McpStatus } from '@opencode-ai/sdk/v2';
+import type { McpStatus } from '@ompchamber/agent-protocol/domain-types';
 import { opencodeClient } from '@/lib/opencode/client';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 

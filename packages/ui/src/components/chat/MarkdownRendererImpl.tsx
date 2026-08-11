@@ -1,7 +1,7 @@
 import React from 'react';
 import morphdom from 'morphdom';
 import { renderMermaidASCII, renderMermaidSVG } from 'beautiful-mermaid';
-import type { Part } from '@opencode-ai/sdk/v2';
+import type { Part } from '@ompchamber/agent-protocol/domain-types';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';

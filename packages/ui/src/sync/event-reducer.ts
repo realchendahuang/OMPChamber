@@ -8,7 +8,7 @@ import type {
   Session,
   SessionStatus,
   Todo,
-} from "@opencode-ai/sdk/v2/client"
+} from "@ompchamber/agent-protocol/domain-types"
 import { Binary } from "./binary"
 import type { FileDiff, GlobalState, State } from "./types"
 import { dropSessionCaches } from "./session-cache"

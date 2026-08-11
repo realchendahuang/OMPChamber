@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { Message } from '@opencode-ai/sdk/v2';
+import type { Message } from '@ompchamber/agent-protocol/domain-types';
 
 import { getActiveAssistantContext } from './useAssistantStatus';
 

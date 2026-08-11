@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import type { Todo } from '@opencode-ai/sdk/v2/client';
+import type { Todo } from '@ompchamber/agent-protocol/domain-types';
 import { getRuntimeKey } from '@/lib/runtime-switch';
 import { getTodosPersistenceKey, useTodosPersistStore } from './useTodosPersistStore';
 

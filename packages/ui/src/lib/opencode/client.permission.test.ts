@@ -70,8 +70,8 @@ const createOpencodeClientMock = mock(() => ({
 
 (mock as unknown as { restore?: () => void }).restore?.();
 
-mock.module('@opencode-ai/sdk/v2', () => ({
-  createOpencodeClient: createOpencodeClientMock,
+mock.module('./domain-client', () => ({
+  createDomainClient: createOpencodeClientMock,
 }));
 
 mock.module('@/contexts/runtimeAPIRegistry', () => ({

@@ -1,4 +1,4 @@
-import type { Message, OpencodeClient, Part } from "@opencode-ai/sdk/v2/client"
+import type { Message, OpencodeClient, Part } from "@ompchamber/agent-protocol/domain-types"
 import type { ChildStoreManager, DirectoryStore } from "./child-store"
 import { Binary } from "./binary"
 import { retry } from "./retry"

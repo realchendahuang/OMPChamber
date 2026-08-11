@@ -1,4 +1,4 @@
-import type { SessionStatus } from "@opencode-ai/sdk/v2/client"
+import type { SessionStatus } from "@ompchamber/agent-protocol/domain-types"
 
 export const LIVE_STATUS_TTL_MS = 15_000
 

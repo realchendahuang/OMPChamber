@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui';
 import { SettingsInfoHint } from '@/components/sections/shared/SettingsInfoHint';
 import { Icon } from "@/components/icon/Icon";
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useSessionUIStore } from '@/sync/session-ui-store';
 import { useSessions } from '@/sync/sync-context';

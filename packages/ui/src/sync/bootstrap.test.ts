@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { OpencodeClient, Project } from "@opencode-ai/sdk/v2/client"
+import type { OpencodeClient, Project } from "@ompchamber/agent-protocol/domain-types"
 import { bootstrapDirectory } from "./bootstrap"
 import { INITIAL_STATE, type State } from "./types"
 

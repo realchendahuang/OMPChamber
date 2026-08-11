@@ -1,4 +1,4 @@
-import type { Message, Session } from '@opencode-ai/sdk/v2/client';
+import type { Message, Session } from '@ompchamber/agent-protocol/domain-types';
 import { opencodeClient } from '@/lib/opencode/client';
 import { renderMagicPrompt } from '@/lib/magicPrompts';
 import { flattenAssistantTextParts } from '@/lib/messages/messageText';

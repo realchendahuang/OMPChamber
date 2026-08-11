@@ -1,7 +1,7 @@
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { describe, expect, test } from 'bun:test';
-import type { Message } from '@opencode-ai/sdk/v2/client';
+import type { Message } from '@ompchamber/agent-protocol/domain-types';
 
 import {
     isOlderHistoryPrependCommit,

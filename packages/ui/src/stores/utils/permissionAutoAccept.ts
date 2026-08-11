@@ -1,4 +1,4 @@
-import type { Session } from "@opencode-ai/sdk/v2/client";
+import type { Session } from "@ompchamber/agent-protocol/domain-types";
 
 export type PermissionAutoAcceptMap = Record<string, boolean>;
 

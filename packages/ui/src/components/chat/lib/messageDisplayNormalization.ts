@@ -1,4 +1,4 @@
-import type { Part } from '@opencode-ai/sdk/v2';
+import type { Part } from '@ompchamber/agent-protocol/domain-types';
 
 import { filterSyntheticParts } from '@/lib/messages/synthetic';
 import { normalizeParts } from '../message/partUtils';

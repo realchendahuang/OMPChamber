@@ -1,4 +1,4 @@
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { toast } from '@/components/ui';
 import { getGitStatus } from '@/lib/gitApi';
 import { normalizePath } from '@/lib/pathNormalization';

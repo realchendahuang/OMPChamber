@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { opencodeClient } from '@/lib/opencode/client';
 import { ensureGlobalSessionsLoaded, useGlobalSessionsStore, resolveGlobalSessionDirectory } from '@/stores/useGlobalSessionsStore';
 import { useSessionUIStore } from '@/sync/session-ui-store';

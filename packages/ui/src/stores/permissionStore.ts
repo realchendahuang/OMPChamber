@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Session } from "@opencode-ai/sdk/v2/client";
+import type { Session } from "@ompchamber/agent-protocol/domain-types";
 import { autoRespondsPermission, type PermissionAutoAcceptMap } from "./utils/permissionAutoAccept";
 import { getAllSyncSessionMap } from "@/sync/sync-refs";
 import { runtimeFetch } from "@/lib/runtime-fetch";

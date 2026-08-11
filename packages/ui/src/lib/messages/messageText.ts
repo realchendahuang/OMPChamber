@@ -1,4 +1,4 @@
-import type { Part } from '@opencode-ai/sdk/v2';
+import type { Part } from '@ompchamber/agent-protocol/domain-types';
 
 type TextLikePart = Part & { text?: string; content?: string };
 

@@ -5,7 +5,7 @@
  * session-actions) use them to read child-store domain data without hooks.
  */
 
-import type { Config, OpencodeClient } from "@opencode-ai/sdk/v2/client"
+import type { Config, OpencodeClient } from "@ompchamber/agent-protocol/domain-types"
 import type { ChildStoreManager } from "./child-store"
 import { getSessionMaterializationStatus } from "./materialization"
 import type { State } from "./types"

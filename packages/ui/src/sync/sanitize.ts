@@ -14,7 +14,7 @@
 //    detail-only revert/diff blobs
 // ---------------------------------------------------------------------------
 
-import type { Session, Message } from "@opencode-ai/sdk/v2/client"
+import type { Session, Message } from "@ompchamber/agent-protocol/domain-types"
 
 type DiffEntry = {
   file?: string

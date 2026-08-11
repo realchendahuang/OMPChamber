@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import type { Part } from '@opencode-ai/sdk/v2/client';
+import type { Part } from '@ompchamber/agent-protocol/domain-types';
 
 import { Icon } from '@/components/icon/Icon';
 import { Button } from '@/components/ui/button';

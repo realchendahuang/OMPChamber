@@ -280,7 +280,7 @@ mock.module("./sync-refs", () => ({
 import { create, type StoreApi } from "zustand"
 import { INITIAL_STATE } from "./types"
 import type { DirectoryStore } from "./child-store"
-import type { Message, OpencodeClient, Part, Session } from "@opencode-ai/sdk/v2/client"
+import type { Message, OpencodeClient, Part, Session } from "@ompchamber/agent-protocol/domain-types"
 
 type OptimisticAddCall = { sessionID: string; directory?: string | null; message: Message; parts: Part[] }
 type OptimisticRemoveCall = { sessionID: string; directory?: string | null; messageID: string }

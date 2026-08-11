@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Session } from '@opencode-ai/sdk/v2/client';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { toast } from '@/components/ui';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';

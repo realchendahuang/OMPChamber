@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach, mock } from "bun:test"
 import { create, type StoreApi } from "zustand"
-import type { Event, PermissionRequest, QuestionRequest } from "@opencode-ai/sdk/v2/client"
+import type { Event, PermissionRequest, QuestionRequest } from "@ompchamber/agent-protocol/domain-types"
 
 const listPendingQuestionsCalls: Array<{ directories?: Array<string | null | undefined> }> = []
 const listPendingPermissionsCalls: Array<{ directories?: Array<string | null | undefined> }> = []

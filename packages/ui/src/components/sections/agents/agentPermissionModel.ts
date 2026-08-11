@@ -1,4 +1,4 @@
-import type { PermissionConfig } from '@opencode-ai/sdk/v2';
+import type { PermissionConfig } from '@ompchamber/agent-protocol/domain-types';
 
 /**
  * Editor model for an agent's OWN `permission` map (the source config), with

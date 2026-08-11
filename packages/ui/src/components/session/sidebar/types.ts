@@ -1,4 +1,4 @@
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import type { WorktreeMetadata } from '@/types/worktree';
 
 export type SessionNode = {

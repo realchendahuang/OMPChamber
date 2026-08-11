@@ -1,7 +1,7 @@
 import React from 'react';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
-import type { Provider } from '@opencode-ai/sdk/v2';
+import type { Provider } from '@ompchamber/agent-protocol/domain-types';
 
 type ProviderModel = Provider["models"][string];
 type ProviderWithModelList = Omit<Provider, "models"> & { models: ProviderModel[] };

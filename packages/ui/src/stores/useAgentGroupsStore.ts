@@ -6,7 +6,7 @@ import { useProjectsStore } from './useProjectsStore';
 import { deleteSessionInDirectory } from '@/sync/session-actions';
 import { retry } from '@/sync/retry';
 import type { WorktreeMetadata } from '@/types/worktree';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 
 // ---------------------------------------------------------------------------
 // Utilities

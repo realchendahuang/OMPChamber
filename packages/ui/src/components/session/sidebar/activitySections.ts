@@ -1,4 +1,4 @@
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 
 const RECENT_SESSION_MAX_AGE_MS = 48 * 60 * 60 * 1000;
 

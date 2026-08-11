@@ -17,8 +17,8 @@ const promptAsyncMock = mock(async (...args: unknown[]) => {
   return next ?? { response: new Response(null, { status: 200 }) };
 });
 
-mock.module('@opencode-ai/sdk/v2', () => ({
-  createOpencodeClient: mock(() => ({
+mock.module('./domain-client', () => ({
+  createDomainClient: mock(() => ({
     config: {
       get: mock(() => {
         configCalls += 1;

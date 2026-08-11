@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { Message, Part } from '@opencode-ai/sdk/v2';
+import type { Message, Part } from '@ompchamber/agent-protocol/domain-types';
 import { buildProjectionCacheKey } from './turnProjectionCache';
 import type { ChatMessageEntry } from './types';
 

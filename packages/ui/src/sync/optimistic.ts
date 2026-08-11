@@ -1,4 +1,4 @@
-import type { Message, Part } from "@opencode-ai/sdk/v2/client"
+import type { Message, Part } from "@ompchamber/agent-protocol/domain-types"
 import { Binary } from "./binary"
 
 const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)

@@ -1,5 +1,9 @@
-import { createOpencodeClient, OpencodeClient } from "@opencode-ai/sdk/v2";
-import type { PermissionV2Request, PermissionV2Effect, PermissionV2Source } from "@opencode-ai/sdk/v2/client";
+import { createDomainClient } from "./domain-client";
+import type {
+  PermissionV2Request,
+  PermissionV2Effect,
+  PermissionV2Source,
+} from "@ompchamber/agent-protocol/domain-types";
 import type { FilesAPI } from "../api/types";
 import { getDesktopHomeDirectory } from "../desktop";
 import type {
@@ -11,7 +15,8 @@ import type {
   Agent,
   TextPartInput,
   FilePartInput,
-} from "@opencode-ai/sdk/v2";
+  OpencodeClient,
+} from "@ompchamber/agent-protocol/domain-types";
 import { isAmbiguousTransportFailure, markAmbiguousTransportFailure } from "@/lib/relay/transport-error";
 import { FilesystemError, parseFilesystemErrorReason } from "@/lib/api/files-errors";
 import type { PermissionRequest } from "@/types/permission";
@@ -185,9 +190,8 @@ const createTimeoutSignal = (timeoutMs: number): { signal: AbortSignal; cleanup:
 };
 
 const createRuntimeOpencodeClient = (config: { baseUrl: string; directory?: string }): OpencodeClient => {
-  return createOpencodeClient({
+  return createDomainClient({
     ...config,
-    fetch: runtimeFetch,
   });
 };
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { OpencodeClient, Session } from '@opencode-ai/sdk/v2';
+import type { OpencodeClient, Session } from '@ompchamber/agent-protocol/domain-types';
 import { opencodeClient } from '@/lib/opencode/client';
 import { listGlobalSessionPages, splitGlobalSessionsByArchived } from '@/stores/globalSessions';
 import { getReviewTransferDirection, type ReviewTransferDirection } from '@/lib/reviewFlow';

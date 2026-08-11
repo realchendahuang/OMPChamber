@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import type { Session } from "@opencode-ai/sdk/v2"
-import type { Event, Part, PermissionRequest, QuestionRequest, SessionStatus } from "@opencode-ai/sdk/v2/client"
+import type { Session } from "@ompchamber/agent-protocol/domain-types"
+import type { Event, Part, PermissionRequest, QuestionRequest, SessionStatus } from "@ompchamber/agent-protocol/domain-types"
 import { applyDirectoryEvent } from "../event-reducer"
 import { INITIAL_STATE, type State } from "../types"
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { routeMessage, useSessionUIStore } from '@/sync/session-ui-store';
 import { devtools } from 'zustand/middleware';
 import type { CreateMultiRunParams, CreateMultiRunResult } from '@/types/multirun';

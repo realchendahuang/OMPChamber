@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ToolPart } from '@opencode-ai/sdk/v2';
+import type { ToolPart } from '@ompchamber/agent-protocol/domain-types';
 import { Popover } from '@base-ui/react/popover';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 import { useIsGitRepo } from '@/stores/useGitStore';

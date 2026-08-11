@@ -1,4 +1,4 @@
-import type { Message, Part } from '@opencode-ai/sdk/v2'
+import type { Message, Part } from '@ompchamber/agent-protocol/domain-types'
 
 import { isFullySyntheticMessage } from './synthetic'
 

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { SimpleMarkdownRenderer } from '../../MarkdownRenderer';
 import { MessageFilesDisplay } from '../../FileAttachment';
 import { getToolMetadata } from '@/lib/toolHelpers';
-import type { ToolPart as ToolPartType, ToolState as ToolStateUnion, FilePart } from '@opencode-ai/sdk/v2';
+import type { ToolPart as ToolPartType, ToolState as ToolStateUnion, FilePart } from '@ompchamber/agent-protocol/domain-types';
 import { toolDisplayStyles } from '@/lib/typography';
 import { WorkerHighlightedCode } from '@/components/code/WorkerHighlightedCode';
 import { useEffectiveDirectory } from '@/hooks/useEffectiveDirectory';

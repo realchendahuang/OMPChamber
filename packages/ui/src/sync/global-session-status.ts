@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Event, SessionStatus } from '@opencode-ai/sdk/v2/client';
+import type { Event, SessionStatus } from '@ompchamber/agent-protocol/domain-types';
 import { normalizeProjectPath } from '@/lib/projectResolution';
 import {
   observeSessionActivityEvent,

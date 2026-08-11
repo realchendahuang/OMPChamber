@@ -1,4 +1,4 @@
-import type { OpencodeClient, Session } from "@opencode-ai/sdk/v2";
+import type { OpencodeClient, Session } from "@ompchamber/agent-protocol/domain-types";
 import { runBackgroundNetworkTask } from '@/lib/background-network';
 import { retry } from "@/sync/retry";
 import { stripSessionListDetails } from "@/sync/sanitize";

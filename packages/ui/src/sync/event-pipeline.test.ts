@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { Event, OpencodeClient } from "@opencode-ai/sdk/v2/client"
+import type { Event, OpencodeClient } from "@ompchamber/agent-protocol/domain-types"
 import { createEventPipeline } from "./event-pipeline"
 
 const failAfter = (ms: number) => new Promise<never>((_, reject) => {

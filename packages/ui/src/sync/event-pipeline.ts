@@ -12,7 +12,7 @@
  * Abort controller created once at init, cleaned up via returned cleanup fn.
  */
 
-import type { Event, OpencodeClient, SessionStatus } from "@opencode-ai/sdk/v2/client"
+import type { Event, OpencodeClient, SessionStatus } from "@ompchamber/agent-protocol/domain-types"
 import { opencodeClient } from "@/lib/opencode/client"
 import { getRuntimeUrlResolver } from "@/lib/runtime-url"
 import { clearRuntimeUrlAuthToken, refreshRuntimeUrlAuthToken } from "@/lib/runtime-auth"

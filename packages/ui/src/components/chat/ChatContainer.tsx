@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Message, Part, Session } from '@opencode-ai/sdk/v2';
+import type { Message, Part, Session } from '@ompchamber/agent-protocol/domain-types';
 import type { PermissionRequest } from '@/types/permission';
 import type { QuestionRequest } from '@/types/question';
 

@@ -14,7 +14,7 @@ import { MobileOverlayPanel } from '@/components/ui/MobileOverlayPanel';
 import { Icon } from "@/components/icon/Icon";
 import { DirectoryExplorerDialog } from './DirectoryExplorerDialog';
 import { cn, formatPathForDisplay } from '@/lib/utils';
-import type { Session } from '@opencode-ai/sdk/v2';
+import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import type { WorktreeMetadata } from '@/types/worktree';
 import { getWorktreeStatus } from '@/lib/worktrees/worktreeStatus';
 import { removeProjectWorktree } from '@/lib/worktrees/worktreeManager';
