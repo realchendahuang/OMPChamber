@@ -70,9 +70,12 @@ const prepare = async () => {
   if (fs.existsSync(launcher)) {
     fs.rmSync(launcher, { recursive: true, force: true });
   }
+  // Resolve cli.js relative to the launcher's own location: an absolute
+  // build-machine path would break inside packaged installs, where the
+  // resource tree lives under a different root.
   fs.writeFileSync(
     launcher,
-    `#!/bin/sh\nexec bun ${JSON.stringify(cliPath)} "$@"\n`,
+    '#!/bin/sh\nSCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec bun "$SCRIPT_DIR/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js" "$@"\n',
     { encoding: 'utf8' },
   );
   ensureExecutable(launcher);
