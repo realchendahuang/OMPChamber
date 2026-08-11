@@ -66,14 +66,6 @@ const SETTINGS_SEARCH_ITEMS: readonly SettingsSearchItem[] = [
     isAvailable: (ctx) => !ctx.isVSCode,
   },
   {
-    id: 'appearance.window-transparency',
-    page: 'appearance',
-    titleKey: 'settings.ompchamber.visual.field.macVibrancy',
-    descriptionKey: 'settings.ompchamber.visual.field.macVibrancyHint',
-    keywords: ['transparent', 'transparency', 'vibrancy', 'blur', 'macos', 'opaque'],
-    isAvailable: (ctx) => ctx.isDesktopLocalOrigin,
-  },
-  {
     id: 'appearance.dock-badge',
     page: 'appearance',
     titleKey: 'settings.ompchamber.visual.field.dockBadge',
