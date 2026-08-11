@@ -141,7 +141,7 @@ export const ACCEPTED_ATTACHMENT_EXTENSIONS = Array.from(new Set(
   })
 )).sort()
 
-type OpenCodeAttachmentMimeType =
+type OmpAttachmentMimeType =
   | "image/png"
   | "image/jpeg"
   | "image/gif"
@@ -176,14 +176,14 @@ export const getUnsupportedAttachmentInputs = <T extends { mimeType: string }>(
   return unsupportedInputs
 }
 
-const SUPPORTED_BINARY_MIMES = new Map<string, OpenCodeAttachmentMimeType>([
+const SUPPORTED_BINARY_MIMES = new Map<string, OmpAttachmentMimeType>([
   ["image/png", "image/png"],
   ["image/jpeg", "image/jpeg"],
   ["image/gif", "image/gif"],
   ["image/webp", "image/webp"],
   ["application/pdf", "application/pdf"],
 ])
-const SUPPORTED_BINARY_EXTENSIONS = new Map<string, OpenCodeAttachmentMimeType>([
+const SUPPORTED_BINARY_EXTENSIONS = new Map<string, OmpAttachmentMimeType>([
   ["gif", "image/gif"],
   ["jpeg", "image/jpeg"],
   ["jpg", "image/jpeg"],
@@ -229,7 +229,7 @@ const inspectTextContent = async (file: File): Promise<"text/plain" | undefined>
 
 const attachmentMime = (
   file: File,
-): OpenCodeAttachmentMimeType | Promise<"text/plain" | undefined> | undefined => {
+): OmpAttachmentMimeType | Promise<"text/plain" | undefined> | undefined => {
   const type = declaredMimeOf(file)
   const supportedMime = SUPPORTED_BINARY_MIMES.get(type)
   if (supportedMime) return supportedMime

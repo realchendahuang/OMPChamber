@@ -7,7 +7,7 @@
  * nothing to report beyond "it disappeared".
  *
  * This buffer gives the failure somewhere to live until someone asks for it,
- * via the About dialog's diagnostics report or `__opencodeDebug`. It is
+ * via the About dialog's diagnostics report or `__ompDebug`. It is
  * in-memory only: never persisted, never sent anywhere, and dropped on reload.
  */
 

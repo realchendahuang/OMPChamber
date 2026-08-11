@@ -161,7 +161,7 @@ const sidebarBaseRgb = hexToRgb(theme.colors.surface.muted);
   apply(theme: Theme): void {
     const cssVars = this.generate(theme);
     const style = document.createElement('style');
-    style.id = 'opencode-theme-variables';
+    style.id = 'omp-theme-variables';
 
     let styleContent = '';
     if (theme.metadata.variant === 'dark') {
@@ -178,7 +178,7 @@ const sidebarBaseRgb = hexToRgb(theme.colors.surface.muted);
 
     style.textContent = styleContent;
 
-    const existing = document.getElementById('opencode-theme-variables');
+    const existing = document.getElementById('omp-theme-variables');
     if (existing) {
       existing.remove();
     }

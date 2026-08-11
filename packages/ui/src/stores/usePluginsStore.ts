@@ -2,11 +2,11 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { createDeferredSafeJSONStorage } from './utils/safeStorage';
 import { startConfigUpdate } from '@/lib/configUpdate';
-import { refreshAfterOpenCodeRestart } from '@/stores/useAgentsStore';
+import { refreshAfterOmpRestart } from '@/stores/useAgentsStore';
 import { useProjectsStore } from '@/stores/useProjectsStore';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { noteDeferredRestartFromPayload } from '@/lib/opencode/deferredRestart';
+import { noteDeferredRestartFromPayload } from '@/lib/agent/deferredRestart';
 
 export type PluginScope = 'user' | 'project';
 type PluginParsedKind = 'npm' | 'path';
@@ -115,7 +115,7 @@ const getConfigDirectory = (): string | null => {
       return activeProject.path.trim();
     }
 
-    const clientDir = opencodeClient.getDirectory();
+    const clientDir = agentClient.getDirectory();
     if (clientDir?.trim()) {
       return clientDir.trim();
     }
@@ -465,7 +465,7 @@ async function runPluginMutation(
 
     if (payload?.requiresReload) {
       startConfigUpdate(progressMessage);
-      await refreshAfterOpenCodeRestart({
+      await refreshAfterOmpRestart({
         message: payload.message,
         delayMs: payload.reloadDelayMs ?? CLIENT_RELOAD_DELAY_MS,
         scopes: ['all'],

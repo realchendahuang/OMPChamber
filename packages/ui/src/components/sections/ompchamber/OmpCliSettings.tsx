@@ -12,14 +12,14 @@ import {
 } from '@/components/sections/shared/SettingsSection';
 import { isDesktopShell, requestFileAccess } from '@/lib/desktop';
 import { updateDesktopSettings } from '@/lib/persistence';
-import { recordDeferredOpenCodeRestart } from '@/lib/opencode/deferredRestart';
+import { recordDeferredOmpRestart } from '@/lib/agent/deferredRestart';
 import { useUIStore } from '@/stores/useUIStore';
 import { useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';
 import { isWindowsArm64 } from '@/lib/platform';
 import { toast } from '@/components/ui';
 
-export const OpenCodeCliSettings: React.FC = () => {
+export const OmpCliSettings: React.FC = () => {
   const { t } = useI18n();
   const [value, setValue] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(true);
@@ -90,7 +90,7 @@ export const OpenCodeCliSettings: React.FC = () => {
         ? trimmed.slice(1, -1).trim()
         : trimmed;
       await updateDesktopSettings({ opencodeBinary: unquoted });
-      recordDeferredOpenCodeRestart('cli', { id: 'opencode-binary' });
+      recordDeferredOmpRestart('cli', { id: 'omp-binary' });
       toast.success(t('settings.view.pendingRestart.saved'));
     } finally {
       setIsSaving(false);
@@ -108,18 +108,18 @@ export const OpenCodeCliSettings: React.FC = () => {
   }, [setAgentControlToolEnabled]);
 
   return (
-    <SettingsSection title={t('settings.ompchamber.opencodeCli.title')}>
+    <SettingsSection title={t('settings.ompchamber.ompCli.title')}>
       <div className="space-y-0.5">
         <SettingsFieldRow
-          settingsItem="sessions.opencode-binary"
-          label={t('settings.ompchamber.opencodeCli.field.binaryPath')}
+          settingsItem="sessions.omp-binary"
+          label={t('settings.ompchamber.ompCli.field.binaryPath')}
           info={(
             <>
-              {t('settings.ompchamber.opencodeCli.tipPrefix')}
+              {t('settings.ompchamber.ompCli.tipPrefix')}
               {' '}
               <span className="font-mono">OPENCODE_BINARY</span>
               {' '}
-              {t('settings.ompchamber.opencodeCli.tipMiddle')}
+              {t('settings.ompchamber.ompCli.tipMiddle')}
               {' '}
               <span className="font-mono">~/.config/ompchamber/settings.json</span>
               {'.'}
@@ -131,7 +131,7 @@ export const OpenCodeCliSettings: React.FC = () => {
           <Input
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder={t('settings.ompchamber.opencodeCli.field.binaryPathPlaceholder')}
+            placeholder={t('settings.ompchamber.ompCli.field.binaryPathPlaceholder')}
             disabled={isLoading || isSaving}
             className="h-8 min-w-0 flex-1 font-mono text-xs"
           />
@@ -142,8 +142,8 @@ export const OpenCodeCliSettings: React.FC = () => {
             onClick={handleBrowse}
             disabled={isLoading || isSaving || !isDesktopShell()}
             className={SETTINGS_ICON_BUTTON_CLASS}
-            aria-label={t('settings.ompchamber.opencodeCli.actions.browseAria')}
-            title={t('settings.ompchamber.opencodeCli.actions.browse')}
+            aria-label={t('settings.ompchamber.ompCli.actions.browseAria')}
+            title={t('settings.ompchamber.ompCli.actions.browse')}
           >
             <Icon name="folder" className="h-4 w-4" />
           </Button>
@@ -152,11 +152,11 @@ export const OpenCodeCliSettings: React.FC = () => {
         <SettingsInset className={SETTINGS_OPTION_STACK_CLASS}>
           {!isWindowsArm64() && (
             <SettingsCheckboxRow
-              settingsItem="sessions.opencode-update-notifications"
+              settingsItem="sessions.omp-update-notifications"
               checked={showOpenCodeUpdateNotifications}
               onChange={handleShowUpdateNotificationsChange}
-              label={t('settings.ompchamber.opencodeCli.field.showUpdateNotifications')}
-              ariaLabel={t('settings.ompchamber.opencodeCli.field.showUpdateNotificationsAria')}
+              label={t('settings.ompchamber.ompCli.field.showUpdateNotifications')}
+              ariaLabel={t('settings.ompchamber.ompCli.field.showUpdateNotificationsAria')}
             />
           )}
 
@@ -164,9 +164,9 @@ export const OpenCodeCliSettings: React.FC = () => {
             settingsItem="sessions.agent-control-tool"
             checked={agentControlToolEnabled}
             onChange={handleAgentControlToolChange}
-            label={t('settings.ompchamber.opencodeCli.field.agentControlTool')}
-            ariaLabel={t('settings.ompchamber.opencodeCli.field.agentControlToolAria')}
-            info={t('settings.ompchamber.opencodeCli.field.agentControlToolInfo')}
+            label={t('settings.ompchamber.ompCli.field.agentControlTool')}
+            ariaLabel={t('settings.ompchamber.ompCli.field.agentControlToolAria')}
+            info={t('settings.ompchamber.ompCli.field.agentControlToolInfo')}
           />
 
           <div className="flex justify-start py-1.5">

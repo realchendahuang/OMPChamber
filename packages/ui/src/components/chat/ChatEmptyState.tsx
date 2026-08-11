@@ -16,7 +16,7 @@ const ChatEmptyState: React.FC = () => {
             <OMPChamberLogo width={140} height={140} className="opacity-20" />
             {initError ? (
                 <div className="flex flex-col items-center gap-2 max-w-md text-center px-4">
-                    <span className="text-body-md font-medium text-destructive">{t('chat.emptyState.opencodeUnreachable')}</span>
+                    <span className="text-body-md font-medium text-destructive">{t('chat.emptyState.ompUnreachable')}</span>
                     <span className="text-body-sm" style={{ color: textColor }}>
                         {initError.message}
                     </span>

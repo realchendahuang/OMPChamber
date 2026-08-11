@@ -19,7 +19,7 @@ export const normalizeFollowUpBehavior = (
     legacyQueueModeEnabled?: boolean | null,
 ): FollowUpBehavior => {
     // "immediate" was removed: on a busy session it was wire-identical to
-    // "steer" (OpenCode only supports delivery "steer" | "queue", defaulting
+    // "steer" (OMP only supports delivery "steer" | "queue", defaulting
     // to "steer"), so collapse any persisted/legacy "immediate" onto "steer".
     if (value === 'immediate') {
         return 'steer';

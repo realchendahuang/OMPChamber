@@ -17,12 +17,12 @@ import {
 import { toast } from '@/components/ui';
 import { Icon } from "@/components/icon/Icon";
 import type { IconName } from "@/components/icon/icons";
-import { noteDeferredRestartFromPayload, recordDeferredOpenCodeRestart } from '@/lib/opencode/deferredRestart';
+import { noteDeferredRestartFromPayload, recordDeferredOmpRestart } from '@/lib/agent/deferredRestart';
 import { cn } from '@/lib/utils';
 import type { ModelMetadata } from '@/types';
 import { getCurrentIntlLocale, useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { shouldLoadAvailableProviders } from './providerAvailability';
 import {
   getOAuthAuthMethods,
@@ -199,7 +199,7 @@ export const ProvidersPage: React.FC = () => {
     const loadAuthMethods = async () => {
       setAuthLoading(true);
       try {
-        const result = await opencodeClient.getSdkClient().provider.auth();
+        const result = await agentClient.getSdkClient().provider.auth();
         if (result.error) {
           throw new Error(`provider.auth failed: ${String(result.error)}`);
         }
@@ -234,7 +234,7 @@ export const ProvidersPage: React.FC = () => {
       setAvailableLoading(true);
       setAvailableError(null);
       try {
-        const result = await opencodeClient.getSdkClient().provider.list();
+        const result = await agentClient.getSdkClient().provider.list();
         if (result.error) {
           throw new Error(`provider.list failed: ${String(result.error)}`);
         }
@@ -384,7 +384,7 @@ export const ProvidersPage: React.FC = () => {
     setAuthBusyKey(busyKey);
 
     try {
-      const result = await opencodeClient.getSdkClient().auth.set({
+      const result = await agentClient.getSdkClient().auth.set({
         providerID: providerId,
         auth: { type: 'api', key: apiKey },
       });
@@ -394,7 +394,7 @@ export const ProvidersPage: React.FC = () => {
 
       toast.success(t('settings.providers.page.toast.apiKeySaved'));
       setApiKeyInputs((prev) => ({ ...prev, [providerId]: '' }));
-      recordDeferredOpenCodeRestart('providers', { id: providerId });
+      recordDeferredOmpRestart('providers', { id: providerId });
       setSelectedProvider(providerId);
     } catch (error) {
       console.error('Failed to save API key:', error);
@@ -415,7 +415,7 @@ export const ProvidersPage: React.FC = () => {
       // blocks create validation, and so PUT can pass hasStoredAuth for literal keys.
       const authRequest = buildAuthSetRequest(plan);
       if (authRequest) {
-        const authResult = await opencodeClient.getSdkClient().auth.set(authRequest);
+        const authResult = await agentClient.getSdkClient().auth.set(authRequest);
         if (authResult.error) {
           throw new Error(t('settings.providers.page.toast.apiKeySaveFailed'));
         }
@@ -471,7 +471,7 @@ export const ProvidersPage: React.FC = () => {
 
   const handleOAuthConnected = (providerId: string) => {
     setShowAuthPanel(false);
-    recordDeferredOpenCodeRestart('providers', { id: providerId });
+    recordDeferredOmpRestart('providers', { id: providerId });
     setSelectedProvider(providerId);
   };
 
@@ -521,7 +521,7 @@ export const ProvidersPage: React.FC = () => {
         <div className="text-center text-muted-foreground">
           <Icon name="stack" className="mx-auto mb-3 h-12 w-12 opacity-50" />
           <p className="typography-body">{t('settings.providers.page.empty.noProvidersDetected')}</p>
-          <p className="typography-meta mt-1 opacity-75">{t('settings.providers.page.empty.checkOpenCodeConfiguration')}</p>
+          <p className="typography-meta mt-1 opacity-75">{t('settings.providers.page.empty.checkOmpConfiguration')}</p>
         </div>
       </div>
     );

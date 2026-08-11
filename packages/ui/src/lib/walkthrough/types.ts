@@ -113,7 +113,7 @@ export interface WalkthroughReadiness {
     inputCharBudget?: number;
     contextTokens?: number;
     structuredOutput?: boolean | null;
-    /** False when the resolved provider has no usable OpenCode login. */
+    /** False when the resolved provider has no usable OMP login. */
     hasLogin?: boolean;
   };
   requiredChars?: number;

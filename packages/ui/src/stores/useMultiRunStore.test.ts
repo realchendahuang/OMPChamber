@@ -44,8 +44,8 @@ mock.module('@/sync/session-ui-store', () => ({
   },
 }));
 
-mock.module('@/lib/opencode/client', () => ({
-  opencodeClient: {
+mock.module('@/lib/agent/client', () => ({
+  agentClient: {
     withDirectory: async (directory: string, fn: () => Promise<Session>) => {
       const previous = currentDirectory;
       currentDirectory = directory;

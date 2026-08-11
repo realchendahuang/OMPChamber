@@ -1,4 +1,4 @@
-const DEFAULT_MESSAGE = "Updating OpenCode configuration...";
+const DEFAULT_MESSAGE = "Updating OMP configuration...";
 
 type ConfigUpdateListener = (state: {
   isUpdating: boolean;

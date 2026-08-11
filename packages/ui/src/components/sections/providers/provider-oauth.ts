@@ -11,7 +11,7 @@
  * - `code` — the user copies a code out of the browser and hands it to
  *   `oauth/callback`.
  *
- * Every auth plugin shipped with OpenCode uses `auto`; `code` stays supported
+ * Every auth plugin shipped with OMP uses `auto`; `code` stays supported
  * for third-party auth plugins that still return it.
  */
 

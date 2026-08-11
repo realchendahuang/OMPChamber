@@ -58,7 +58,7 @@ const makeErrorResult = (status: number) => ({
   response: new Response(null, { status }),
 });
 
-const createOpencodeClientMock = mock(() => ({
+const createAgentClientMock = mock(() => ({
   v2: {
     session: {
       permission: {
@@ -71,7 +71,7 @@ const createOpencodeClientMock = mock(() => ({
 (mock as unknown as { restore?: () => void }).restore?.();
 
 mock.module('./domain-client', () => ({
-  createDomainClient: createOpencodeClientMock,
+  createDomainClient: createAgentClientMock,
 }));
 
 mock.module('@/contexts/runtimeAPIRegistry', () => ({
@@ -99,7 +99,7 @@ mock.module('@/lib/startupTrace', () => ({
   markStartupTrace: mock(() => undefined),
 }));
 
-const { opencodeClient } = await import(`./client?cache-test-permission=${Date.now()}`);
+const { agentClient } = await import(`./client?cache-test-permission=${Date.now()}`);
 
 /**
  * Drive the in-flight mocked `get()` call to the next resolver with the
@@ -113,7 +113,7 @@ const resolveNext = (response: TestResponse) => {
   });
 };
 
-describe('opencodeClient.fetchPermission', () => {
+describe('agentClient.fetchPermission', () => {
   test('returns state="ok" with the permission when the server returns 200', async () => {
     const permission: PermissionV2Fixture = {
       id: 'perm_1',
@@ -121,7 +121,7 @@ describe('opencodeClient.fetchPermission', () => {
       action: 'bash',
       resources: ['*'],
     };
-    const promise = opencodeClient.fetchPermission('ses_1', 'perm_1');
+    const promise = agentClient.fetchPermission('ses_1', 'perm_1');
     resolveNext({ kind: 'ok', permission });
     const result = await promise;
     expect(result.state).toBe('ok');
@@ -132,21 +132,21 @@ describe('opencodeClient.fetchPermission', () => {
   });
 
   test('returns state="resolved" when the server returns 404', async () => {
-    const promise = opencodeClient.fetchPermission('ses_1', 'perm_gone');
+    const promise = agentClient.fetchPermission('ses_1', 'perm_gone');
     resolveNext({ kind: 'not-found' });
     const result = await promise;
     expect(result).toEqual({ state: 'resolved' });
   });
 
   test('returns state="unknown" on non-404 error responses (e.g. 500)', async () => {
-    const promise = opencodeClient.fetchPermission('ses_1', 'perm_1');
+    const promise = agentClient.fetchPermission('ses_1', 'perm_1');
     resolveNext({ kind: 'server-error' });
     const result = await promise;
     expect(result).toEqual({ state: 'unknown' });
   });
 
   test('returns state="unknown" when the SDK throws (network failure)', async () => {
-    const promise = opencodeClient.fetchPermission('ses_1', 'perm_1');
+    const promise = agentClient.fetchPermission('ses_1', 'perm_1');
     resolveNext({ kind: 'throw' });
     const result = await promise;
     expect(result).toEqual({ state: 'unknown' });

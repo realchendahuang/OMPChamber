@@ -58,7 +58,7 @@ const getStartupTraceSummary = () => {
     || event.name.includes('modelsMetadata')
     || event.name.includes('ModelControls')
     || event.name.includes('activateDirectory')
-    || event.name.includes('opencodeClient:setDirectory')
+    || event.name.includes('agentClient:setDirectory')
   ));
 };
 

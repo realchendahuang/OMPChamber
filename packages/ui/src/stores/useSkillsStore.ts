@@ -10,10 +10,10 @@ import {
 import { createDeferredSafeJSONStorage } from "./utils/safeStorage";
 import { runtimeFetch } from "@/lib/runtime-fetch";
 import { runBackgroundNetworkTask } from "@/lib/background-network";
-import { noteDeferredRestartFromPayload } from "@/lib/opencode/deferredRestart";
+import { noteDeferredRestartFromPayload } from "@/lib/agent/deferredRestart";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { filterSkillsByRuntimeFlags } from './skillVisibility';
 
 // Prefer the active project path so Settings/Skills discovery matches the
@@ -29,7 +29,7 @@ const getRequestDirectory = (): string | null => {
       return activeProject.path.trim();
     }
 
-    const clientDir = opencodeClient.getDirectory();
+    const clientDir = agentClient.getDirectory();
     if (clientDir?.trim()) {
       return clientDir.trim();
     }
@@ -292,13 +292,13 @@ export const useSkillsStore = create<SkillsStore>()(
                   renamable: s.renamable === true,
                 }));
 
-                // OpenCode loads a narrower set than this scan finds, and the
+                // OMP loads a narrower set than this scan finds, and the
                 // rules live in server-side env flags the browser cannot read.
                 // The route reports them; `filterSkillsByRuntimeFlags` mirrors
-                // OpenCode's discovery, including the `.agents`-wins dedup that
+                // OMP's discovery, including the `.agents`-wins dedup that
                 // matters when `.claude/skills` are symlinks back into it.
                 //
-                // Deliberately not OpenCode's own skill endpoint: measured
+                // Deliberately not OMP's own skill endpoint: measured
                 // against 1.18.14 it lists only global and builtin skills and
                 // omits the project skills the agent actually has.
                 const visibleSkills = filterSkillsByRuntimeFlags(
@@ -392,7 +392,7 @@ export const useSkillsStore = create<SkillsStore>()(
 
             if (payload?.requiresReload) {
               startConfigUpdate("Creating skill...");
-              await refreshSkillsAfterOpenCodeRestart({
+              await refreshSkillsAfterOmpRestart({
                 message: payload?.message,
                 delayMs: payload?.reloadDelayMs,
               });
@@ -451,7 +451,7 @@ export const useSkillsStore = create<SkillsStore>()(
 
             if (payload?.requiresReload) {
               startConfigUpdate("Updating skill...");
-              await refreshSkillsAfterOpenCodeRestart({
+              await refreshSkillsAfterOmpRestart({
                 message: payload?.message,
                 delayMs: payload?.reloadDelayMs,
               });
@@ -494,7 +494,7 @@ export const useSkillsStore = create<SkillsStore>()(
             invalidateSkillsLoadCache(directory);
             if (needsReload) {
               requiresReload = true;
-              await refreshSkillsAfterOpenCodeRestart({
+              await refreshSkillsAfterOmpRestart({
                 message: payload?.message,
                 delayMs: payload?.reloadDelayMs,
               });
@@ -546,7 +546,7 @@ export const useSkillsStore = create<SkillsStore>()(
 
             if (payload?.requiresReload) {
               startConfigUpdate("Deleting skill...");
-              await refreshSkillsAfterOpenCodeRestart({
+              await refreshSkillsAfterOmpRestart({
                 message: payload?.message,
                 delayMs: payload?.reloadDelayMs,
               });
@@ -653,7 +653,7 @@ if (typeof window !== "undefined") {
   window.__zustand_skills_store__ = useSkillsStore;
 }
 
-async function waitForOpenCodeConnection(delayMs?: number) {
+async function waitForOmpConnection(delayMs?: number) {
   const initialPause = typeof delayMs === "number" && delayMs > 0
     ? Math.min(delayMs, FAST_HEALTH_POLL_INTERVAL_MS)
     : 0;
@@ -668,14 +668,14 @@ async function waitForOpenCodeConnection(delayMs?: number) {
 
   while (Date.now() - start < MAX_HEALTH_WAIT_MS) {
     attempt += 1;
-    updateConfigUpdateMessage(`Waiting for OpenCode… (attempt ${attempt})`);
+    updateConfigUpdateMessage(`Waiting for OMP… (attempt ${attempt})`);
 
     try {
-      const isHealthy = await opencodeClient.checkHealth();
+      const isHealthy = await agentClient.checkHealth();
       if (isHealthy) {
         return;
       }
-      lastError = new Error("OpenCode health check reported not ready");
+      lastError = new Error("OMP health check reported not ready");
     } catch (error) {
       lastError = error;
     }
@@ -694,10 +694,10 @@ async function waitForOpenCodeConnection(delayMs?: number) {
     await sleep(waitMs);
   }
 
-  throw lastError || new Error("OpenCode did not become ready in time");
+  throw lastError || new Error("OMP did not become ready in time");
 }
 
-export async function refreshSkillsAfterOpenCodeRestart(options?: { message?: string; delayMs?: number }) {
+export async function refreshSkillsAfterOmpRestart(options?: { message?: string; delayMs?: number }) {
   try {
     updateConfigUpdateMessage(options?.message || "Refreshing skills…");
   } catch {
@@ -705,7 +705,7 @@ export async function refreshSkillsAfterOpenCodeRestart(options?: { message?: st
   }
 
   try {
-    await waitForOpenCodeConnection(options?.delayMs);
+    await waitForOmpConnection(options?.delayMs);
     updateConfigUpdateMessage("Refreshing skills…");
     const skillsStore = useSkillsStore.getState();
     invalidateSkillsLoadCache();
@@ -714,7 +714,7 @@ export async function refreshSkillsAfterOpenCodeRestart(options?: { message?: st
       emitConfigChange("skills", { source: CONFIG_EVENT_SOURCE });
     }
   } catch (error) {
-    updateConfigUpdateMessage("OpenCode refresh failed. Please retry.");
+    updateConfigUpdateMessage("OMP refresh failed. Please retry.");
     await sleep(1500);
     throw error;
   } finally {

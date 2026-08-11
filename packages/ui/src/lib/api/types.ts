@@ -376,7 +376,7 @@ export interface GitWorktreeBootstrapStatus {
 
 export interface CreateGitWorktreePayload {
   mode?: 'new' | 'existing';
-  /** Worktree folder name (falls back to OpenCode name generation when omitted). */
+  /** Worktree folder name (falls back to OMP name generation when omitted). */
   worktreeName?: string;
   /** Backward-compatible alias for worktreeName. */
   name?: string;
@@ -705,7 +705,7 @@ export interface SettingsAPI {
   load(): Promise<SettingsLoadResult>;
   save(changes: Partial<SettingsPayload>): Promise<SettingsPayload>;
 
-  restartOpenCode?: () => Promise<{ restarted: boolean }>;
+  restartOmp?: () => Promise<{ restarted: boolean }>;
 }
 
 export interface DirectoryPermissionRequest {

@@ -10,15 +10,15 @@ const registerSessionDirectoryCalls: Array<{ sessionID: string; directory: strin
 const upsertSessionCalls: Session[] = []
 const markSessionAsOMPChamberCreatedCalls: string[] = []
 
-// Configurable opencodeClient.createSession — set per test
+// Configurable agentClient.createSession — set per test
 let nextCreateSessionResponse: Session = { id: "ses_default", time: { created: 1 } } as Session
 let nextCreateSessionCalls: Array<{ params: unknown; directory: string | null | undefined }> = []
 
 // Configurable current directory (used as fallback when no directoryOverride is set)
 let currentDirectory: string | null = null
 
-mock.module("@/lib/opencode/client", () => ({
-  opencodeClient: {
+mock.module("@/lib/agent/client", () => ({
+  agentClient: {
     getDirectory: () => currentDirectory,
     setDirectory: mock(() => undefined),
     createSession: mock(async (params: unknown, directory?: string | null) => {
@@ -147,7 +147,7 @@ describe("issue #1637 — no directoryOverride, no server directory", () => {
     const result = await createSession("test title", null, null)
 
     expect(result?.id).toBe("ses_1637_c")
-    // Without any directory source, the call to opencodeClient.createSession
+    // Without any directory source, the call to agentClient.createSession
     // is made with undefined (dir() returned undefined).
     // dir() returns undefined when no current directory is set and no override is provided
     expect(nextCreateSessionCalls[0].directory == null).toBe(true)

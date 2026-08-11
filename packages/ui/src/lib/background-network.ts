@@ -6,7 +6,7 @@
  * traffic through one origin. During startup many subsystems fan out at once —
  * per-directory session/status polls, git checks per project and worktree,
  * command/skill discovery, global session pages — and several of those calls
- * are slow while the OpenCode server is still warming up. Uncapped, they
+ * are slow while the OMP server is still warming up. Uncapped, they
  * occupy the whole connection pool and interactive traffic (opening a session
  * and fetching its messages) queues for seconds behind them.
  *

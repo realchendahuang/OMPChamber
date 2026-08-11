@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { StoreApi, UseBoundStore } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { opencodeClient } from "@/lib/opencode/client";
+import { agentClient } from "@/lib/agent/client";
 import {
   startConfigUpdate,
   finishConfigUpdate,
@@ -12,7 +12,7 @@ import { createDeferredSafeJSONStorage } from "./utils/safeStorage";
 import { useProjectsStore } from "@/stores/useProjectsStore";
 import { runtimeFetch } from "@/lib/runtime-fetch";
 import { runBackgroundNetworkTask } from '@/lib/background-network';
-import { noteDeferredRestartFromPayload } from "@/lib/opencode/deferredRestart";
+import { noteDeferredRestartFromPayload } from "@/lib/agent/deferredRestart";
 
 
 export type CommandScope = 'user' | 'project';
@@ -31,7 +31,7 @@ export interface Command extends CommandConfig {
   isBuiltIn?: boolean;
 }
 
-// Built-in commands provided by OpenCode (not defined in user config directories)
+// Built-in commands provided by OMP (not defined in user config directories)
 const BUILTIN_COMMAND_NAMES = new Set(['init', 'review']);
 
 export const isCommandBuiltIn = (command: Command): boolean => {
@@ -112,8 +112,8 @@ const getRequestDirectory = (): string | null => {
       return activeProject.path.trim();
     }
 
-    // 2. Fallback: current OpenCode directory (session / runtime)
-    const clientDir = opencodeClient.getDirectory();
+    // 2. Fallback: current OMP directory (session / runtime)
+    const clientDir = agentClient.getDirectory();
     if (clientDir?.trim()) {
       return clientDir.trim();
     }
@@ -207,9 +207,9 @@ export const useCommandsStore = create<CommandsStore>()(
                 const queryParams = directory ? `?directory=${encodeURIComponent(directory)}` : '';
 
                 // Ensure the list is scoped to the same directory we use for config source detection.
-                const commands = await runBackgroundNetworkTask(() => opencodeClient.withDirectory(
+                const commands = await runBackgroundNetworkTask(() => agentClient.withDirectory(
                   directory,
-                  () => opencodeClient.listCommandsWithDetails()
+                  () => agentClient.listCommandsWithDetails()
                 ));
 
                 const configurableCommands = commands.filter((cmd) => cmd.source !== 'skill');
@@ -496,7 +496,7 @@ if (typeof window !== "undefined") {
   window.__zustand_commands_store__ = useCommandsStore;
 }
 
-async function waitForOpenCodeConnection(delayMs?: number) {
+async function waitForOmpConnection(delayMs?: number) {
   const initialPause = typeof delayMs === "number" && delayMs > 0
     ? Math.min(delayMs, FAST_HEALTH_POLL_INTERVAL_MS)
     : 0;
@@ -511,14 +511,14 @@ async function waitForOpenCodeConnection(delayMs?: number) {
 
   while (Date.now() - start < MAX_HEALTH_WAIT_MS) {
     attempt += 1;
-    updateConfigUpdateMessage(`Waiting for OpenCode… (attempt ${attempt})`);
+    updateConfigUpdateMessage(`Waiting for OMP… (attempt ${attempt})`);
 
     try {
-      const isHealthy = await opencodeClient.checkHealth();
+      const isHealthy = await agentClient.checkHealth();
       if (isHealthy) {
         return;
       }
-      lastError = new Error("OpenCode health check reported not ready");
+      lastError = new Error("OMP health check reported not ready");
     } catch (error) {
       lastError = error;
     }
@@ -537,7 +537,7 @@ async function waitForOpenCodeConnection(delayMs?: number) {
     await sleep(waitMs);
   }
 
-  throw lastError || new Error("OpenCode did not become ready in time");
+  throw lastError || new Error("OMP did not become ready in time");
 }
 
 async function performFullConfigRefresh(options: { message?: string; delayMs?: number } = {}) {
@@ -550,7 +550,7 @@ async function performFullConfigRefresh(options: { message?: string; delayMs?: n
   }
 
   try {
-    await waitForOpenCodeConnection(delayMs);
+    await waitForOmpConnection(delayMs);
     updateConfigUpdateMessage("Refreshing commands…");
 
     const commandsStore = useCommandsStore.getState();
@@ -560,8 +560,8 @@ async function performFullConfigRefresh(options: { message?: string; delayMs?: n
 
     emitConfigChange("commands", { source: CONFIG_EVENT_SOURCE });
   } catch (error) {
-    console.error("[CommandsStore] Failed to refresh configuration after OpenCode restart:", error);
-    updateConfigUpdateMessage("OpenCode refresh failed. Please retry refreshing configuration manually.");
+    console.error("[CommandsStore] Failed to refresh configuration after OMP restart:", error);
+    updateConfigUpdateMessage("OMP refresh failed. Please retry refreshing configuration manually.");
     await sleep(1500);
     throw error;
   } finally {

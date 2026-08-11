@@ -1,6 +1,6 @@
 /**
  * Custom / Other OpenAI-compatible provider form helpers.
- * Mirrors OpenCode web UI validation and request construction so a provider
+ * Mirrors OMP web UI validation and request construction so a provider
  * can be defined from Settings without code changes.
  */
 
@@ -173,7 +173,7 @@ export type ProviderConfigScope = 'user' | 'project' | 'custom';
 
 /**
  * True when a provider both looks OpenAI-compatible-custom and is defined in a
- * user/project/custom OpenCode config layer. Catalog-only providers often share
+ * user/project/custom OMP config layer. Catalog-only providers often share
  * the same npm/baseURL signals and must not get Edit / config overrides.
  */
 export function isConfigDefinedCustomProvider(
@@ -190,7 +190,7 @@ export function isConfigDefinedCustomProvider(
 }
 
 /**
- * Effective writable config layer for a provider, matching OpenCode merge
+ * Effective writable config layer for a provider, matching OMP merge
  * precedence: custom > project > user.
  */
 export function resolveProviderConfigScope(
@@ -249,7 +249,7 @@ export function providerToCustomFormState(provider: ProviderLikeForCustomForm): 
 }
 
 /**
- * Validates form input and builds the auth + OpenCode provider config payloads.
+ * Validates form input and builds the auth + OMP provider config payloads.
  */
 export function validateCustomProvider(input: ValidateCustomProviderInput): ValidateCustomProviderResult {
   const providerID = input.form.providerID.trim();
@@ -374,7 +374,7 @@ export function validateCustomProvider(input: ValidateCustomProviderInput): Vali
 }
 
 /**
- * Builds the OpenCode auth.set request body when a literal API key is present.
+ * Builds the OMP auth.set request body when a literal API key is present.
  */
 export function buildAuthSetRequest(plan: CustomProviderPersistPlan): {
   providerID: string;
@@ -391,7 +391,7 @@ export function buildAuthSetRequest(plan: CustomProviderPersistPlan): {
 
 /**
  * Builds the OMPChamber provider upsert request body (config persistence).
- * `scope` selects the OpenCode config layer (user/project/custom). Create
+ * `scope` selects the OMP config layer (user/project/custom). Create
  * defaults to user; edit must pass the provider's effective existing layer.
  */
 export function buildProviderUpsertRequest(

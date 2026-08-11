@@ -4,7 +4,7 @@ import { getSafeStorage } from '@/stores/utils/safeStorage';
 
 // Per-session turn timing behind the sidebar activity readout.
 //
-// The OpenCode status contract carries no timestamps — `SessionStatus` is a
+// The OMP status contract carries no timestamps — `SessionStatus` is a
 // bare `busy | retry | idle` union — so how long the current turn has been
 // running has to be measured on the client. This module owns that measurement
 // and is driven from the same two write paths as `global-session-status`, the

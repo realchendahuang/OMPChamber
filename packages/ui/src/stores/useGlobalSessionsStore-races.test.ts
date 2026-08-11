@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
-import type { OpencodeClient, Session } from "@ompchamber/agent-protocol/domain-types"
+import type { AgentClient, Session } from "@ompchamber/agent-protocol/domain-types"
 
-import { opencodeClient } from "@/lib/opencode/client"
+import { agentClient } from "@/lib/agent/client"
 import { useGlobalSessionsStore } from "./useGlobalSessionsStore"
 
 type Deferred<T> = {
@@ -35,8 +35,8 @@ const sdk = {
       }),
     },
   },
-} as unknown as OpencodeClient
-const originalGetSdkClient = opencodeClient.getSdkClient
+} as unknown as AgentClient
+const originalGetSdkClient = agentClient.getSdkClient
 
 const session = (id: string, title = id, archived?: number): Session => ({
   id,
@@ -47,12 +47,12 @@ const session = (id: string, title = id, archived?: number): Session => ({
 describe("global session mutation reconciliation", () => {
   beforeEach(() => {
     listRequest = deferred<Session[]>()
-    opencodeClient.getSdkClient = () => sdk
+    agentClient.getSdkClient = () => sdk
     useGlobalSessionsStore.getState().resetForRuntimeSwitch()
   })
 
   afterEach(() => {
-    opencodeClient.getSdkClient = originalGetSdkClient
+    agentClient.getSdkClient = originalGetSdkClient
   })
 
   test("keeps a session created after a full load starts", async () => {

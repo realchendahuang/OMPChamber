@@ -61,7 +61,7 @@ export function LocalSetupScreen({
   const [isRetrying, setIsRetrying] = React.useState(false);
   const [isChecking, setIsChecking] = React.useState(false);
   const [checkError, setCheckError] = React.useState<string | null>(null);
-  const [opencodeBinary, setOpencodeBinary] = React.useState('');
+  const [ompBinary, setOmpBinary] = React.useState('');
   const [platform, setPlatform] = React.useState<OnboardingPlatform>('unknown');
 
   React.useEffect(() => {
@@ -105,7 +105,7 @@ export function LocalSetupScreen({
         if (!data || cancelled) return;
         const value = typeof data.opencodeBinary === 'string' ? data.opencodeBinary.trim() : '';
         if (value) {
-          setOpencodeBinary(value);
+          setOmpBinary(value);
         }
       } catch {
         // ignore
@@ -148,7 +148,7 @@ export function LocalSetupScreen({
     try {
       const selected = await requestFileAccess();
       if (selected.success && selected.path && selected.path.trim().length > 0) {
-        setOpencodeBinary(selected.path.trim());
+        setOmpBinary(selected.path.trim());
       }
     } catch {
       // ignore
@@ -158,7 +158,7 @@ export function LocalSetupScreen({
   const handleApplyPath = React.useCallback(async () => {
     setIsRetrying(true);
     try {
-      await updateDesktopSettings({ opencodeBinary: opencodeBinary.trim() });
+      await updateDesktopSettings({ opencodeBinary: ompBinary.trim() });
 
       // In desktop boot flow, restart the app so the native host can
       // re-evaluate the boot outcome with the updated binary path.
@@ -171,7 +171,7 @@ export function LocalSetupScreen({
     } finally {
       setTimeout(() => setIsRetrying(false), 1000);
     }
-  }, [isDesktopApp, opencodeBinary]);
+  }, [isDesktopApp, ompBinary]);
 
   const handleCopy = React.useCallback(async () => {
     const result = await copyTextToClipboard(INSTALL_COMMAND);
@@ -204,10 +204,10 @@ export function LocalSetupScreen({
   const docsUrl = DOCS_URL;
   const binaryPlaceholder =
     platform === 'windows'
-      ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\opencode.cmd'
+      ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\omp.cmd'
       : platform === 'linux'
-        ? '/home/you/.bun/bin/opencode'
-        : '/Users/you/.bun/bin/opencode';
+        ? '/home/you/.bun/bin/omp'
+        : '/Users/you/.bun/bin/omp';
 
   return (
     <div
@@ -294,8 +294,8 @@ export function LocalSetupScreen({
             <div className="text-sm text-muted-foreground">{t('onboarding.localSetup.field.alreadyInstalled')}</div>
             <div className="flex gap-2">
               <Input
-                value={opencodeBinary}
-                onChange={(e) => setOpencodeBinary(e.target.value)}
+                value={ompBinary}
+                onChange={(e) => setOmpBinary(e.target.value)}
                 placeholder={binaryPlaceholder}
                 disabled={isRetrying}
                 className="flex-1 font-mono text-xs"

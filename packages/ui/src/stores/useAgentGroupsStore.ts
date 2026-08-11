@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { listProjectWorktrees, removeProjectWorktree, type ProjectRef } from '@/lib/worktrees/worktreeManager';
 import { useDirectoryStore } from './useDirectoryStore';
 import { useProjectsStore } from './useProjectsStore';
@@ -225,7 +225,7 @@ export const useAgentGroupsStore = create<Store>()(
         }
 
         // 2. Fetch sessions for each worktree directory (parallel, max 5)
-        const api = opencodeClient.getApiClient();
+        const api = agentClient.getApiClient();
         const allSessions: Session[] = [];
         const failedDirectories = new Set<string>();
 

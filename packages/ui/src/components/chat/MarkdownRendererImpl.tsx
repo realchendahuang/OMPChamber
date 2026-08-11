@@ -864,7 +864,7 @@ const useMorphdomMarkdown = ({
   // Synchronous first paint: while the async parse is in-flight, show escaped
   // plain text immediately so there is no blank frame on initial mount. Only
   // runs when the target is empty — subsequent updates keep the prior rich DOM
-  // until the next async render morphs in (no flash). Mirrors OpenCode's
+  // until the next async render morphs in (no flash). Mirrors OMP's
   // `initialValue: fallback(text)` resource pattern.
   React.useLayoutEffect(() => {
     const container = containerRef.current;

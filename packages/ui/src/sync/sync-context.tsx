@@ -4,7 +4,7 @@ import type { Event, Message, Part } from "@ompchamber/agent-protocol/domain-typ
 import type { Session } from "@ompchamber/agent-protocol/domain-types"
 import type { StoreApi } from "zustand"
 import { useStore } from "zustand"
-import type { OpencodeClient } from "@ompchamber/agent-protocol/domain-types"
+import type { AgentClient } from "@ompchamber/agent-protocol/domain-types"
 import { createEventPipeline } from "./event-pipeline"
 import { isVSCodeRuntime } from "@/lib/desktop"
 import { isMobileSurfaceRuntime } from "@/lib/runtimeSurface"
@@ -40,7 +40,7 @@ import { stripSessionDiffSnapshots } from "./sanitize"
 import { applySessionEventToGlobalSessions } from "./session-event-router"
 import { syncDebug } from "./debug"
 import { getReconnectCandidateSessionIds, mergeBootstrapSessions } from "./reconnect-recovery"
-import { opencodeClient } from "@/lib/opencode/client"
+import { agentClient } from "@/lib/agent/client"
 import { usePermissionStore } from "@/stores/permissionStore"
 import {
   processVSCodePermissionAutoAccept,
@@ -88,7 +88,7 @@ type SyncSystem = {
   childStores: ChildStoreManager
   messageLoader: SessionMessageLoader
   runtimeKey: string
-  sdk: OpencodeClient
+  sdk: AgentClient
   directory: string
 }
 
@@ -526,7 +526,7 @@ function getViewedSessionMaterializationTarget(directory: string) {
   }
 }
 
-function toSessionStatus(status: Awaited<ReturnType<typeof opencodeClient.getSessionStatus>>[string] | undefined): SessionStatus | undefined {
+function toSessionStatus(status: Awaited<ReturnType<typeof agentClient.getSessionStatus>>[string] | undefined): SessionStatus | undefined {
   if (!status) return undefined
   if (status.type === "idle" || status.type === "busy") {
     return { type: status.type }
@@ -555,7 +555,7 @@ function getActiveSessionCandidateIds(directory: string, state: DirectoryStore):
 }
 
 type DirectorySessionStatusSnapshot = NonNullable<
-  Awaited<ReturnType<typeof opencodeClient.getSessionStatusForDirectory>>
+  Awaited<ReturnType<typeof agentClient.getSessionStatusForDirectory>>
 >
 
 // How a /session/status snapshot is reconciled into the store.
@@ -623,7 +623,7 @@ async function resyncDirectorySessionStatuses(
   candidateSessionIds: string[],
   mode: StatusSnapshotMode,
 ): Promise<DirectorySessionStatusSnapshot | null> {
-  const nextStatuses = await opencodeClient.getSessionStatusForDirectory(directory)
+  const nextStatuses = await agentClient.getSessionStatusForDirectory(directory)
   // null = fetch failed; preserve existing state. {} or populated = a snapshot
   // of active sessions — reconciled per `mode` (absence ≠ idle under monotonic).
   if (nextStatuses === null) return null
@@ -1208,7 +1208,7 @@ export async function resyncBlockingRequestsForDirectory(
     const beforeSignatures = new Map(
       candidates.map((sessionId) => [sessionId, requestSignature(before.question[sessionId])]),
     )
-    const pendingQuestions = await opencodeClient.listPendingQuestions({ directories: [directory] })
+    const pendingQuestions = await agentClient.listPendingQuestions({ directories: [directory] })
     const grouped: Record<string, QuestionRequest[]> = {}
     for (const question of pendingQuestions) {
       if (!question?.id || !question.sessionID) continue
@@ -1269,7 +1269,7 @@ export async function resyncBlockingRequestsForDirectory(
     const beforeSignatures = new Map(
       candidates.map((sessionId) => [sessionId, requestSignature(before.permission[sessionId])]),
     )
-    const pendingPermissions = await opencodeClient.listPendingPermissions({ directories: [directory] })
+    const pendingPermissions = await agentClient.listPendingPermissions({ directories: [directory] })
     const grouped: Record<string, PermissionRequest[]> = {}
     for (const permission of pendingPermissions) {
       if (!permission?.id || !permission.sessionID) continue
@@ -1359,7 +1359,7 @@ async function resyncDirectoryAfterReconnect(
 
   await resyncDirectorySessionStatuses(directory, store, candidateSessionIds, "authoritative")
 
-  const scopedClient = opencodeClient.getScopedSdkClient(directory)
+  const scopedClient = agentClient.getScopedSdkClient(directory)
   await Promise.all(candidateSessionIds.map(async (sessionId) => {
     syncDebug.recovery.materializing({ reason, directory, sessionID: sessionId })
     const loader = getImperativeSessionMessageLoader()
@@ -1483,7 +1483,7 @@ export function handleEvent(
           if (store && store.getState().status !== "loading") {
             childStores.requestBootstrap({
               directory: dir,
-              priority: dir === opencodeClient.getDirectory() ? "selected" : "background",
+              priority: dir === agentClient.getDirectory() ? "selected" : "background",
               reason: "server-connected",
               force: true,
             })
@@ -1831,7 +1831,7 @@ export function handleEvent(
 // ---------------------------------------------------------------------------
 // Interrupted-turn reconciliation
 //
-// A managed OpenCode process can die mid-turn (crash, health-check restart).
+// A managed OMP process can die mid-turn (crash, health-check restart).
 // The persisted turn then never settles: the trailing assistant message has
 // no `time.completed` and its tool parts stay `pending`/`running` forever —
 // the server never finalizes them (anomalyco/opencode#19023). The
@@ -1839,14 +1839,14 @@ export function handleEvent(
 // the UI would keep running tool timers and "working" styling indefinitely
 // (#2577).
 //
-// OpenCode keeps a turn's session busy while it is genuinely alive —
+// OMP keeps a turn's session busy while it is genuinely alive —
 // including while waiting for a question/permission reply — so once a
 // session is AUTHORITATIVELY settled (a `session.idle`/`session.error`
 // event, or an authoritative status snapshot that lowers a previously busy
 // session) and the trailing assistant message is still unfinished with
 // active tool parts and no pending question/permission, the turn is
 // definitively interrupted. Finalize the orphaned parts locally as
-// `error`/`Interrupted` with an end time — the same shape OpenCode itself
+// `error`/`Interrupted` with an end time — the same shape OMP itself
 // writes for cancelled tools. A later terminal part event or a refresh that
 // carries the true terminal state supersedes the mark; a stale refresh that
 // still reports `running` is rejected by the reducer's and the materializer's
@@ -1904,13 +1904,13 @@ export function interruptedTurnToolParts(
 // Provider
 // ---------------------------------------------------------------------------
 
-const dispatchOpenCodeUpdateAvailable = (payload: { version: string }) => {
+const dispatchOmpUpdateAvailable = (payload: { version: string }) => {
   if (typeof window === "undefined") return
-  window.dispatchEvent(new CustomEvent("ompchamber:opencode-update-available", { detail: payload }))
+  window.dispatchEvent(new CustomEvent("ompchamber:omp-update-available", { detail: payload }))
 }
 
 export function SyncProvider(props: {
-  sdk: OpencodeClient
+  sdk: AgentClient
   directory: string
   children: React.ReactNode
 }) {
@@ -2059,7 +2059,7 @@ export function SyncProvider(props: {
               }
               if (!context.isCurrent()) return
 
-              // A cold OpenCode process can briefly return children before its
+              // A cold OMP process can briefly return children before its
               // roots query catches up. Recover referenced parents from the
               // broader response or cache instead of publishing orphan rows.
               const current = store.getState()
@@ -2080,7 +2080,7 @@ export function SyncProvider(props: {
           if (result !== "complete" || !context.isCurrent()) return result
 
           // VS Code-only race: the bridge can answer with an empty 200 (instead
-          // of a retryable 503) while OpenCode is still warming up, which the two
+          // of a retryable 503) while OMP is still warming up, which the two
           // retry layers inside loadSessions can't catch. Re-run a few times there.
           //
           // On web/desktop this retry is both redundant and harmful: loadSessions
@@ -2106,7 +2106,7 @@ export function SyncProvider(props: {
 
         const result = await runBootstrap(0)
         if (result === "failed") {
-          // OpenCode can mask the underlying errno while initializing an
+          // OMP can mask the underlying errno while initializing an
           // inaccessible workspace. Probe the exact directory through the
           // owning runtime filesystem API so only an authoritative local
           // EPERM/EACCES becomes an actionable grant-access failure.
@@ -2195,7 +2195,7 @@ export function SyncProvider(props: {
                 ? (payload.properties as { version: string }).version
                 : ""
               if (version) {
-                dispatchOpenCodeUpdateAvailable({ version })
+                dispatchOmpUpdateAvailable({ version })
               }
             }
             handleEvent(directory, payload, childStores, routingIndex, runtimeKey, false, currentDirectoryRef.current, batch)
@@ -2266,7 +2266,7 @@ export function SyncProvider(props: {
     ) => {
       if (parentSessionIds.length === 0) return
       try {
-        const scopedClient = opencodeClient.getScopedSdkClient(directory)
+        const scopedClient = agentClient.getScopedSdkClient(directory)
         const result: unknown = await runBackgroundNetworkTask(() => scopedClient.session.list({ directory, limit: 200 }))
         const allSessions = ((result as { data?: unknown }).data ?? []) as Session[]
         const state = store.getState()
@@ -2357,7 +2357,7 @@ export function SyncProvider(props: {
               triggerDirectoryResync(directory, "stale-status-resync")
             }
 
-            // Discover child sessions created by other OpenCode instances
+            // Discover child sessions created by other OMP instances
             // that didn't broadcast a session.created event on this stream.
             const lastChildDiscoveryAt = lastChildDiscoveryAtByDirectoryRef.current.get(directory) ?? 0
             if (now - lastChildDiscoveryAt >= CHILD_SESSION_DISCOVERY_INTERVAL_MS) {
@@ -2429,7 +2429,7 @@ export function SyncProvider(props: {
     setActionRefs(
       props.sdk,
       childStores,
-      () => opencodeClient.getDirectory() || props.directory,
+      () => agentClient.getDirectory() || props.directory,
       (directory, sessionID, messageID) => {
         enqueueSessionMaterialization(directory, sessionID, childStores, {
           reason: "settled-running-tool",

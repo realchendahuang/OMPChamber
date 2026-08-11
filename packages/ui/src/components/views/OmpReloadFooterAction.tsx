@@ -4,25 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/icon/Icon';
 import { toast } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
-import { applyPendingOpenCodeRestart } from '@/lib/opencode/deferredRestart';
+import { applyPendingOmpRestart } from '@/lib/agent/deferredRestart';
 import { cn } from '@/lib/utils';
-import { reloadOpenCodeConfiguration } from '@/stores/useAgentsStore';
+import { reloadOmpConfiguration } from '@/stores/useAgentsStore';
 import {
-  selectPendingOpenCodeRestartCount,
-  usePendingOpenCodeRestartStore,
-} from '@/stores/usePendingOpenCodeRestartStore';
+  selectPendingOmpRestartCount,
+  usePendingOmpRestartStore,
+} from '@/stores/usePendingOmpRestartStore';
 import { useUIStore } from '@/stores/useUIStore';
 
-type OpenCodeReloadFooterActionProps = {
+type OmpReloadFooterActionProps = {
   className?: string;
 };
 
-export const OpenCodeReloadFooterAction: React.FC<OpenCodeReloadFooterActionProps> = ({
+export const OmpReloadFooterAction: React.FC<OmpReloadFooterActionProps> = ({
   className,
 }) => {
   const { t } = useI18n();
-  const pendingCount = usePendingOpenCodeRestartStore(selectPendingOpenCodeRestartCount);
-  const isApplying = usePendingOpenCodeRestartStore((state) => state.isApplying);
+  const pendingCount = usePendingOmpRestartStore(selectPendingOmpRestartCount);
+  const isApplying = usePendingOmpRestartStore((state) => state.isApplying);
   const showRestartConfirm = useUIStore((state) => state.showOpenCodeRestartConfirm);
   const setShowOpenCodeRestartConfirm = useUIStore((state) => state.setShowOpenCodeRestartConfirm);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -32,7 +32,7 @@ export const OpenCodeReloadFooterAction: React.FC<OpenCodeReloadFooterActionProp
 
   const runApply = React.useCallback(async () => {
     try {
-      const result = await applyPendingOpenCodeRestart({
+      const result = await applyPendingOmpRestart({
         message: t('settings.view.pendingRestart.applying'),
       });
       if (result.requiresManualRestart) {
@@ -52,12 +52,12 @@ export const OpenCodeReloadFooterAction: React.FC<OpenCodeReloadFooterActionProp
 
   const runManualReload = React.useCallback(async () => {
     try {
-      await reloadOpenCodeConfiguration({
+      await reloadOmpConfiguration({
         message: t('settings.view.pendingRestart.applying'),
         mode: 'projects',
         scopes: ['all'],
       });
-      usePendingOpenCodeRestartStore.getState().clear();
+      usePendingOmpRestartStore.getState().clear();
     } catch {
       // ignore
     }
@@ -86,16 +86,16 @@ export const OpenCodeReloadFooterAction: React.FC<OpenCodeReloadFooterActionProp
   }, [hasPending, runApply, runManualReload, showRestartConfirm]);
 
   const label = !hasPending
-    ? t('settings.view.actions.reloadOpenCode')
+    ? t('settings.view.actions.reloadOmp')
     : isApplying
       ? t('settings.view.pendingRestart.applying')
-      : t('settings.view.actions.applyAndRestartOpenCode');
+      : t('settings.view.actions.applyAndRestartOmp');
 
   const tooltip = !hasPending
-    ? t('settings.view.actions.reloadOpenCodeTooltip')
+    ? t('settings.view.actions.reloadOmpTooltip')
     : pendingCount === 1
-      ? t('settings.view.actions.applyAndRestartOpenCodeTooltipSingle')
-      : t('settings.view.actions.applyAndRestartOpenCodeTooltipPlural', { count: pendingCount });
+      ? t('settings.view.actions.applyAndRestartOmpTooltipSingle')
+      : t('settings.view.actions.applyAndRestartOmpTooltipPlural', { count: pendingCount });
 
   return (
     <>
@@ -168,7 +168,7 @@ export const OpenCodeReloadFooterAction: React.FC<OpenCodeReloadFooterActionProp
                   className="h-9 w-full normal-case"
                   onClick={handleConfirmApply}
                 >
-                  {t('settings.view.actions.applyAndRestartOpenCode')}
+                  {t('settings.view.actions.applyAndRestartOmp')}
                 </Button>
               </div>
             </div>

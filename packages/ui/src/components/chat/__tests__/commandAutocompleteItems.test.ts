@@ -59,7 +59,7 @@ describe('mergeCommandAutocompleteItems', () => {
     }]);
   });
 
-  test('OpenCode built-ins also win collisions with discovered skills', () => {
+  test('OMP built-ins also win collisions with discovered skills', () => {
     const builtIn: Item = {
       name: 'review',
       source: 'opencode',
@@ -89,12 +89,12 @@ describe('mergeCommandAutocompleteItems', () => {
     expect(mergeCommandAutocompleteItems([], [command], [skill])[0]).toBe(skill);
   });
 
-  test('OpenCode skill-commands win custom commands and yield to discovered skills', () => {
+  test('OMP skill-commands win custom commands and yield to discovered skills', () => {
     const command: Item = { name: 'deploy', source: 'opencode', description: 'Custom deploy' };
     const skillCommand: Item = {
       name: 'deploy',
       source: 'opencode',
-      description: 'OpenCode skill command',
+      description: 'OMP skill command',
       isSkill: true,
     };
     const skill: Item = {
@@ -110,7 +110,7 @@ describe('mergeCommandAutocompleteItems', () => {
     }]);
     expect(mergeCommandAutocompleteItems([], [command, skillCommand], [skill])).toEqual([{
       ...skill,
-      searchAliases: ['OpenCode skill command', 'Custom deploy'],
+      searchAliases: ['OMP skill command', 'Custom deploy'],
     }]);
   });
 

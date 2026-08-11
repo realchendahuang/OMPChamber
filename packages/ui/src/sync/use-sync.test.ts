@@ -47,7 +47,7 @@ function userMessage(id: string): Message {
   return { id, sessionID: 'ses_1', role: 'user', time: { created: 1 } } as Message
 }
 function assistantMessageWithClientRole(id: string): Message {
-  // OpenCode sets clientRole on the wire; role may be absent.
+  // OMP sets clientRole on the wire; role may be absent.
   return { id, sessionID: 'ses_1', clientRole: 'user', time: { created: 1 } } as unknown as Message
 }
 function textPart(id: string, messageID: string): Part {

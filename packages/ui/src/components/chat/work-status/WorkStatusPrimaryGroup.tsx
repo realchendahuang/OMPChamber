@@ -163,7 +163,7 @@ export const WorkStatusPrimaryGroup: React.FC<Props> = ({ sessionId, directory, 
 
   // Working-tree changes, from the same git status the Git panel reads.
   //
-  // `Session.summary` looks like the natural source and is not: OpenCode resets
+  // `Session.summary` looks like the natural source and is not: OMP resets
   // it to zeros at the start of every turn and only ever fills per-message
   // `summary.diffs`, so session-level totals are always 0/0/0. The `session.diff`
   // event is reset to an empty array too, and carries real content only on

@@ -13,12 +13,12 @@ import type {
   SkillsCatalogSourceResponse,
 } from '@/lib/api/types';
 
-import { invalidateSkillsLoadCache, refreshSkillsAfterOpenCodeRestart, useSkillsStore } from '@/stores/useSkillsStore';
-import { opencodeClient } from '@/lib/opencode/client';
+import { invalidateSkillsLoadCache, refreshSkillsAfterOmpRestart, useSkillsStore } from '@/stores/useSkillsStore';
+import { agentClient } from '@/lib/agent/client';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { startConfigUpdate } from '@/lib/configUpdate';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { noteDeferredRestartFromPayload } from '@/lib/opencode/deferredRestart';
+import { noteDeferredRestartFromPayload } from '@/lib/agent/deferredRestart';
 
 const FALLBACK_SOURCES: SkillsCatalogSource[] = [
   {
@@ -56,7 +56,7 @@ const getRequestDirectory = (): string | null => {
       return activeProject.path.trim();
     }
 
-    const clientDir = opencodeClient.getDirectory();
+    const clientDir = agentClient.getDirectory();
     if (clientDir?.trim()) {
       return clientDir.trim();
     }
@@ -428,7 +428,7 @@ export const useSkillsCatalogStore = create<SkillsCatalogState>()(
 
           if (payload.requiresReload) {
             startConfigUpdate('Installing skills…');
-            await refreshSkillsAfterOpenCodeRestart({
+            await refreshSkillsAfterOmpRestart({
               message: payload.message,
               delayMs: payload.reloadDelayMs,
             });

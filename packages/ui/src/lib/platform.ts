@@ -9,7 +9,7 @@ export const isCapacitorApp = (): boolean => {
 
 // TEMPORARY WORKAROUND — Windows ARM64: native opencode.exe fails with a Bun
 // FFI/TinyCC dlopen error (https://github.com/anomalyco/opencode/issues/19130).
-// Suppress OpenCode update UI on ARM64 so it can't self-upgrade to the broken
+// Suppress OMP update UI on ARM64 so it can't self-upgrade to the broken
 // ARM64 build. Remove this helper and its call sites when resolved upstream.
 export const isWindowsArm64 = (): boolean => {
   if (typeof window === 'undefined') return false;

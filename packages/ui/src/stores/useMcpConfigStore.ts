@@ -2,11 +2,11 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { createDeferredSafeJSONStorage } from './utils/safeStorage';
 import { startConfigUpdate } from '@/lib/configUpdate';
-import { refreshAfterOpenCodeRestart } from '@/stores/useAgentsStore';
+import { refreshAfterOmpRestart } from '@/stores/useAgentsStore';
 import { useProjectsStore } from '@/stores/useProjectsStore';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { noteDeferredRestartFromPayload } from '@/lib/opencode/deferredRestart';
+import { noteDeferredRestartFromPayload } from '@/lib/agent/deferredRestart';
 
 export type McpScope = 'user' | 'project';
 
@@ -27,7 +27,7 @@ const getConfigDirectory = (): string | null => {
       return activeProject.path.trim();
     }
 
-    const clientDir = opencodeClient.getDirectory();
+    const clientDir = agentClient.getDirectory();
     if (clientDir?.trim()) {
       return clientDir.trim();
     }
@@ -236,7 +236,7 @@ export const useMcpConfigStore = create<McpConfigStore>()(
 
             if (payload?.requiresReload) {
               startConfigUpdate('Creating MCP server configuration…');
-              await refreshAfterOpenCodeRestart({
+              await refreshAfterOmpRestart({
                 message: payload.message,
                 delayMs: payload.reloadDelayMs ?? CLIENT_RELOAD_DELAY_MS,
                 scopes: ['all'],
@@ -308,7 +308,7 @@ export const useMcpConfigStore = create<McpConfigStore>()(
 
             if (payload?.requiresReload) {
               startConfigUpdate('Updating MCP server configuration…');
-              await refreshAfterOpenCodeRestart({
+              await refreshAfterOmpRestart({
                 message: payload.message,
                 delayMs: payload.reloadDelayMs ?? CLIENT_RELOAD_DELAY_MS,
                 scopes: ['all'],
@@ -379,7 +379,7 @@ export const useMcpConfigStore = create<McpConfigStore>()(
 
             if (payload?.requiresReload) {
               startConfigUpdate('Deleting MCP server configuration…');
-              await refreshAfterOpenCodeRestart({
+              await refreshAfterOmpRestart({
                 message: payload.message,
                 delayMs: payload.reloadDelayMs ?? CLIENT_RELOAD_DELAY_MS,
                 scopes: ['all'],

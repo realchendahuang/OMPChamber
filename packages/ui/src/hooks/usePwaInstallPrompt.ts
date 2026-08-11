@@ -4,7 +4,7 @@ import { isWebRuntime } from '@/lib/desktop';
 import { usePwaDetection } from '@/hooks/usePwaDetection';
 import { useI18n } from '@/lib/i18n';
 import { getDeferredSafeStorage, getSafeSessionStorage } from '@/stores/utils/safeStorage';
-import { shouldShowPwaInstallToast } from '@/components/update/openCodeUpdateDedup';
+import { shouldShowPwaInstallToast } from '@/components/update/ompUpdateDedup';
 
 type InstallPromptOutcome = 'accepted' | 'dismissed';
 

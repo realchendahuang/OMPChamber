@@ -1,7 +1,7 @@
 /**
  * Session → directory resolution precedence.
  *
- * A session's directory decides which OpenCode project every send, message
+ * A session's directory decides which OMP project every send, message
  * fetch, queue key, and confirmation lookup is routed to. Getting it wrong is
  * not a cosmetic problem: the prompt is posted against a directory that does
  * not own the session, the send is rejected, and the optimistic message is

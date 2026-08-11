@@ -55,7 +55,7 @@ const MEMORY_CONSTANTS = {
     ZOMBIE_TIMEOUT: 10 * 60 * 1000,
 } as const;
 
-/** OpenCode parity: fixed page/window size for message history. */
+/** OMP parity: fixed page/window size for message history. */
 const getMessageLimit = (): number => {
     return DEFAULT_MESSAGE_LIMIT;
 };

@@ -1,4 +1,4 @@
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import type { RuntimeEndpointChangedDetail } from '@/lib/runtime-switch';
 import { disposeTerminalInputTransport } from '@/lib/terminalApi';
 import { useConfigStore } from '@/stores/useConfigStore';
@@ -30,7 +30,7 @@ import { syncDesktopSettings } from '@/lib/persistence';
 // no bounce back to the draft.
 export const reconnectAppForTransportSwitch = (): void => {
   disposeTerminalInputTransport();
-  opencodeClient.reconnectToRuntimeBaseUrl();
+  agentClient.reconnectToRuntimeBaseUrl();
   resetStreamingState();
 };
 
@@ -42,7 +42,7 @@ export const resetAppForRuntimeEndpointChange = (detail: RuntimeEndpointChangedD
   }
   disposeTerminalInputTransport();
   useTerminalStore.getState().clearAll();
-  opencodeClient.reconnectToRuntimeBaseUrl();
+  agentClient.reconnectToRuntimeBaseUrl();
   useConfigStore.setState({
     providers: [],
     agents: [],

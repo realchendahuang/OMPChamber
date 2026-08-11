@@ -10,7 +10,7 @@ import { ContextPanelRail } from './ContextPanelRail';
 import { ErrorBoundary } from '../ui/ErrorBoundary';
 import { CommandPalette } from '../ui/CommandPalette';
 import { HelpDialog } from '../ui/HelpDialog';
-import { OpenCodeStatusDialog } from '../ui/OpenCodeStatusDialog';
+import { OmpStatusDialog } from '../ui/OmpStatusDialog';
 import { SessionSidebar } from '@/components/session/SessionSidebar';
 import { SessionDialogs } from '@/components/session/SessionDialogs';
 import { ScheduledTasksDialog } from '@/components/session/ScheduledTasksDialog';
@@ -300,7 +300,7 @@ export const MainLayout: React.FC = () => {
             >
                 <CommandPalette />
                 <HelpDialog />
-                <OpenCodeStatusDialog />
+                <OmpStatusDialog />
                 <SessionDialogs />
 
                 {isMobile ? (

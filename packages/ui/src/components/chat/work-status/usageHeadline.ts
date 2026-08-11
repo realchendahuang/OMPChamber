@@ -11,7 +11,7 @@ import type { UsageProviderGroup, UsageLimitRow } from '@/components/usage/usage
  */
 
 /**
- * Quota provider ids mostly match OpenCode provider ids; these are the ones
+ * Quota provider ids mostly match OMP provider ids; these are the ones
  * that do not. Unmatched providers simply produce no headline.
  */
 const QUOTA_PROVIDER_ALIASES = new Map<string, string>([

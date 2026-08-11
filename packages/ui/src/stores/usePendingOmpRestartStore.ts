@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type PendingOpenCodeRestartScope =
+export type PendingOmpRestartScope =
   | 'agents'
   | 'providers'
   | 'commands'
@@ -11,18 +11,18 @@ export type PendingOpenCodeRestartScope =
   | 'cli'
   | 'all';
 
-export type PendingOpenCodeRestartChange = {
+export type PendingOmpRestartChange = {
   id: string;
-  scope: PendingOpenCodeRestartScope;
+  scope: PendingOmpRestartScope;
   label?: string;
   recordedAt: number;
 };
 
-type PendingOpenCodeRestartState = {
-  changes: PendingOpenCodeRestartChange[];
+type PendingOmpRestartState = {
+  changes: PendingOmpRestartChange[];
   isApplying: boolean;
   recordChange: (input: {
-    scope: PendingOpenCodeRestartScope;
+    scope: PendingOmpRestartScope;
     id?: string;
     label?: string;
   }) => void;
@@ -32,17 +32,17 @@ type PendingOpenCodeRestartState = {
 
 let changeSeq = 0;
 
-const nextChangeId = (scope: PendingOpenCodeRestartScope, id?: string): string => {
+const nextChangeId = (scope: PendingOmpRestartScope, id?: string): string => {
   changeSeq += 1;
   return id?.trim() ? `${scope}:${id.trim()}:${changeSeq}` : `${scope}:${changeSeq}`;
 };
 
-export const usePendingOpenCodeRestartStore = create<PendingOpenCodeRestartState>((set) => ({
+export const usePendingOmpRestartStore = create<PendingOmpRestartState>((set) => ({
   changes: [],
   isApplying: false,
 
   recordChange: ({ scope, id, label }) => {
-    const entry: PendingOpenCodeRestartChange = {
+    const entry: PendingOmpRestartChange = {
       id: nextChangeId(scope, id),
       scope,
       label,
@@ -62,5 +62,5 @@ export const usePendingOpenCodeRestartStore = create<PendingOpenCodeRestartState
   },
 }));
 
-export const selectPendingOpenCodeRestartCount = (state: PendingOpenCodeRestartState): number =>
+export const selectPendingOmpRestartCount = (state: PendingOmpRestartState): number =>
   state.changes.length;

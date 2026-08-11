@@ -42,8 +42,8 @@ export function getDesktopRecoveryConfig(
   switch (variant) {
     case 'local-unavailable':
       return {
-        title: 'Local OpenCode Unavailable',
-        description: 'OpenCode CLI could not be started or is not installed. Install OpenCode or connect to a remote server instead.',
+        title: 'Local OMP Unavailable',
+        description: 'OMP CLI could not be started or is not installed. Install OMP or connect to a remote server instead.',
         titleKey: 'onboarding.desktopRecovery.localUnavailable.title',
         descriptionKey: 'onboarding.desktopRecovery.localUnavailable.description',
         iconKey: 'local',

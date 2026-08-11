@@ -271,7 +271,7 @@ export function parseImportedMcpSnippet(
     return buildResult(serverName, inferType(entry as Record<string, unknown>), entry as Record<string, unknown>);
   }
 
-  // Detect OpenCode config shape { "mcp": { "name": { ... } } }
+  // Detect OMP config shape { "mcp": { "name": { ... } } }
   const mcp = obj.mcp;
   if (isObject(mcp)) {
     const keys = Object.keys(mcp);

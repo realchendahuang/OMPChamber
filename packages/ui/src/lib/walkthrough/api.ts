@@ -21,7 +21,7 @@ const isJsonResponse = (response: Response): boolean =>
 
 /**
  * A server without these routes does not answer 404 with JSON. Unmatched
- * `/api/*` falls through to the OpenCode proxy, and OpenCode serves its embedded
+ * `/api/*` falls through to the OMP proxy, and OMP serves its embedded
  * web UI for any path it does not know — HTML, status 200. Parsing that as JSON
  * surfaced `Unexpected token '<', "<!doctype "...` in the panel, which names
  * neither the cause nor the remedy.

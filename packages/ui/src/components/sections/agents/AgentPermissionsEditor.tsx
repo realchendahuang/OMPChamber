@@ -6,7 +6,7 @@ import { toast } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import {
   useAgentsStore,
   getConfigDirectory,
@@ -143,7 +143,7 @@ export const AgentPermissionsEditor: React.FC<AgentPermissionsEditorProps> = ({ 
     let cancelled = false;
     void (async () => {
       try {
-        const ids = await opencodeClient.listToolIds({ directory: getConfigDirectory() });
+        const ids = await agentClient.listToolIds({ directory: getConfigDirectory() });
         if (!cancelled && Array.isArray(ids)) {
           setToolIds(ids.filter((id) => typeof id === 'string' && !FOLDED_TOOL_IDS.has(id)));
         }

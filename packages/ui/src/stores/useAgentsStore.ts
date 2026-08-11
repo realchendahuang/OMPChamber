@@ -2,14 +2,14 @@ import { create } from "zustand";
 import type { StoreApi, UseBoundStore } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type { Agent, PermissionConfig } from "@ompchamber/agent-protocol/domain-types";
-import { opencodeClient } from "@/lib/opencode/client";
+import { agentClient } from "@/lib/agent/client";
 import { emitConfigChange, scopeMatches, subscribeToConfigChanges, type ConfigChangeScope } from "@/lib/configSync";
 import {
   startConfigUpdate,
   finishConfigUpdate,
   updateConfigUpdateMessage,
 } from "@/lib/configUpdate";
-import { noteDeferredRestartFromPayload } from "@/lib/opencode/deferredRestart";
+import { noteDeferredRestartFromPayload } from "@/lib/agent/deferredRestart";
 import { createDeferredSafeJSONStorage } from "./utils/safeStorage";
 import { useConfigStore } from "@/stores/useConfigStore";
 import { invalidateCommandsLoadCache, useCommandsStore } from "@/stores/useCommandsStore";
@@ -19,12 +19,12 @@ import { invalidateSkillsLoadCache, useSkillsStore } from "@/stores/useSkillsSto
 import { runtimeFetch } from "@/lib/runtime-fetch";
 
 // Note: useDirectoryStore cannot be imported at top level to avoid circular dependency
-// useDirectoryStore -> useAgentsStore (for refreshAfterOpenCodeRestart)
+// useDirectoryStore -> useAgentsStore (for refreshAfterOmpRestart)
 // useAgentsStore -> useDirectoryStore (for currentDirectory)
 const getCurrentDirectory = (): string | null => {
-  const opencodeDirectory = opencodeClient.getDirectory();
-  if (typeof opencodeDirectory === 'string' && opencodeDirectory.trim().length > 0) {
-    return opencodeDirectory;
+  const ompDirectory = agentClient.getDirectory();
+  if (typeof ompDirectory === 'string' && ompDirectory.trim().length > 0) {
+    return ompDirectory;
   }
 
   try {
@@ -50,8 +50,8 @@ export const getConfigDirectory = (): string | null => {
       return activeProject.path.trim();
     }
 
-    // 2. Fallback: current OpenCode directory (session / runtime)
-    const clientDir = opencodeClient.getDirectory();
+    // 2. Fallback: current OMP directory (session / runtime)
+    const clientDir = agentClient.getDirectory();
     if (clientDir?.trim()) {
       return clientDir.trim();
     }
@@ -119,10 +119,10 @@ export interface AgentConfig {
 /**
  * Result of an agent config mutation.
  * `requiresManualRestart` is true when the change was persisted to disk but the
- * connected (external) OpenCode server could not be reloaded by OMPChamber, so
+ * connected (external) OMP server could not be reloaded by OMPChamber, so
  * the user must restart that server before the change takes effect.
  * `restartDeferred` is true when the change is saved and waiting for an explicit
- * Apply & Restart OpenCode action.
+ * Apply & Restart OMP action.
  */
 export interface AgentMutationResult {
   ok: boolean;
@@ -162,7 +162,7 @@ export const isAgentBuiltIn = (agent: Agent): boolean => {
 };
 
 // Helper to check if agent is hidden (internal agents like title, compaction, summary)
-// Checks both top-level hidden and options.hidden (OpenCode API inconsistency workaround)
+// Checks both top-level hidden and options.hidden (OMP API inconsistency workaround)
 export const isAgentHidden = (agent: Agent): boolean => {
   const extended = agent as AgentWithExtras;
   return extended.hidden === true || extended.options?.hidden === true;
@@ -324,7 +324,7 @@ export const useAgentsStore = create<AgentsStore>()(
                 // Ensure we list agents using the correct project context. Pass the
                 // directory directly so this shares the in-flight request with the config
                 // store instead of issuing a duplicate agents fetch at startup.
-                const agents = await opencodeClient.listAgents(configDirectory);
+                const agents = await agentClient.listAgents(configDirectory);
 
                 const agentsWithScope = await Promise.all(
                   agents.map(async (agent) => {
@@ -449,7 +449,7 @@ export const useAgentsStore = create<AgentsStore>()(
             startConfigUpdate("Creating agent configuration…");
             const needsReload = payload?.requiresReload ?? true;
             if (needsReload) {
-              await refreshAfterOpenCodeRestart({
+              await refreshAfterOmpRestart({
                 message: payload?.message,
                 delayMs: payload?.reloadDelayMs,
                 scopes: ["agents"],
@@ -519,7 +519,7 @@ export const useAgentsStore = create<AgentsStore>()(
             startConfigUpdate("Updating agent configuration…");
             const needsReload = payload?.requiresReload ?? true;
             if (needsReload) {
-              await refreshAfterOpenCodeRestart({
+              await refreshAfterOmpRestart({
                 message: payload?.message,
                 delayMs: payload?.reloadDelayMs,
                 scopes: ["agents"],
@@ -585,7 +585,7 @@ export const useAgentsStore = create<AgentsStore>()(
             startConfigUpdate("Deleting agent configuration…");
             const needsReload = payload?.requiresReload ?? true;
             if (needsReload) {
-              await refreshAfterOpenCodeRestart({
+              await refreshAfterOmpRestart({
                 message: payload?.message,
                 delayMs: payload?.reloadDelayMs,
                 scopes: ["agents"],
@@ -637,7 +637,7 @@ if (typeof window !== "undefined") {
   window.__zustand_agents_store__ = useAgentsStore;
 }
 
-async function waitForOpenCodeConnection(delayMs?: number) {
+async function waitForOmpConnection(delayMs?: number) {
   const initialPause = typeof delayMs === "number" && delayMs > 0
     ? Math.min(delayMs, FAST_HEALTH_POLL_INTERVAL_MS)
     : 0;
@@ -652,14 +652,14 @@ async function waitForOpenCodeConnection(delayMs?: number) {
 
   while (Date.now() - start < MAX_HEALTH_WAIT_MS) {
     attempt += 1;
-    updateConfigUpdateMessage(`Waiting for OpenCode… (attempt ${attempt})`);
+    updateConfigUpdateMessage(`Waiting for OMP… (attempt ${attempt})`);
 
     try {
-      const isHealthy = await opencodeClient.checkHealth();
+      const isHealthy = await agentClient.checkHealth();
       if (isHealthy) {
         return;
       }
-      lastError = new Error("OpenCode health check reported not ready");
+      lastError = new Error("OMP health check reported not ready");
     } catch (error) {
       lastError = error;
     }
@@ -678,7 +678,7 @@ async function waitForOpenCodeConnection(delayMs?: number) {
     await sleep(waitMs);
   }
 
-  throw lastError || new Error("OpenCode did not become ready in time");
+  throw lastError || new Error("OMP did not become ready in time");
 }
 
 type ConfigRefreshMode = "active" | "projects";
@@ -713,7 +713,7 @@ async function performConfigRefresh(options: {
   }
 
   try {
-    await waitForOpenCodeConnection(delayMs);
+    await waitForOmpConnection(delayMs);
 
     const configStore = useConfigStore.getState();
     const agentConfigStore = useAgentsStore.getState();
@@ -775,7 +775,7 @@ async function performConfigRefresh(options: {
     updateConfigUpdateMessage("Refreshing configuration…");
     await Promise.all([...sdkRefreshTasks, ...uiRefreshTasks]);
   } catch (error) {
-    updateConfigUpdateMessage("OpenCode refresh failed. Please retry.");
+    updateConfigUpdateMessage("OMP refresh failed. Please retry.");
     await sleep(1500);
     throw error;
   } finally {
@@ -783,7 +783,7 @@ async function performConfigRefresh(options: {
   }
 }
 
-export async function refreshAfterOpenCodeRestart(options?: {
+export async function refreshAfterOmpRestart(options?: {
   message?: string;
   delayMs?: number;
   scopes?: ConfigChangeScope[];
@@ -792,13 +792,13 @@ export async function refreshAfterOpenCodeRestart(options?: {
   await performConfigRefresh(options);
 }
 
-export async function reloadOpenCodeConfiguration(options?: {
+export async function reloadOmpConfiguration(options?: {
   message?: string;
   delayMs?: number;
   scopes?: ConfigChangeScope[];
   mode?: ConfigRefreshMode;
 }) {
-  startConfigUpdate(options?.message || "Reloading OpenCode configuration…");
+  startConfigUpdate(options?.message || "Reloading OMP configuration…");
 
   try {
 
@@ -817,7 +817,7 @@ export async function reloadOpenCodeConfiguration(options?: {
     if (payload?.requiresManualRestart) {
       finishConfigUpdate();
       const error = new Error(
-        payload?.message || 'Restart your connected OpenCode server to apply the changes.',
+        payload?.message || 'Restart your connected OMP server to apply the changes.',
       );
       (error as Error & { requiresManualRestart?: boolean }).requiresManualRestart = true;
       throw error;
@@ -830,16 +830,16 @@ export async function reloadOpenCodeConfiguration(options?: {
     };
 
     if (payload?.requiresReload) {
-      await refreshAfterOpenCodeRestart({
+      await refreshAfterOmpRestart({
         ...refreshOptions,
         message: payload.message,
         delayMs: payload.reloadDelayMs,
       });
     } else {
-      await refreshAfterOpenCodeRestart(refreshOptions);
+      await refreshAfterOmpRestart(refreshOptions);
     }
   } catch (error) {
-    console.error('[reloadOpenCodeConfiguration] Failed:', error);
+    console.error('[reloadOmpConfiguration] Failed:', error);
     if ((error as Error & { requiresManualRestart?: boolean })?.requiresManualRestart) {
       throw error;
     }

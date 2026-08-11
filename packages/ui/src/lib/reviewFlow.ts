@@ -1,5 +1,5 @@
 import type { Message, Session } from '@ompchamber/agent-protocol/domain-types';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { renderMagicPrompt } from '@/lib/magicPrompts';
 import { flattenAssistantTextParts } from '@/lib/messages/messageText';
 import {
@@ -387,7 +387,7 @@ const sendPlainMessage = async (
     onOptimisticInsert: () => requestChatForceScrollBottom(sessionID),
     send: (messageID) => {
       assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
-      return opencodeClient.sendMessage({
+      return agentClient.sendMessage({
         id: sessionID,
         directory,
         providerID: resolved.providerID,
@@ -422,7 +422,7 @@ const openReviewSessionPanel = (directory: string, session: Session): void => {
 
 const getSessionOrNull = async (sessionID: string, directory: string): Promise<Session | null> => {
   try {
-    return await opencodeClient.getSession(sessionID, directory);
+    return await agentClient.getSession(sessionID, directory);
   } catch {
     return null;
   }
@@ -435,7 +435,7 @@ const getReviewSessionTitle = (original: Session): string => {
 
 const createOrReuseReviewSession = async (originalSessionID: string, directory: string, expectedRuntimeKey?: string): Promise<Session> => {
   assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
-  const original = await opencodeClient.getSession(originalSessionID, directory);
+  const original = await agentClient.getSession(originalSessionID, directory);
   assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
   const existingReviewID = getReviewSessionID(original);
   if (existingReviewID) {
@@ -455,7 +455,7 @@ const createOrReuseReviewSession = async (originalSessionID: string, directory: 
   }
 
   assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
-  const review = await opencodeClient.createSession({
+  const review = await agentClient.createSession({
     title: getReviewSessionTitle(original),
     metadata: withReviewSessionMarker({}, originalSessionID),
   }, directory);
@@ -466,7 +466,7 @@ const createOrReuseReviewSession = async (originalSessionID: string, directory: 
     await patchSessionMetadata(originalSessionID, directory, (metadata) => withReviewSessionLink(metadata, review.id));
   } catch (error) {
     assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
-    await opencodeClient.deleteSession(review.id, directory).catch((deleteError) => {
+    await agentClient.deleteSession(review.id, directory).catch((deleteError) => {
       console.warn('[review-flow] failed to delete unlinked review session after link failure', deleteError);
     });
     throw error;
@@ -563,7 +563,7 @@ export const startReviewFlow = async (input: StartReviewFlowInput): Promise<void
 
 export const sendReviewFeedbackToOriginal = async (reviewSessionID: string, directory: string, reviewFeedback: string, expectedRuntimeKey?: string): Promise<string> => {
   assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
-  const reviewSession = await opencodeClient.getSession(reviewSessionID, directory);
+  const reviewSession = await agentClient.getSession(reviewSessionID, directory);
   const originalSessionID = getOriginalSessionID(reviewSession);
   if (!originalSessionID) throw new Error('Original session is missing');
   const prompt = await renderMagicPrompt('session.reviewFeedbackToImplementer.visible', { review_feedback: reviewFeedback });
@@ -573,12 +573,12 @@ export const sendReviewFeedbackToOriginal = async (reviewSessionID: string, dire
 
 export const sendImplementationResponseToReviewer = async (originalSessionID: string, directory: string, implementationResponse: string, autoReview = false, expectedRuntimeKey?: string): Promise<string> => {
   assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
-  const originalSession = await opencodeClient.getSession(originalSessionID, directory);
+  const originalSession = await agentClient.getSession(originalSessionID, directory);
   const reviewSessionID = getReviewSessionID(originalSession);
   if (!reviewSessionID) throw new Error('Review session is missing');
   let reviewSession: Session;
   try {
-    reviewSession = await opencodeClient.getSession(reviewSessionID, directory);
+    reviewSession = await agentClient.getSession(reviewSessionID, directory);
   } catch (error) {
     assertAutoReviewRuntimeStillCurrent(expectedRuntimeKey);
     await patchSessionMetadata(originalSessionID, directory, (metadata) => withoutReviewSessionLink(metadata, reviewSessionID));

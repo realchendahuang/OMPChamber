@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type { StoreApi, UseBoundStore } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type { Provider, Agent, Config } from "@ompchamber/agent-protocol/domain-types";
-import { opencodeClient } from "@/lib/opencode/client";
+import { agentClient } from "@/lib/agent/client";
 import { scopeMatches, subscribeToConfigChanges } from "@/lib/configSync";
 import type { ModelMetadata } from "@/types";
 import { createDeferredSafeJSONStorage } from "./utils/safeStorage";
@@ -282,14 +282,14 @@ type DefaultAgentModelSelection = {
 // Shared default-selection cascade used both at startup (loadAgents) and when opening a
 // fresh draft (applyDefaultModelAgentSelection), so the two paths stay identical.
 //
-//   Agent: settings.defaultAgent → opencode default_agent → build → first primary → first
-//   Model: project.defaultModel → settings.defaultModel → resolved agent's pinned model+variant → opencode config.model
+//   Agent: settings.defaultAgent → engine default_agent → build → first primary → first
+//   Model: project.defaultModel → settings.defaultModel → resolved agent's pinned model+variant → engine config.model
 //          → opencode/big-pickle → first
 //
-// The opencode default_agent / default model (config fields on the OpenCode server) are honored
-// only when our own settings have no valid default. OpenCode itself resolves a model the same way:
+// The engine default_agent / default model (config fields on the OMP server) are honored
+// only when our own settings have no valid default. OMP itself resolves a model the same way:
 // an agent's pinned model wins, otherwise the global `model` config applies — so we check the
-// agent's model before opencodeDefaultModel. When the agent supplies the model, its `variant` is
+// agent's model before ompDefaultModel. When the agent supplies the model, its `variant` is
 // carried through too (if the model actually exposes that variant).
 const resolveDefaultAgentModelSelection = ({
     agents,
@@ -298,8 +298,8 @@ const resolveDefaultAgentModelSelection = ({
     settingsDefaultAgent,
     settingsDefaultModel,
     settingsDefaultVariant,
-    opencodeDefaultAgent,
-    opencodeDefaultModel,
+    ompDefaultAgent,
+    ompDefaultModel,
 }: {
     agents: Agent[];
     providers: ProviderWithModelList[];
@@ -307,8 +307,8 @@ const resolveDefaultAgentModelSelection = ({
     settingsDefaultAgent?: string;
     settingsDefaultModel?: string;
     settingsDefaultVariant?: string;
-    opencodeDefaultAgent?: string;
-    opencodeDefaultModel?: string;
+    ompDefaultAgent?: string;
+    ompDefaultModel?: string;
 }): DefaultAgentModelSelection => {
     if (agents.length === 0) {
         return { agentName: undefined };
@@ -333,9 +333,9 @@ const resolveDefaultAgentModelSelection = ({
     if (settingsDefaultAgent) {
         resolvedAgent = agents.find((agent) => agent.name === settingsDefaultAgent);
     }
-    if (!resolvedAgent && opencodeDefaultAgent) {
-        const candidate = agents.find((agent) => agent.name === opencodeDefaultAgent);
-        // OpenCode requires the default agent to be a visible primary agent.
+    if (!resolvedAgent && ompDefaultAgent) {
+        const candidate = agents.find((agent) => agent.name === ompDefaultAgent);
+        // OMP requires the default agent to be a visible primary agent.
         if (candidate && isPrimaryMode(candidate.mode) && candidate.hidden !== true) {
             resolvedAgent = candidate;
         }
@@ -372,9 +372,9 @@ const resolveDefaultAgentModelSelection = ({
         variant = resolveVariant(providerId, modelId, resolvedAgent.variant);
     }
 
-    // OpenCode's global default model — used when neither our settings nor the agent pin a model.
-    if (!providerId && opencodeDefaultModel) {
-        const parsed = parseModelString(opencodeDefaultModel);
+    // OMP's global default model — used when neither our settings nor the agent pin a model.
+    if (!providerId && ompDefaultModel) {
+        const parsed = parseModelString(ompDefaultModel);
         if (parsed && hasProviderModel(providers, parsed.providerId, parsed.modelId)) {
             providerId = parsed.providerId;
             modelId = parsed.modelId;
@@ -689,9 +689,9 @@ const ensureModelsMetadataFetch = (
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const CONNECTION_PROBE_TIMEOUT_MS = 800;
 
-const probeOpenCodeHealth = async (timeoutMs = CONNECTION_PROBE_TIMEOUT_MS): Promise<boolean> => {
+const probeOmpHealth = async (timeoutMs = CONNECTION_PROBE_TIMEOUT_MS): Promise<boolean> => {
     return Promise.race([
-        opencodeClient.checkHealth().catch(() => false),
+        agentClient.checkHealth().catch(() => false),
         sleep(Math.max(1, timeoutMs)).then(() => false),
     ]);
 };
@@ -710,7 +710,7 @@ const resolveInitialDirectoryKey = (): string => {
         return DIRECTORY_KEY_GLOBAL;
     }
 
-    const directory = opencodeClient.getDirectory() ?? useDirectoryStore.getState().currentDirectory;
+    const directory = agentClient.getDirectory() ?? useDirectoryStore.getState().currentDirectory;
     return toConfigDirectoryKey(directory);
 };
 
@@ -880,8 +880,8 @@ interface DirectoryScopedConfig {
     selectedProviderId: string;
     agentModelSelections: { [agentName: string]: { providerId: string; modelId: string } };
     defaultProviders: { [key: string]: string };
-    opencodeDefaultAgent?: string;
-    opencodeDefaultModel?: string;
+    ompDefaultAgent?: string;
+    ompDefaultModel?: string;
     selectionSource?: "auto" | "manual";
 }
 
@@ -910,11 +910,11 @@ const hydrateActiveDirectorySnapshot = <T extends Partial<ConfigStore>>(merged: 
             next.defaultProviders = snapshot.defaultProviders;
         }
     }
-    if (snapshot.opencodeDefaultAgent !== undefined) {
-        next.opencodeDefaultAgent = snapshot.opencodeDefaultAgent;
+    if (snapshot.ompDefaultAgent !== undefined) {
+        next.ompDefaultAgent = snapshot.ompDefaultAgent;
     }
-    if (snapshot.opencodeDefaultModel !== undefined) {
-        next.opencodeDefaultModel = snapshot.opencodeDefaultModel;
+    if (snapshot.ompDefaultModel !== undefined) {
+        next.ompDefaultModel = snapshot.ompDefaultModel;
     }
     if (snapshot.selectionSource) {
         next.selectionSource = snapshot.selectionSource;
@@ -935,8 +935,8 @@ const createEmptyDirectoryScopedConfig = (
     selectedProviderId: "",
     agentModelSelections: {},
     defaultProviders: {},
-    opencodeDefaultAgent: undefined,
-    opencodeDefaultModel: undefined,
+    ompDefaultAgent: undefined,
+    ompDefaultModel: undefined,
     selectionSource: "auto",
 });
 
@@ -1021,12 +1021,12 @@ interface ConfigStore {
     settingsDefaultModel: string | undefined; // format: "provider/model"
     settingsDefaultVariant: string | undefined;
     settingsDefaultAgent: string | undefined;
-    // OpenCode server's own `default_agent` config field (name of a primary agent), used as a
+    // OMP server's own `default_agent` config field (name of a primary agent), used as a
     // fallback when our own settingsDefaultAgent is unset. Sourced from sync config.
-    opencodeDefaultAgent: string | undefined;
-    // OpenCode server's own global `model` config field ("provider/model"), used as a fallback
+    ompDefaultAgent: string | undefined;
+    // OMP server's own global `model` config field ("provider/model"), used as a fallback
     // when neither our settingsDefaultModel nor the resolved agent pins a model.
-    opencodeDefaultModel: string | undefined;
+    ompDefaultModel: string | undefined;
     settingsAutoCreateWorktree: boolean;
     settingsGitmojiEnabled: boolean;
     settingsDefaultFileViewerPreview: boolean;
@@ -1102,7 +1102,7 @@ interface ConfigStore {
     getCurrentModelVariants: () => string[];
     setAgent: (agentName: string | undefined) => void;
     applyDefaultModelAgentSelection: (options?: { projectDefaultModel?: string }) => void;
-    applyOpenCodeConfigDefaults: (directory?: string | null, source?: string, config?: Config) => void;
+    applyOmpConfigDefaults: (directory?: string | null, source?: string, config?: Config) => void;
     setSelectedProvider: (providerId: string) => void;
     setSettingsDefaultModel: (model: string | undefined) => void;
     setSettingsDefaultVariant: (variant: string | undefined) => void;
@@ -1165,8 +1165,8 @@ export const useConfigStore = create<ConfigStore>()(
                 settingsDefaultModel: undefined,
                 settingsDefaultVariant: undefined,
                 settingsDefaultAgent: undefined,
-                opencodeDefaultAgent: undefined,
-                opencodeDefaultModel: undefined,
+                ompDefaultAgent: undefined,
+                ompDefaultModel: undefined,
                 settingsAutoCreateWorktree: false,
                 settingsGitmojiEnabled: false,
                 settingsDefaultFileViewerPreview: false,
@@ -1394,8 +1394,8 @@ export const useConfigStore = create<ConfigStore>()(
                 activateDirectory: async (directory) => {
                     // Resolve the worktree to its owning project up-front so the
                     // active key + snapshot key always match and stay project-scoped.
-                    // Everything below operates on this key unchanged; the OpenCode
-                    // working directory (opencodeClient.getDirectory()) is separate.
+                    // Everything below operates on this key unchanged; the OMP
+                    // working directory (agentClient.getDirectory()) is separate.
                     const configDirectory = resolveConfigDirectory(directory);
                     if (!configDirectory) {
                         markStartupTrace('activateDirectory:skippedUnknownDirectory', { directory });
@@ -1421,8 +1421,8 @@ export const useConfigStore = create<ConfigStore>()(
                                 selectedProviderId: snapshot.selectedProviderId,
                                 agentModelSelections: snapshot.agentModelSelections,
                                 defaultProviders: snapshot.defaultProviders,
-                                opencodeDefaultAgent: snapshot.opencodeDefaultAgent,
-                                opencodeDefaultModel: snapshot.opencodeDefaultModel,
+                                ompDefaultAgent: snapshot.ompDefaultAgent,
+                                ompDefaultModel: snapshot.ompDefaultModel,
                                 selectionSource: snapshot.selectionSource ?? "auto",
                             };
                         }
@@ -1437,8 +1437,8 @@ export const useConfigStore = create<ConfigStore>()(
                             selectedProviderId: "",
                             agentModelSelections: {},
                             defaultProviders: {},
-                            opencodeDefaultAgent: undefined,
-                            opencodeDefaultModel: undefined,
+                            ompDefaultAgent: undefined,
+                            ompDefaultModel: undefined,
                             selectionSource: "auto",
                         };
                     });
@@ -1534,7 +1534,7 @@ export const useConfigStore = create<ConfigStore>()(
                         markStartupTrace('loadProviders:skippedUnknownDirectory', { requestedDirectory, source: options?.source ?? 'unknown' });
                         return;
                     }
-                    const effectiveDirectory = configDirectory ?? opencodeClient.getDirectory() ?? null;
+                    const effectiveDirectory = configDirectory ?? agentClient.getDirectory() ?? null;
                     const directoryKey = toDirectoryKey(configDirectory);
                     const source = options?.source ?? 'unknown';
                     markStartupTrace('loadProviders:called', { directoryKey, source, requestedDirectory, effectiveDirectory });
@@ -1562,7 +1562,7 @@ export const useConfigStore = create<ConfigStore>()(
                             );
                             const apiResult = await measureStartupTrace(
                                 'loadProviders:api',
-                                () => opencodeClient.getProvidersForConfig(fromDirectoryKey(directoryKey)),
+                                () => agentClient.getProvidersForConfig(fromDirectoryKey(directoryKey)),
                                 { directoryKey, source, requestedDirectory, effectiveDirectory, attempt: attempt + 1 },
                             );
                             const providers = Array.isArray(apiResult?.providers) ? apiResult.providers : [];
@@ -1967,7 +1967,7 @@ export const useConfigStore = create<ConfigStore>()(
                         markStartupTrace('loadAgents:skippedUnknownDirectory', { requestedDirectory, source: options?.source ?? 'unknown' });
                         return false;
                     }
-                    const effectiveDirectory = configDirectory ?? opencodeClient.getDirectory() ?? null;
+                    const effectiveDirectory = configDirectory ?? agentClient.getDirectory() ?? null;
                     const directoryKey = toDirectoryKey(configDirectory);
                     const source = options?.source ?? 'unknown';
                     markStartupTrace('loadAgents:called', { directoryKey, source, requestedDirectory, effectiveDirectory });
@@ -1988,19 +1988,19 @@ export const useConfigStore = create<ConfigStore>()(
 
                     for (let attempt = 0; attempt < 3; attempt++) {
                         try {
-                            // Fetch agents and OMPChamber settings in parallel. OpenCode config
+                            // Fetch agents and OMPChamber settings in parallel. OMP config
                             // comes from sync state if it is already available; it must not block
                             // the agent refresh path.
                             const configDirectoryPath = fromDirectoryKey(directoryKey);
-                            const initialSyncedOpencodeConfig = getSyncConfig(requestedDirectory ?? undefined)
+                            const initialSyncedOmpConfig = getSyncConfig(requestedDirectory ?? undefined)
                                 ?? getSyncConfig(configDirectoryPath ?? undefined);
-                            if (initialSyncedOpencodeConfig) {
+                            if (initialSyncedOmpConfig) {
                                 markStartupTrace('loadAgents:syncConfigHit', { directoryKey, source });
                             }
                             const [agents, ompchamberDefaults] = await Promise.all([
                                 measureStartupTrace(
                                     'loadAgents:api',
-                                    () => opencodeClient.listAgents(configDirectoryPath),
+                                    () => agentClient.listAgents(configDirectoryPath),
                                     { directoryKey, source, requestedDirectory, effectiveDirectory, attempt: attempt + 1 },
                                 ),
                                 fetchOMPChamberDefaults(),
@@ -2014,14 +2014,14 @@ export const useConfigStore = create<ConfigStore>()(
                                 await providerLoad;
                             }
 
-                            const latestSyncedOpencodeConfig = getSyncConfig(requestedDirectory ?? undefined)
+                            const latestSyncedOmpConfig = getSyncConfig(requestedDirectory ?? undefined)
                                 ?? getSyncConfig(configDirectoryPath ?? undefined);
-                            const hasLatestSyncedOpencodeConfig = latestSyncedOpencodeConfig !== undefined;
-                            const latestSyncedOpencodeDefaultAgent = hasLatestSyncedOpencodeConfig
-                                ? normalizeOptionalString(latestSyncedOpencodeConfig.default_agent)
+                            const hasLatestSyncedOmpConfig = latestSyncedOmpConfig !== undefined;
+                            const latestSyncedOmpDefaultAgent = hasLatestSyncedOmpConfig
+                                ? normalizeOptionalString(latestSyncedOmpConfig.default_agent)
                                 : undefined;
-                            const latestSyncedOpencodeDefaultModel = hasLatestSyncedOpencodeConfig
-                                ? normalizeOptionalString(latestSyncedOpencodeConfig.model)
+                            const latestSyncedOmpDefaultModel = hasLatestSyncedOmpConfig
+                                ? normalizeOptionalString(latestSyncedOmpConfig.model)
                                 : undefined;
 
                             const providers = get().activeDirectoryKey === directoryKey
@@ -2057,19 +2057,19 @@ export const useConfigStore = create<ConfigStore>()(
                                     agentModelSelections: {},
                                     defaultProviders: {},
                                 };
-                                const opencodeDefaultAgent = hasLatestSyncedOpencodeConfig
-                                    ? latestSyncedOpencodeDefaultAgent
-                                    : baseSnapshot.opencodeDefaultAgent ?? (state.activeDirectoryKey === directoryKey ? state.opencodeDefaultAgent : undefined);
-                                const opencodeDefaultModel = hasLatestSyncedOpencodeConfig
-                                    ? latestSyncedOpencodeDefaultModel
-                                    : baseSnapshot.opencodeDefaultModel ?? (state.activeDirectoryKey === directoryKey ? state.opencodeDefaultModel : undefined);
+                                const ompDefaultAgent = hasLatestSyncedOmpConfig
+                                    ? latestSyncedOmpDefaultAgent
+                                    : baseSnapshot.ompDefaultAgent ?? (state.activeDirectoryKey === directoryKey ? state.ompDefaultAgent : undefined);
+                                const ompDefaultModel = hasLatestSyncedOmpConfig
+                                    ? latestSyncedOmpDefaultModel
+                                    : baseSnapshot.ompDefaultModel ?? (state.activeDirectoryKey === directoryKey ? state.ompDefaultModel : undefined);
 
                                 const nextSnapshot: DirectoryScopedConfig = {
                                     ...baseSnapshot,
                                     providers,
                                     agents: safeAgents,
-                                    opencodeDefaultAgent,
-                                    opencodeDefaultModel,
+                                    ompDefaultAgent,
+                                    ompDefaultModel,
                                 };
 
                                 const nextState: Partial<ConfigStore> = {
@@ -2094,8 +2094,8 @@ export const useConfigStore = create<ConfigStore>()(
 
                                 if (state.activeDirectoryKey === directoryKey) {
                                     nextState.agents = safeAgents;
-                                    nextState.opencodeDefaultAgent = opencodeDefaultAgent;
-                                    nextState.opencodeDefaultModel = opencodeDefaultModel;
+                                    nextState.ompDefaultAgent = ompDefaultAgent;
+                                    nextState.ompDefaultModel = ompDefaultModel;
                                 }
 
                                 return nextState;
@@ -2103,10 +2103,10 @@ export const useConfigStore = create<ConfigStore>()(
 
                             const latestConfigState = get();
                             const latestSnapshot = latestConfigState.directoryScoped[directoryKey];
-                            const opencodeDefaultAgent = latestSnapshot?.opencodeDefaultAgent
-                                ?? (latestConfigState.activeDirectoryKey === directoryKey ? latestConfigState.opencodeDefaultAgent : undefined);
-                            const opencodeDefaultModel = latestSnapshot?.opencodeDefaultModel
-                                ?? (latestConfigState.activeDirectoryKey === directoryKey ? latestConfigState.opencodeDefaultModel : undefined);
+                            const ompDefaultAgent = latestSnapshot?.ompDefaultAgent
+                                ?? (latestConfigState.activeDirectoryKey === directoryKey ? latestConfigState.ompDefaultAgent : undefined);
+                            const ompDefaultModel = latestSnapshot?.ompDefaultModel
+                                ?? (latestConfigState.activeDirectoryKey === directoryKey ? latestConfigState.ompDefaultModel : undefined);
 
                             const shouldPersistResolvedZenModel =
                                 !!resolvedZenModel &&
@@ -2200,7 +2200,7 @@ export const useConfigStore = create<ConfigStore>()(
                             }
 
                             // Resolve agent + model via the shared cascade:
-                            //   settings.defaultAgent → opencode default_agent → build → first primary → first
+                            //   settings.defaultAgent → engine default_agent → build → first primary → first
                             //   settings.defaultModel → resolved agent's model+variant → opencode/big-pickle → first
                             const resolvedDefault = resolveDefaultAgentModelSelection({
                                 agents: safeAgents,
@@ -2208,8 +2208,8 @@ export const useConfigStore = create<ConfigStore>()(
                                 settingsDefaultAgent: ompchamberDefaults.defaultAgent,
                                 settingsDefaultModel: ompchamberDefaults.defaultModel,
                                 settingsDefaultVariant: ompchamberDefaults.defaultVariant,
-                                opencodeDefaultAgent,
-                                opencodeDefaultModel,
+                                ompDefaultAgent,
+                                ompDefaultModel,
                             });
                             const resolvedAgentName = resolvedDefault.agentName ?? safeAgents[0].name;
                             const resolvedProviderId = resolvedDefault.providerId;
@@ -2255,8 +2255,8 @@ export const useConfigStore = create<ConfigStore>()(
                                     currentProviderId: nextSelection.providerId ?? baseSnapshot.currentProviderId,
                                     currentModelId: nextSelection.modelId ?? baseSnapshot.currentModelId,
                                     currentVariant: nextSelection.variant,
-                                    opencodeDefaultAgent,
-                                    opencodeDefaultModel,
+                                    ompDefaultAgent,
+                                    ompDefaultModel,
                                     selectionSource: nextSelection.selectionSource,
                                 };
 
@@ -2269,8 +2269,8 @@ export const useConfigStore = create<ConfigStore>()(
 
                                 if (isActive) {
                                     nextState.currentAgentName = nextSelection.agentName;
-                                    nextState.opencodeDefaultAgent = opencodeDefaultAgent;
-                                    nextState.opencodeDefaultModel = opencodeDefaultModel;
+                                    nextState.ompDefaultAgent = ompDefaultAgent;
+                                    nextState.ompDefaultModel = ompDefaultModel;
                                     if (nextSelection.providerId && nextSelection.modelId) {
                                         nextState.currentProviderId = nextSelection.providerId;
                                         nextState.currentModelId = nextSelection.modelId;
@@ -2566,8 +2566,8 @@ export const useConfigStore = create<ConfigStore>()(
                         settingsDefaultModel,
                         settingsDefaultVariant,
                         settingsDefaultAgent,
-                        opencodeDefaultAgent,
-                        opencodeDefaultModel,
+                        ompDefaultAgent,
+                        ompDefaultModel,
                     } = get();
 
                     if (agents.length === 0 || providers.length === 0) {
@@ -2586,8 +2586,8 @@ export const useConfigStore = create<ConfigStore>()(
                         settingsDefaultAgent,
                         settingsDefaultModel,
                         settingsDefaultVariant,
-                        opencodeDefaultAgent,
-                        opencodeDefaultModel,
+                        ompDefaultAgent,
+                        ompDefaultModel,
                     });
 
                     if (!resolvedAgentName) {
@@ -2642,7 +2642,7 @@ export const useConfigStore = create<ConfigStore>()(
                     });
                 },
 
-                applyOpenCodeConfigDefaults: (directory, source = "syncConfig", config) => {
+                applyOmpConfigDefaults: (directory, source = "syncConfig", config) => {
                     const eventDirectory = directory ?? fromDirectoryKey(get().activeDirectoryKey);
                     const directoryKey = toConfigDirectoryKey(eventDirectory);
                     const configDirectory = fromDirectoryKey(directoryKey);
@@ -2653,8 +2653,8 @@ export const useConfigStore = create<ConfigStore>()(
                         return;
                     }
 
-                    const opencodeDefaultAgent = normalizeOptionalString(syncedConfig.default_agent);
-                    const opencodeDefaultModel = normalizeOptionalString(syncedConfig.model);
+                    const ompDefaultAgent = normalizeOptionalString(syncedConfig.default_agent);
+                    const ompDefaultModel = normalizeOptionalString(syncedConfig.model);
 
                     set((state) => {
                         const snapshot = state.directoryScoped[directoryKey];
@@ -2662,18 +2662,18 @@ export const useConfigStore = create<ConfigStore>()(
                         const providers = isActive ? state.providers : (snapshot?.providers ?? []);
                         const agents = isActive ? state.agents : (snapshot?.agents ?? []);
                         const baseSnapshot: DirectoryScopedConfig = snapshot ?? createEmptyDirectoryScopedConfig(providers, agents);
-                        const defaultsChanged = baseSnapshot.opencodeDefaultAgent !== opencodeDefaultAgent
-                            || baseSnapshot.opencodeDefaultModel !== opencodeDefaultModel
+                        const defaultsChanged = baseSnapshot.ompDefaultAgent !== ompDefaultAgent
+                            || baseSnapshot.ompDefaultModel !== ompDefaultModel
                             || (isActive && (
-                                state.opencodeDefaultAgent !== opencodeDefaultAgent
-                                || state.opencodeDefaultModel !== opencodeDefaultModel
+                                state.ompDefaultAgent !== ompDefaultAgent
+                                || state.ompDefaultModel !== ompDefaultModel
                             ));
                         const defaultsSnapshot: DirectoryScopedConfig = {
                             ...baseSnapshot,
                             providers,
                             agents,
-                            opencodeDefaultAgent,
-                            opencodeDefaultModel,
+                            ompDefaultAgent,
+                            ompDefaultModel,
                         };
                         const nextState: Partial<ConfigStore> = {
                             directoryScoped: {
@@ -2683,8 +2683,8 @@ export const useConfigStore = create<ConfigStore>()(
                         };
 
                         if (isActive) {
-                            nextState.opencodeDefaultAgent = opencodeDefaultAgent;
-                            nextState.opencodeDefaultModel = opencodeDefaultModel;
+                            nextState.ompDefaultAgent = ompDefaultAgent;
+                            nextState.ompDefaultModel = ompDefaultModel;
                         }
 
                         const selectionSource = isActive ? state.selectionSource : (snapshot?.selectionSource ?? "auto");
@@ -2702,8 +2702,8 @@ export const useConfigStore = create<ConfigStore>()(
                             settingsDefaultAgent: state.settingsDefaultAgent,
                             settingsDefaultModel: state.settingsDefaultModel,
                             settingsDefaultVariant: state.settingsDefaultVariant,
-                            opencodeDefaultAgent,
-                            opencodeDefaultModel,
+                            ompDefaultAgent,
+                            ompDefaultModel,
                         });
 
                         if (!resolved.agentName) {
@@ -2785,7 +2785,7 @@ export const useConfigStore = create<ConfigStore>()(
                             }
                         }
 
-                        markStartupTrace('loadAgents:opencodeConfigDefaultsApplied', { directoryKey, eventDirectory, source });
+                        markStartupTrace('loadAgents:ompConfigDefaultsApplied', { directoryKey, eventDirectory, source });
                         return nextState;
                     });
                 },
@@ -3024,7 +3024,7 @@ export const useConfigStore = create<ConfigStore>()(
                 },
 
                 probeConnection: async (options?: { timeoutMs?: number }) => {
-                    const isHealthy = await probeOpenCodeHealth(options?.timeoutMs);
+                    const isHealthy = await probeOmpHealth(options?.timeoutMs);
                     if (isHealthy) {
                         set({ isConnected: true, hasEverConnected: true, connectionPhase: "connected" });
                         return true;
@@ -3054,7 +3054,7 @@ export const useConfigStore = create<ConfigStore>()(
                             markStartupTrace('checkConnection:attempt', { attempt: attempt + 1 });
                             const isHealthy = await measureStartupTrace(
                                 'checkConnection:health',
-                                () => opencodeClient.checkHealth(),
+                                () => agentClient.checkHealth(),
                                 { attempt: attempt + 1 },
                             );
                             if (!isHealthy && attempt < maxAttempts - 1) {
@@ -3088,7 +3088,7 @@ export const useConfigStore = create<ConfigStore>()(
                     }
 
                     if (lastError) {
-                        console.warn("[ConfigStore] Failed to reach OpenCode after retrying:", lastError);
+                        console.warn("[ConfigStore] Failed to reach OMP after retrying:", lastError);
                     }
                     set({
                         isConnected: false,
@@ -3138,7 +3138,7 @@ export const useConfigStore = create<ConfigStore>()(
                             // app starts on a worktree directory, load config under the owning
                             // project's key so the initial draft — which activates the project — finds
                             // a ready snapshot instead of triggering a second provider/agent load.
-                            const initialDirectory = opencodeClient.getDirectory()
+                            const initialDirectory = agentClient.getDirectory()
                                 ?? useDirectoryStore.getState().currentDirectory
                                 ?? fromDirectoryKey(get().activeDirectoryKey);
                             const resolvedProject = resolveProjectForSessionDirectory(
@@ -3158,7 +3158,7 @@ export const useConfigStore = create<ConfigStore>()(
                                     initialDirectory,
                                     configDirectory,
                                 });
-                                opencodeClient.setDirectory(configDirectory);
+                                agentClient.setDirectory(configDirectory);
                                 useDirectoryStore.getState().setDirectory(configDirectory, { showOverlay: false });
                             }
                             const configDirectoryKey = toDirectoryKey(configDirectory);
@@ -3382,7 +3382,7 @@ if (!unsubscribeConfigStoreChanges) {
     unsubscribeConfigStoreChanges = subscribeToConfigChanges(async (event) => {
             const tasks: Promise<void>[] = [];
 
-        opencodeClient.clearConfigCache();
+        agentClient.clearConfigCache();
 
         if (scopeMatches(event, "agents")) {
             const { loadAgents } = useConfigStore.getState();
@@ -3405,7 +3405,7 @@ let unsubscribeConfigStoreSyncConfigChanges: (() => void) | null = null;
 
 if (!unsubscribeConfigStoreSyncConfigChanges) {
     unsubscribeConfigStoreSyncConfigChanges = subscribeToSyncConfigChanges((directory, config) => {
-        useConfigStore.getState().applyOpenCodeConfigDefaults(directory, 'syncConfig', config);
+        useConfigStore.getState().applyOmpConfigDefaults(directory, 'syncConfig', config);
     });
 }
 

@@ -148,7 +148,7 @@ that started a watch per open session would reintroduce exactly that fan-out.
 
 ### Changed files come from git status, not the session
 
-`Session.summary` looks like the obvious source and does not work. OpenCode's
+`Session.summary` looks like the obvious source and does not work. OMP's
 `SessionSummary.summarize` writes `{additions: 0, deletions: 0, files: 0}` at
 the start of every turn and then fills only the **message**-level
 `summary.diffs`; session-level totals stay zero forever. The `session.diff`
@@ -238,7 +238,7 @@ Selection rules live in `usageHeadline.ts` and are pinned by
 `usageHeadline.test.ts`:
 
 - provider ids are matched directly, with a small alias table for the ones that
-  diverge from OpenCode's (`openai`/`chatgpt` → `codex`, `anthropic` → `claude`,
+  diverge from OMP's (`openai`/`chatgpt` → `codex`, `anthropic` → `claude`,
   `gemini` → `google`);
 - model-scoped rows are skipped while any provider-level row exists — a
   per-model quota is not the provider's;

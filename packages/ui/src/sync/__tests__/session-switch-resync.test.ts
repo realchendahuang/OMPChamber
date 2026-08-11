@@ -10,8 +10,8 @@ let pendingPermissionsResponse: PermissionRequest[] = []
 let pendingQuestionsShouldThrow = false
 let pendingPermissionsShouldThrow = false
 
-mock.module("@/lib/opencode/client", () => ({
-  opencodeClient: {
+mock.module("@/lib/agent/client", () => ({
+  agentClient: {
     listPendingQuestions: mock(async (opts?: { directories?: Array<string | null | undefined> }) => {
       listPendingQuestionsCalls.push(opts ?? {})
       if (pendingQuestionsShouldThrow) throw new Error("question.list failed: simulated")

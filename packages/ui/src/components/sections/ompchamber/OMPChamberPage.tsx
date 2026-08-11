@@ -9,7 +9,7 @@ import { NotificationSettings } from './NotificationSettings';
 import { GitHubSettings } from './GitHubSettings';
 import { VoiceSettings } from './VoiceSettings';
 import { TunnelSettings } from './TunnelSettings';
-import { OpenCodeCliSettings } from './OpenCodeCliSettings';
+import { OmpCliSettings } from './OmpCliSettings';
 import { DesktopNetworkSettings } from './DesktopNetworkSettings';
 import { KeyboardShortcutsSettings } from './KeyboardShortcutsSettings';
 import { SettingsPageLayout } from '@/components/sections/shared/SettingsPageLayout';
@@ -51,7 +51,7 @@ export const OMPChamberPage: React.FC<OMPChamberPageProps> = ({ section }) => {
                 <OMPChamberVisualSettings />
                 <DefaultsSettings />
                 {showDesktopNetworkSettings && <DesktopNetworkSettings />}
-                {!isVSCode && <OpenCodeCliSettings />}
+                {!isVSCode && <OmpCliSettings />}
                 <SessionRetentionSettings />
                 {isWebRuntime() && !isDesktopShell() && !isVSCode && !isCapacitorApp() && <PasskeySettings />}
                 {showAbout && <AboutSettings />}
@@ -130,7 +130,7 @@ const ShortcutsSectionContent: React.FC = () => {
 };
 
 // General section: app-level settings — startup/tray/network, access password,
-// passkeys, OpenCode CLI binary, message stream transport, privacy.
+// passkeys, OMP CLI binary, message stream transport, privacy.
 const GeneralSectionContent: React.FC = () => {
     const isVSCode = isVSCodeRuntime();
     const runtimeEndpointEpoch = useRuntimeEndpointEpoch();
@@ -143,7 +143,7 @@ const GeneralSectionContent: React.FC = () => {
         <>
             {showDesktopNetworkSettings && <DesktopNetworkSettings />}
             {showPasskeySettings && <PasskeySettings />}
-            {!isVSCode && <OpenCodeCliSettings />}
+            {!isVSCode && <OmpCliSettings />}
             <OMPChamberVisualSettings visibleSettings={[
                 'fileEditorKeymap',
                 'autoSaveEnabled',

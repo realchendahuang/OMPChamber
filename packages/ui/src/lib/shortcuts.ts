@@ -139,8 +139,8 @@ const SHORTCUT_ACTIONS: ReadonlyArray<ShortcutAction> = [
   {
     id: 'open_status',
     defaultCombo: 'mod+shift+o',
-    label: 'Open OpenCode status',
-    description: 'Open the OpenCode status dialog',
+    label: 'Open OMP status',
+    description: 'Open the OMP status dialog',
   },
   {
     id: 'open_settings',

@@ -18,7 +18,7 @@ import {
   applyImportedMcpToDraft,
 } from './mcpImport';
 import { useMcpStore } from '@/stores/useMcpStore';
-import { usePendingOpenCodeRestartStore } from '@/stores/usePendingOpenCodeRestartStore';
+import { usePendingOmpRestartStore } from '@/stores/usePendingOmpRestartStore';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 import { runtimeFetch } from '@/lib/runtime-fetch';
 import { cn } from '@/lib/utils';
@@ -586,7 +586,7 @@ export const McpPage: React.FC = () => {
   const completeAuthMcp = useMcpStore((state) => state.completeAuth);
   const clearAuthMcp = useMcpStore((state) => state.clearAuth);
   const testConnectionMcp = useMcpStore((state) => state.testConnection);
-  const pendingRestartChanges = usePendingOpenCodeRestartStore((state) => state.changes);
+  const pendingRestartChanges = usePendingOmpRestartStore((state) => state.changes);
 
   const selectedServer = selectedMcpName ? getMcpByName(selectedMcpName) : null;
   const isNewServer = Boolean(mcpDraft && mcpDraft.name === selectedMcpName && !selectedServer);
@@ -1041,7 +1041,7 @@ export const McpPage: React.FC = () => {
       });
 
       if (nativeFlow) {
-        // OpenCode opened the browser and completes the flow itself; there is
+        // OMP opened the browser and completes the flow itself; there is
         // no URL or state to track. The completion promise is the authoritative
         // end signal — status polling alone cannot tell a finished
         // reauthorization from the still-connected state it started in.
@@ -1297,7 +1297,7 @@ export const McpPage: React.FC = () => {
   const runtimeStatus = mcpStatus[selectedMcpName];
   const runtimeDiagnostic = selectedMcpName ? mcpDiagnostics[selectedMcpName] : undefined;
   const effectiveRuntimeStatus = runtimeStatus ?? runtimeDiagnostic;
-  // Saved into the config but queued behind Apply & Restart: OpenCode does not
+  // Saved into the config but queued behind Apply & Restart: OMP does not
   // know this server yet, so every runtime action (connect, authorize, clear
   // auth) can only fail with "server not found". The page says that instead of
   // offering the buttons.
@@ -1593,7 +1593,7 @@ export const McpPage: React.FC = () => {
 
               {isAuthPolling && (
                 <p className="mt-4 typography-micro text-muted-foreground">
-                  {t('settings.mcp.page.auth.waitingForOpenCode')}
+                  {t('settings.mcp.page.auth.waitingForOmp')}
                 </p>
               )}
             </div>

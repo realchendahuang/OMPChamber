@@ -52,7 +52,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
   const [isDesktopApp, setIsDesktopApp] = React.useState(false);
   const [isApplyingPath, setIsApplyingPath] = React.useState(false);
   const [isManualChecking, setIsManualChecking] = React.useState(false);
-  const [opencodeBinary, setOpencodeBinary] = React.useState('');
+  const [ompBinary, setOmpBinary] = React.useState('');
   const [platform, setPlatform] = React.useState<OnboardingPlatform>('unknown');
   const [activeTab, setActiveTab] = React.useState<'local' | 'remote'>(() => localAvailable ? 'local' : 'remote');
   const [advancedOpen, setAdvancedOpen] = React.useState(false);
@@ -84,7 +84,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
         const data = (await response.json().catch(() => null)) as null | { opencodeBinary?: unknown };
         if (!data || cancelled) return;
         const value = typeof data.opencodeBinary === 'string' ? data.opencodeBinary.trim() : '';
-        if (value) setOpencodeBinary(value);
+        if (value) setOmpBinary(value);
       } catch {
         // ignore
       }
@@ -134,7 +134,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
   }, [isDesktopApp, onCliAvailable, persistFirstChoice]);
 
   // Background polling: while the local tab is visible, periodically check
-  // whether the OpenCode CLI is reachable. As soon as it is, transition
+  // whether the OMP CLI is reachable. As soon as it is, transition
   // automatically — the user doesn't have to click anything.
   React.useEffect(() => {
     if (!localAvailable || activeTab !== 'local') return;
@@ -184,7 +184,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
     try {
       const selected = await requestFileAccess();
       if (selected.success && selected.path && selected.path.trim().length > 0) {
-        setOpencodeBinary(selected.path.trim());
+        setOmpBinary(selected.path.trim());
       }
     } catch {
       // ignore
@@ -194,7 +194,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
   const handleApplyPath = React.useCallback(async () => {
     setIsApplyingPath(true);
     try {
-      await updateDesktopSettings({ opencodeBinary: opencodeBinary.trim() });
+      await updateDesktopSettings({ opencodeBinary: ompBinary.trim() });
       if (isDesktopApp) {
         await persistFirstChoice('local');
         await restartDesktopApp();
@@ -204,7 +204,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
     } finally {
       setTimeout(() => setIsApplyingPath(false), 1000);
     }
-  }, [isDesktopApp, opencodeBinary, persistFirstChoice]);
+  }, [isDesktopApp, ompBinary, persistFirstChoice]);
 
   const handleCopy = React.useCallback(async () => {
     const result = await copyTextToClipboard(INSTALL_COMMAND);
@@ -219,10 +219,10 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
   const docsUrl = DOCS_URL;
   const binaryPlaceholder =
     platform === 'windows'
-      ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\opencode.cmd'
+      ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\omp.cmd'
       : platform === 'linux'
-        ? '/home/you/.bun/bin/opencode'
-        : '/Users/you/.bun/bin/opencode';
+        ? '/home/you/.bun/bin/omp'
+        : '/Users/you/.bun/bin/omp';
 
   const showLocal = localAvailable && (!isDesktopApp || activeTab === 'local');
 
@@ -376,8 +376,8 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
               <div className="pb-4 space-y-2">
                 <div className="flex gap-2">
                   <Input
-                    value={opencodeBinary}
-                    onChange={(e) => setOpencodeBinary(e.target.value)}
+                    value={ompBinary}
+                    onChange={(e) => setOmpBinary(e.target.value)}
                     placeholder={binaryPlaceholder}
                     disabled={isApplyingPath}
                     className="flex-1 font-mono text-xs"
@@ -395,7 +395,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
                     type="button"
                     size="sm"
                     onClick={handleApplyPath}
-                    disabled={isApplyingPath || !opencodeBinary.trim()}
+                    disabled={isApplyingPath || !ompBinary.trim()}
                   >
                     {t('onboarding.localSetup.actions.apply')}
                   </Button>

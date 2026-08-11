@@ -3,7 +3,7 @@ import type { Session } from '@ompchamber/agent-protocol/domain-types';
 import { routeMessage, useSessionUIStore } from '@/sync/session-ui-store';
 import { devtools } from 'zustand/middleware';
 import type { CreateMultiRunParams, CreateMultiRunResult } from '@/types/multirun';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { getWorktreeSetupWaitEnabled, saveWorktreeSetupCommands } from '@/lib/ompchamberConfig';
 import type { ProjectRef } from '@/lib/worktrees/worktreeManager';
 import { createWorktreeWithDefaults, resolveRootTrackingRemote } from '@/lib/worktrees/worktreeCreate';
@@ -210,9 +210,9 @@ export const useMultiRunStore = create<MultiRunStore>()(
 
               try {
                 if (!shouldIsolateRuns) {
-                  const session = await opencodeClient.withDirectory(
+                  const session = await agentClient.withDirectory(
                     directory,
-                    () => opencodeClient.createSession({ title: sessionTitle }),
+                    () => agentClient.createSession({ title: sessionTitle }),
                   );
                   registerCreatedSession(session, directory);
 
@@ -249,9 +249,9 @@ export const useMultiRunStore = create<MultiRunStore>()(
                   await waitForWorktreeBootstrap(worktreeMetadata.path);
                 }
 
-                const session = await opencodeClient.withDirectory(
+                const session = await agentClient.withDirectory(
                   worktreeMetadata.path,
-                  () => opencodeClient.createSession({ title: sessionTitle }),
+                  () => agentClient.createSession({ title: sessionTitle }),
                 );
                 registerCreatedSession(session, worktreeMetadata.path);
 

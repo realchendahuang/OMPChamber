@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { Event, OpencodeClient } from "@ompchamber/agent-protocol/domain-types"
+import type { Event, AgentClient } from "@ompchamber/agent-protocol/domain-types"
 import { createEventPipeline } from "./event-pipeline"
 
 const failAfter = (ms: number) => new Promise<never>((_, reject) => {
@@ -45,7 +45,7 @@ function statusEvent(type: "busy" | "retry"): Event {
   } as Event
 }
 
-function createSdk(events: Event[], streamFinished: () => void): OpencodeClient {
+function createSdk(events: Event[], streamFinished: () => void): AgentClient {
   return {
     global: {
       event: async ({ signal }: { signal: AbortSignal }) => ({
@@ -64,7 +64,7 @@ function createSdk(events: Event[], streamFinished: () => void): OpencodeClient 
         })(),
       }),
     },
-  } as unknown as OpencodeClient
+  } as unknown as AgentClient
 }
 
 describe("createEventPipeline", () => {

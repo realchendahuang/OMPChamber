@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { OpencodeClient, Project } from "@ompchamber/agent-protocol/domain-types"
+import type { AgentClient, Project } from "@ompchamber/agent-protocol/domain-types"
 import { bootstrapDirectory } from "./bootstrap"
 import { INITIAL_STATE, type State } from "./types"
 
@@ -14,7 +14,7 @@ const createSdk = (options?: { commandList?: () => Promise<{ data: unknown[] }> 
   vcs: { get: async () => ({ data: { branch: "main" } }) },
   question: { list: async () => ({ data: [] }) },
   permission: { list: async () => ({ data: [] }) },
-}) as unknown as OpencodeClient
+}) as unknown as AgentClient
 
 const createState = (): State => ({
   ...INITIAL_STATE,

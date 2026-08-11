@@ -235,7 +235,7 @@ export type DesktopBootFlowRestartInput = {
  *
  * Desktop shells must wait until a valid boot outcome is injected by the native host.
  * For non-main views (chooser, recovery), the splash can dismiss as soon as
- * the outcome is known — `isInitialized` is not required because OpenCode
+ * the outcome is known — `isInitialized` is not required because OMP
  * may not be available in those flows.
  * For main views, both `isInitialized` and `bootOutcomeKnown` are required.
  * Non-desktop shells only need the app to be initialized.

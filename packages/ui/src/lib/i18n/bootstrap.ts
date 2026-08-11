@@ -20,15 +20,15 @@ type BootstrapMessages = {
 };
 
 const EN_MESSAGES: BootstrapMessages = {
-  startingApi: 'Starting OpenCode API…',
+  startingApi: 'Starting OMP API…',
   initializing: 'Initializing…',
   connecting: 'Connecting…',
   connected: 'Connected!',
   connectionError: 'Connection error',
   disconnected: 'Disconnected',
   reconnecting: 'Reconnecting…',
-  initialDataLoadFailed: 'OpenCode connected, but initial data load failed.',
-  cliNotFound: 'OpenCode CLI not found. Please install it first.',
+  initialDataLoadFailed: 'OMP connected, but initial data load failed.',
+  cliNotFound: 'OMP CLI not found. Please install it first.',
   providersReady: '✓ Providers',
   providersLoading: '… Providers',
   agentsReady: '✓ Agents',
@@ -39,15 +39,15 @@ const EN_MESSAGES: BootstrapMessages = {
 };
 
 const FR_MESSAGES: BootstrapMessages = {
-  startingApi: 'Démarrage de l’API OpenCode…',
+  startingApi: 'Démarrage de l’API OMP…',
   initializing: 'Initialisation…',
   connecting: 'Connexion…',
   connected: 'Connecté !',
   connectionError: 'Erreur de connexion',
   disconnected: 'Déconnecté',
   reconnecting: 'Reconnexion…',
-  initialDataLoadFailed: 'OpenCode est connecté, mais le chargement initial des données a échoué.',
-  cliNotFound: 'L’interface en ligne de commande OpenCode est introuvable. Veuillez l’installer d’abord.',
+  initialDataLoadFailed: 'OMP est connecté, mais le chargement initial des données a échoué.',
+  cliNotFound: 'L’interface en ligne de commande OMP est introuvable. Veuillez l’installer d’abord.',
   providersReady: '✓ Fournisseurs',
   providersLoading: '… Fournisseurs',
   agentsReady: '✓ Agents',
@@ -58,15 +58,15 @@ const FR_MESSAGES: BootstrapMessages = {
 };
 
 const ZH_CN_MESSAGES: BootstrapMessages = {
-  startingApi: '正在启动 OpenCode API…',
+  startingApi: '正在启动 OMP API…',
   initializing: '正在初始化…',
   connecting: '正在连接…',
   connected: '已连接！',
   connectionError: '连接错误',
   disconnected: '已断开连接',
   reconnecting: '正在重新连接…',
-  initialDataLoadFailed: 'OpenCode 已连接，但初始数据加载失败。',
-  cliNotFound: '未找到 OpenCode CLI。请先安装它。',
+  initialDataLoadFailed: 'OMP 已连接，但初始数据加载失败。',
+  cliNotFound: '未找到 OMP CLI。请先安装它。',
   providersReady: '✓ 提供商',
   providersLoading: '… 提供商',
   agentsReady: '✓ 智能体',
@@ -77,15 +77,15 @@ const ZH_CN_MESSAGES: BootstrapMessages = {
 };
 
 const ZH_TW_MESSAGES: BootstrapMessages = {
-  startingApi: '正在啟動 OpenCode API…',
+  startingApi: '正在啟動 OMP API…',
   initializing: '正在初始化…',
   connecting: '正在連線…',
   connected: '已連線！',
   connectionError: '連線錯誤',
   disconnected: '已中斷連線',
   reconnecting: '正在重新連線…',
-  initialDataLoadFailed: 'OpenCode 已連線，但初始資料載入失敗。',
-  cliNotFound: '找不到 OpenCode CLI。請先安裝。',
+  initialDataLoadFailed: 'OMP 已連線，但初始資料載入失敗。',
+  cliNotFound: '找不到 OMP CLI。請先安裝。',
   providersReady: '✓ 提供者',
   providersLoading: '… 提供者',
   agentsReady: '✓ 代理',
@@ -96,15 +96,15 @@ const ZH_TW_MESSAGES: BootstrapMessages = {
 };
 
 const UK_MESSAGES: BootstrapMessages = {
-  startingApi: 'Запуск OpenCode API…',
+  startingApi: 'Запуск OMP API…',
   initializing: 'Ініціалізація…',
   connecting: 'Підключення…',
   connected: 'Підключено!',
   connectionError: 'Помилка підключення',
   disconnected: 'Відключено',
   reconnecting: 'Повторне підключення…',
-  initialDataLoadFailed: 'OpenCode підключено, але початкове завантаження даних не вдалося.',
-  cliNotFound: 'OpenCode CLI не знайдено. Спершу встановіть його.',
+  initialDataLoadFailed: 'OMP підключено, але початкове завантаження даних не вдалося.',
+  cliNotFound: 'OMP CLI не знайдено. Спершу встановіть його.',
   providersReady: '✓ Провайдери',
   providersLoading: '… Провайдери',
   agentsReady: '✓ Агенти',
@@ -115,15 +115,15 @@ const UK_MESSAGES: BootstrapMessages = {
 };
 
 const ES_MESSAGES: BootstrapMessages = {
-  startingApi: 'Iniciando la API de OpenCode…',
+  startingApi: 'Iniciando la API de OMP…',
   initializing: 'Inicializando…',
   connecting: 'Conectando…',
   connected: '¡Conectado!',
   connectionError: 'Error de conexión',
   disconnected: 'Desconectado',
   reconnecting: 'Reconectando…',
-  initialDataLoadFailed: 'OpenCode se conectó, pero falló la carga inicial de datos.',
-  cliNotFound: 'No se encontró OpenCode CLI. Instálalo primero.',
+  initialDataLoadFailed: 'OMP se conectó, pero falló la carga inicial de datos.',
+  cliNotFound: 'No se encontró OMP CLI. Instálalo primero.',
   providersReady: '✓ Proveedores',
   providersLoading: '… Proveedores',
   agentsReady: '✓ Agentes',
@@ -134,15 +134,15 @@ const ES_MESSAGES: BootstrapMessages = {
 };
 
 const PT_BR_MESSAGES: BootstrapMessages = {
-  startingApi: 'Iniciando a API do OpenCode…',
+  startingApi: 'Iniciando a API do OMP…',
   initializing: 'Inicializando…',
   connecting: 'Conectando…',
   connected: 'Conectado!',
   connectionError: 'Erro de conexão',
   disconnected: 'Desconectado',
   reconnecting: 'Reconectando…',
-  initialDataLoadFailed: 'OpenCode conectado, mas o carregamento inicial dos dados falhou.',
-  cliNotFound: 'OpenCode CLI não encontrado. Instale-o primeiro.',
+  initialDataLoadFailed: 'OMP conectado, mas o carregamento inicial dos dados falhou.',
+  cliNotFound: 'OMP CLI não encontrado. Instale-o primeiro.',
   providersReady: '✓ Provedores',
   providersLoading: '… Provedores',
   agentsReady: '✓ Agentes',
@@ -153,15 +153,15 @@ const PT_BR_MESSAGES: BootstrapMessages = {
 };
 
 const KO_MESSAGES: BootstrapMessages = {
-  startingApi: 'OpenCode API 시작 중…',
+  startingApi: 'OMP API 시작 중…',
   initializing: '초기화 중…',
   connecting: '연결 중…',
   connected: '연결됨!',
   connectionError: '연결 오류',
   disconnected: '연결 끊김',
   reconnecting: '다시 연결 중…',
-  initialDataLoadFailed: 'OpenCode에 연결되었지만 초기 데이터 로드에 실패했습니다.',
-  cliNotFound: 'OpenCode CLI를 찾을 수 없습니다. 먼저 설치하세요.',
+  initialDataLoadFailed: 'OMP에 연결되었지만 초기 데이터 로드에 실패했습니다.',
+  cliNotFound: 'OMP CLI를 찾을 수 없습니다. 먼저 설치하세요.',
   providersReady: '✓ 공급자',
   providersLoading: '… 공급자',
   agentsReady: '✓ 에이전트',
@@ -172,15 +172,15 @@ const KO_MESSAGES: BootstrapMessages = {
 };
 
 const PL_MESSAGES: BootstrapMessages = {
-  startingApi: 'Uruchamianie API OpenCode…',
+  startingApi: 'Uruchamianie API OMP…',
   initializing: 'Inicjalizacja…',
   connecting: 'Łączenie…',
   connected: 'Połączono!',
   connectionError: 'Błąd połączenia',
   disconnected: 'Rozłączono',
   reconnecting: 'Ponowne łączenie…',
-  initialDataLoadFailed: 'OpenCode połączony, ale początkowe ładowanie danych nie powiodło się.',
-  cliNotFound: 'Nie znaleziono OpenCode CLI. Najpierw go zainstaluj.',
+  initialDataLoadFailed: 'OMP połączony, ale początkowe ładowanie danych nie powiodło się.',
+  cliNotFound: 'Nie znaleziono OMP CLI. Najpierw go zainstaluj.',
   providersReady: '✓ Dostawcy',
   providersLoading: '… Dostawcy',
   agentsReady: '✓ Agenci',
@@ -191,15 +191,15 @@ const PL_MESSAGES: BootstrapMessages = {
 };
 
 const JA_MESSAGES: BootstrapMessages = {
-  startingApi: 'OpenCode API を起動中…',
+  startingApi: 'OMP API を起動中…',
   initializing: '初期化中…',
   connecting: '接続中…',
   connected: '接続完了！',
   connectionError: '接続エラー',
   disconnected: '切断されました',
   reconnecting: '再接続中…',
-  initialDataLoadFailed: 'OpenCode に接続しましたが、初期データの読み込みに失敗しました。',
-  cliNotFound: 'OpenCode CLI が見つかりません。先にインストールしてください。',
+  initialDataLoadFailed: 'OMP に接続しましたが、初期データの読み込みに失敗しました。',
+  cliNotFound: 'OMP CLI が見つかりません。先にインストールしてください。',
   providersReady: '✓ プロバイダ',
   providersLoading: '… プロバイダ',
   agentsReady: '✓ エージェント',
@@ -210,15 +210,15 @@ const JA_MESSAGES: BootstrapMessages = {
 };
 
 const DE_MESSAGES: BootstrapMessages = {
-  startingApi: 'OpenCode API wird gestartet…',
+  startingApi: 'OMP API wird gestartet…',
   initializing: 'Initialisierung…',
   connecting: 'Verbindung wird hergestellt…',
   connected: 'Verbunden!',
   connectionError: 'Verbindungsfehler',
   disconnected: 'Verbindung getrennt',
   reconnecting: 'Verbindung wird wiederhergestellt…',
-  initialDataLoadFailed: 'OpenCode ist verbunden, aber die Anfangsdaten konnten nicht geladen werden.',
-  cliNotFound: 'OpenCode CLI wurde nicht gefunden. Installieren Sie es zuerst.',
+  initialDataLoadFailed: 'OMP ist verbunden, aber die Anfangsdaten konnten nicht geladen werden.',
+  cliNotFound: 'OMP CLI wurde nicht gefunden. Installieren Sie es zuerst.',
   providersReady: '✓ Anbieter',
   providersLoading: '… Anbieter',
   agentsReady: '✓ Agents',

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import type { OpencodeClient } from '@ompchamber/agent-protocol/domain-types'
+import type { AgentClient } from '@ompchamber/agent-protocol/domain-types'
 
 import { listGlobalSessionPages, splitGlobalSessionsByArchived } from './globalSessions'
 
@@ -35,7 +35,7 @@ describe('listGlobalSessionPages', () => {
           }),
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, { archived: false, pageSize: 500 })
     const session = sessions[0] as typeof sessions[number] & {
@@ -81,7 +81,7 @@ describe('listGlobalSessionPages', () => {
           },
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, {
       directory: '/repo',
@@ -111,7 +111,7 @@ describe('listGlobalSessionPages', () => {
           }),
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, { archived: true, pageSize: 500 })
 
@@ -131,7 +131,7 @@ describe('listGlobalSessionPages', () => {
           }),
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, { archived: false, pageSize: 500 })
 
@@ -152,7 +152,7 @@ describe('listGlobalSessionPages', () => {
           }),
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, { archived: true, narrowToArchived: false, pageSize: 500 })
 
@@ -184,7 +184,7 @@ describe('listGlobalSessionPages', () => {
           },
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, { archived: true, pageSize: 2 })
 
@@ -209,7 +209,7 @@ describe('listGlobalSessionPages', () => {
           }),
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     await listGlobalSessionPages(apiClient, {
       archived: true,
@@ -231,7 +231,7 @@ describe('listGlobalSessionPages', () => {
           }),
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, {
       archived: true,
@@ -265,7 +265,7 @@ describe('listGlobalSessionPages', () => {
           },
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, { archived: true, pageSize: 2 })
 
@@ -292,7 +292,7 @@ describe('listGlobalSessionPages', () => {
           },
         },
       },
-    } as unknown as OpencodeClient
+    } as unknown as AgentClient
 
     const sessions = await listGlobalSessionPages(apiClient, { archived: false, pageSize: 500 })
 

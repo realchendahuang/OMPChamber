@@ -3,13 +3,13 @@
  * Replaces the action methods from the old useSessionStore.
  */
 
-import type { OpencodeClient, Session, Message, Part } from "@ompchamber/agent-protocol/domain-types"
+import type { AgentClient, Session, Message, Part } from "@ompchamber/agent-protocol/domain-types"
 import { Binary } from "./binary"
 import { useSessionUIStore } from "./session-ui-store"
 import { useInputStore } from "./input-store"
 import type { ChildStoreManager } from "./child-store"
 import { computeSubtreeIds } from "./scoped-blocking-requests"
-import { opencodeClient } from "@/lib/opencode/client"
+import { agentClient } from "@/lib/agent/client"
 import { mergeSessionDirectoryMetadata, resolveGlobalSessionDirectory, useGlobalSessionsStore } from "@/stores/useGlobalSessionsStore"
 import { useConfigStore } from "@/stores/useConfigStore"
 import { registerSessionDirectory } from "./sync-refs"
@@ -52,7 +52,7 @@ const UNREVERT_REFETCH_ATTEMPTS = 3
 const UNREVERT_REFETCH_RETRY_MS = 150
 
 // Reference set by SyncProvider — allows actions to access SDK and stores
-let _sdk: OpencodeClient | null = null
+let _sdk: AgentClient | null = null
 let _childStores: ChildStoreManager | null = null
 let _getDirectory: () => string = () => ""
 // Optional ref into the sync layer's session-tail materialization queue. Used
@@ -143,7 +143,7 @@ function assertSdkData<T>(result: SdkResult<T>, operation: string): T {
 }
 
 export function setActionRefs(
-  sdk: OpencodeClient,
+  sdk: AgentClient,
   childStores: ChildStoreManager,
   getDirectory: () => string,
   enqueueSessionMaterialization?: (directory: string, sessionID: string, messageID: string) => void,
@@ -340,7 +340,7 @@ export async function moveSessionToDirectory(
   destinationDirectory: string,
   moveChanges = true,
 ): Promise<void> {
-  const result = await opencodeClient.moveSessionToDirectory(
+  const result = await agentClient.moveSessionToDirectory(
     session.id,
     destinationDirectory,
     moveChanges,
@@ -695,7 +695,7 @@ function removePermissionRequestFromChildStores(sessionId: string, requestId: st
 
 // NOTE: the old getRequestReplyClient / getSessionReplyClient direct-SDK
 // bridges were removed. Permission/question replies go through the
-// OpencodeService facade (replyToPermission, replyToQuestion, rejectQuestion).
+// OmpService facade (replyToPermission, replyToQuestion, rejectQuestion).
 
 // ---------------------------------------------------------------------------
 // Session CRUD
@@ -711,10 +711,10 @@ export async function createSession(
     // Capture the effective directory used for session creation so we can fall
     // back to it when the server response omits the `directory` field.
     // Without this, setCurrentSession would fall through to a stale
-    // opencodeClient.getDirectory() value and group the session under the
+    // agentClient.getDirectory() value and group the session under the
     // wrong project (closes #1637, #2270).
     const effectiveDirectory = directoryOverride ?? dir()
-    const session = await opencodeClient.createSession({
+    const session = await agentClient.createSession({
       title,
       parentID: parentID ?? undefined,
       metadata,
@@ -764,10 +764,10 @@ export async function patchSessionMetadata(
 ): Promise<Session> {
   if (isStaleRuntime(expectedRuntimeKey)) throw new Error("runtime changed")
   const targetDirectory = directory ?? getSessionDirectory(sessionId)
-  const current = await opencodeClient.getSession(sessionId, targetDirectory)
+  const current = await agentClient.getSession(sessionId, targetDirectory)
   if (isStaleRuntime(expectedRuntimeKey)) throw new Error("runtime changed")
   const nextMetadata = updater(getSessionMetadata(current))
-  const updated = await opencodeClient.updateSession(sessionId, { metadata: nextMetadata }, targetDirectory)
+  const updated = await agentClient.updateSession(sessionId, { metadata: nextMetadata }, targetDirectory)
   if (isStaleRuntime(expectedRuntimeKey)) throw new Error("runtime changed")
   useGlobalSessionsStore.getState().upsertSession(updated)
   const sessionDirectory = (updated as { directory?: string | null }).directory ?? targetDirectory
@@ -809,7 +809,7 @@ async function cleanupReviewMetadataBeforeDelete(
   if (isStaleRuntime(expectedRuntimeKey)) return
   let session: Session
   try {
-    session = await opencodeClient.getSession(sessionId, directory ?? getSessionDirectory(sessionId))
+    session = await agentClient.getSession(sessionId, directory ?? getSessionDirectory(sessionId))
   } catch {
     return
   }
@@ -930,7 +930,7 @@ export async function deleteSession(sessionId: string, options?: DeleteSessionOp
   try {
     await cleanupReviewMetadataBeforeDelete(sessionId, sessionDirectory, expectedRuntimeKey)
     if (isStaleRuntime(expectedRuntimeKey)) return false
-    const deleted = await opencodeClient.deleteSession(sessionId, sessionDirectory)
+    const deleted = await agentClient.deleteSession(sessionId, sessionDirectory)
     if (isStaleRuntime(expectedRuntimeKey)) return false
     if (deleted !== true) {
       throw new Error("session.delete failed: server did not confirm deletion")
@@ -961,7 +961,7 @@ export async function deleteSessionInDirectory(
   try {
     await cleanupReviewMetadataBeforeDelete(sessionId, directory, expectedRuntimeKey)
     if (isStaleRuntime(expectedRuntimeKey)) return false
-    const deleted = await opencodeClient.deleteSession(sessionId, directory)
+    const deleted = await agentClient.deleteSession(sessionId, directory)
     if (isStaleRuntime(expectedRuntimeKey)) return false
     if (deleted !== true) {
       throw new Error("session.delete failed: server did not confirm deletion")
@@ -1035,7 +1035,7 @@ export async function archiveSession(sessionId: string, expectedRuntimeKey = get
   try {
     await cleanupReviewMetadataBeforeDelete(sessionId, sessionDirectory, expectedRuntimeKey)
     if (isStaleRuntime(expectedRuntimeKey)) return false
-    const archived = await opencodeClient.updateSession(sessionId, { time: { archived: archivedAt } }, sessionDirectory)
+    const archived = await agentClient.updateSession(sessionId, { time: { archived: archivedAt } }, sessionDirectory)
     if (isStaleRuntime(expectedRuntimeKey)) return false
     if (!archived) {
       throw new Error("session.update failed: server did not return the archived session")
@@ -1094,12 +1094,12 @@ export async function archiveSessions(
 /**
  * Sentinel written to `time.archived` when restoring a session.
  *
- * The OpenCode server has no HTTP path to clear `time.archived` back to NULL:
+ * The OMP server has no HTTP path to clear `time.archived` back to NULL:
  * `session.update` only applies the field when the payload carries a finite
  * number (`archived !== undefined`), so omitting the key is a no-op and `null`
  * is silently ignored. Writing `0` is the only value that makes every reader
  * treat the session as active again: the UI, the event reducer, and the
- * OpenCode app/TUI all classify archive state by truthiness of
+ * OMP app/TUI all classify archive state by truthiness of
  * `time.archived`, and `0` is falsy. The one place that still excludes such a
  * session is the server's own `time_archived IS NULL` list filter, so the
  * global session cache loads with the inclusive `archived` flag and splits
@@ -1122,7 +1122,7 @@ export async function unarchiveSession(sessionId: string, expectedRuntimeKey = g
   if (isStaleRuntime(expectedRuntimeKey)) return false
   const sessionDirectory = getSessionDirectory(sessionId)
   try {
-    const restored = await opencodeClient.updateSession(sessionId, { time: { archived: UNARCHIVED_TIMESTAMP } }, sessionDirectory)
+    const restored = await agentClient.updateSession(sessionId, { time: { archived: UNARCHIVED_TIMESTAMP } }, sessionDirectory)
     if (isStaleRuntime(expectedRuntimeKey)) return false
     if (!restored) {
       throw new Error("session.update failed: server did not return the restored session")
@@ -1179,7 +1179,7 @@ export async function unarchiveSessions(
 
 export async function updateSessionTitle(sessionId: string, title: string): Promise<void> {
   const sessionDirectory = getSessionDirectory(sessionId)
-  const session = await opencodeClient.updateSession(sessionId, { title }, sessionDirectory)
+  const session = await agentClient.updateSession(sessionId, { title }, sessionDirectory)
   useGlobalSessionsStore.getState().upsertSession(session)
   mirrorSessionIntoLiveStores(session, sessionDirectory)
 }
@@ -1212,7 +1212,7 @@ export async function unshareSession(sessionId: string): Promise<Session | null>
 // Optimistic message send — insert user message before API call, rollback on error
 // ---------------------------------------------------------------------------
 
-// ID generator matching OpenCode's Identifier.ascending format.
+// ID generator matching OMP's Identifier.ascending format.
 // Uses BigInt(timestamp) * 0x1000 + counter, encoded as 6 hex bytes + random base62.
 // This ensures client-generated IDs sort correctly with server-generated ones.
 let lastIdTimestamp = 0
@@ -1391,7 +1391,7 @@ export async function optimisticSend(input: {
     // failures. Record the failure so the About dialog's diagnostics report can
     // answer "it disappeared and nothing happened" with an actual cause.
     // `reason` is truncated by the recorder: a rejected send echoes the
-    // provider/OpenCode response body, which this log has no reason to keep.
+    // provider/OMP response body, which this log has no reason to keep.
     const failureRecord = {
       sessionId: input.sessionId,
       messageId: messageID,
@@ -1510,7 +1510,7 @@ function materializeConfirmedSendRecords(
 
 export async function abortCurrentOperation(sessionId: string): Promise<void> {
   // The abort must carry the SESSION'S directory, not the active UI directory:
-  // OpenCode routes the request to the per-directory instance, and an abort
+  // OMP routes the request to the per-directory instance, and an abort
   // sent to the wrong instance cancels nothing while still returning 200 true
   // (the "stop button does nothing" report — sessions in another project/
   // worktree than the UI's current directory could never be aborted).
@@ -1537,7 +1537,7 @@ export async function respondToPermission(
     || resolveDirectoryForBlockingRequest("permission", sessionId, requestId)
     || getSessionDirectory(sessionId)
     || dir()
-  const ok = await opencodeClient.replyToPermission(requestId, response, {
+  const ok = await agentClient.replyToPermission(requestId, response, {
     directory: directoryOverride ?? directory,
   })
   if (!ok) {
@@ -1554,7 +1554,7 @@ export async function dismissPermission(
     || getSessionDirectory(sessionId)
     || dir()
   try {
-    const ok = await opencodeClient.replyToPermission(requestId, "reject", { directory })
+    const ok = await agentClient.replyToPermission(requestId, "reject", { directory })
     if (!ok) {
       throw new Error("Permission dismissal failed")
     }
@@ -1585,7 +1585,7 @@ export async function dismissPermission(
  *
  * NOTE: rejecting unblocks the agent's tool but does NOT end its turn. Callers
  * that need to send the next message right away (the chat send path) must also
- * queue the message so the OpenCode runner reaches `idle` — otherwise the new
+ * queue the message so the OMP runner reaches `idle` — otherwise the new
  * prompt arrives while the run is still active and is discarded by the runner's
  * `ensureRunning`.
  */
@@ -1651,7 +1651,7 @@ export async function respondToQuestion(
       : Array.isArray(answers[0])
         ? answers as string[][]
         : [answers as string[]]
-    const ok = await opencodeClient.replyToQuestion(requestId, normalizedAnswers, directory)
+    const ok = await agentClient.replyToQuestion(requestId, normalizedAnswers, directory)
     if (!ok) {
       throw new Error("Question reply failed")
     }
@@ -1673,7 +1673,7 @@ export async function rejectQuestion(
     || getSessionDirectory(sessionId)
     || dir()
   try {
-    const ok = await opencodeClient.rejectQuestion(requestId, directory)
+    const ok = await agentClient.rejectQuestion(requestId, directory)
     if (!ok) {
       throw new Error("Question rejection failed")
     }
@@ -1705,7 +1705,7 @@ export async function rejectQuestion(
  *
  * NOTE: rejecting unblocks the agent's tool but does NOT end its turn. Callers
  * that need to send the next message right away (the chat send path) must also
- * abort the session so the OpenCode runner reaches `idle` — otherwise the new
+ * abort the session so the OMP runner reaches `idle` — otherwise the new
  * prompt arrives while the run is still active and is discarded by the runner's
  * `ensureRunning`.
  */
@@ -1839,7 +1839,7 @@ export async function revertToMessage(sessionId: string, messageId: string): Pro
 
   // Call SDK and merge authoritative result into store
   try {
-    const revertedSession = await opencodeClient.revertSession(sessionId, messageId, undefined, directory)
+    const revertedSession = await agentClient.revertSession(sessionId, messageId, undefined, directory)
     const current = store.getState()
     const updated = [...current.session]
     const idx = updated.findIndex((s) => s.id === sessionId)
@@ -1963,7 +1963,7 @@ export async function forkFromMessage(sessionId: string, messageId: string): Pro
     .trim()
   const fileParts = parts.filter((p) => p.type === "file" && !isSyntheticPart(p)) as Array<Record<string, unknown>>
 
-  const forkedSession = await opencodeClient.forkSession(sessionId, messageId, directory)
+  const forkedSession = await agentClient.forkSession(sessionId, messageId, directory)
 
   // Insert new session into child store so sidebar updates immediately
   const current = store.getState()

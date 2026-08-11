@@ -1,5 +1,5 @@
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { applyPendingOpenCodeRestart } from '@/lib/opencode/deferredRestart';
+import { applyPendingOmpRestart } from '@/lib/agent/deferredRestart';
 import { getRuntimeApiBaseUrl, getRuntimeKey } from '@/lib/runtime-switch';
 import { openExternalUrl } from '@/lib/url';
 import { focusDesktopWindow, isDesktopShell, isVSCodeRuntime } from '@/lib/desktop';
@@ -12,19 +12,19 @@ import { MCP_OAUTH_CALLBACK_PATH, parseMcpOAuthCallbackStateKey } from './mcpOAu
  *
  * A server in `needs_auth` cannot be fixed by reconnecting: `POST /mcp/:name/connect`
  * just repeats the attempt that produced `needs_auth` in the first place. The
- * flow OpenCode expects is explicit — ask for an authorization URL, send the
+ * flow OMP expects is explicit — ask for an authorization URL, send the
  * user to it, then hand the returned code back:
  *
  *   POST /mcp/:name/auth           → { authorizationUrl, oauthState }
  *   (user authorises in a browser)
  *   POST /mcp/:name/auth/callback  → status
  *
- * OpenCode does not open the browser for this flow; that is the caller's job.
+ * OMP does not open the browser for this flow; that is the caller's job.
  *
  * The redirect URI matters as much as the call. Without one of ours in the
- * server's config, OpenCode falls back to its own loopback listener on
+ * server's config, OMP falls back to its own loopback listener on
  * 127.0.0.1 — which only works when the browser runs on the same machine as
- * the OpenCode process. For a remote or web client the callback would simply
+ * the OMP process. For a remote or web client the callback would simply
  * never arrive, so the first authorization writes our own callback URL into
  * the config before asking for the URL.
  */
@@ -34,14 +34,14 @@ type McpAuthorizationStart = {
   /** False when the runtime refused to open a browser; the caller then offers a manual paste. */
   opened: boolean;
   /**
-   * True when OpenCode runs the whole flow itself over its fixed loopback
+   * True when OMP runs the whole flow itself over its fixed loopback
    * listener: it opened the browser, waits for the callback, and exchanges the
    * code. There is no URL to display and no state to correlate — callers watch
    * runtime status until it turns `connected`.
    */
   nativeFlow?: boolean;
   /**
-   * Native flow only: resolves when OpenCode finishes the whole exchange (or
+   * Native flow only: resolves when OMP finishes the whole exchange (or
    * rejects when it fails) — the precise "authorization is over" signal, since
    * runtime status alone cannot distinguish a completed reauthorization from
    * the still-connected state it started in.
@@ -69,7 +69,7 @@ export const MCP_OAUTH_ORIGIN_DESKTOP = 'desktop';
  *
  * It used to carry the directory as well, which made the address different for
  * every worktree: switching sessions produced a new value, so the config was
- * rewritten and OpenCode reloaded in front of the user. The directory is not
+ * rewritten and OMP reloaded in front of the user. The directory is not
  * needed here — authorization is not per-directory — and the pending context
  * parked under the OAuth `state` carries it for the completion call.
  *
@@ -122,10 +122,10 @@ const clearPendingContext = async (state: string | null): Promise<void> => {
 
 /**
  * One-time migration for the native desktop flow: earlier versions wrote this
- * app's per-launch callback URL into the server's config, and OpenCode derives
+ * app's per-launch callback URL into the server's config, and OMP derives
  * its listener from that field — pointed at OUR port, it either fails to bind
  * or the callback lands on a flow that never registered it. Clearing the field
- * returns OpenCode to its fixed default port. Applied immediately when the
+ * returns OMP to its fixed default port. Applied immediately when the
  * write gets queued behind Apply & Restart, for the same reason as the
  * callback-URL write below: authorization runs against the live runtime.
  */
@@ -149,11 +149,11 @@ const clearCustomRedirectUriForNativeFlow = async (name: string): Promise<void> 
     throw new McpAuthorizationError(saved.message || 'Failed to reset the authorization callback URL');
   }
   if (saved.restartDeferred) {
-    const applied = await applyPendingOpenCodeRestart();
+    const applied = await applyPendingOmpRestart();
     if (!applied.ok) {
       throw new McpAuthorizationError(
         applied.requiresManualRestart
-          ? 'The callback settings changed, but OpenCode must be restarted manually before authorization can start.'
+          ? 'The callback settings changed, but OMP must be restarted manually before authorization can start.'
           : 'Failed to apply the callback settings. Use Apply & Restart, then authorize again.',
       );
     }
@@ -189,12 +189,12 @@ export const startMcpAuthorization = async (input: {
   let queuedState: string | null = null;
 
   // Runtimes where the system browser provably lives on the same machine as
-  // OpenCode — desktop with the LOCAL embedded server, and VS Code (the
-  // extension always spawns its own local OpenCode): OpenCode's own flow works
+  // OMP — desktop with the LOCAL embedded server, and VS Code (the
+  // extension always spawns its own local OMP): OMP's own flow works
   // end-to-end over its FIXED loopback port (19876) — no config writes, no
-  // OpenCode restarts, no dependence on this app's per-launch port. The custom
+  // OMP restarts, no dependence on this app's per-launch port. The custom
   // callback URL below stays for every case where the browser cannot reach
-  // OpenCode's loopback: remote instances, hosted web, mobile — and the plain
+  // OMP's loopback: remote instances, hosted web, mobile — and the plain
   // web runtime too, because same-origin says nothing about the browser being
   // on the server's machine.
   if (isVSCodeRuntime() || (isDesktopShell() && getRuntimeKey() === 'local')) {
@@ -214,7 +214,7 @@ export const startMcpAuthorization = async (input: {
       // The config has to be loaded before its absence can mean anything. On
       // the first authorization after launch the store is often still empty,
       // and reading it then reported "no redirect URI" for a server that had
-      // one — so the config was rewritten needlessly and OpenCode reloaded in
+      // one — so the config was rewritten needlessly and OMP reloaded in
       // front of the user for no reason.
       if (!useMcpConfigStore.getState().getMcpByName(name)) {
         await useMcpConfigStore.getState().loadMcpConfigs();
@@ -234,7 +234,7 @@ export const startMcpAuthorization = async (input: {
       // redirect from an earlier session points at a port nothing serves any
       // more: the provider redirects into the void and authorization never
       // completes. Comparing instead of checking for absence also means the
-      // config is left alone — and OpenCode is not reloaded — whenever the
+      // config is left alone — and OMP is not reloaded — whenever the
       // stored value is already right, which is every run after the first.
       const desiredRedirectUri = buildMcpAuthorizationRedirectUri(name);
       if (existing && currentOAuth?.redirectUri !== desiredRedirectUri) {
@@ -251,16 +251,16 @@ export const startMcpAuthorization = async (input: {
           );
         }
         // Config mutations accumulate behind Apply & Restart now, but the
-        // authorization flow runs against the LIVE OpenCode runtime: with the
-        // write still queued, OpenCode hands out its own loopback redirect and
+        // authorization flow runs against the LIVE OMP runtime: with the
+        // write still queued, OMP hands out its own loopback redirect and
         // the callback never reaches us. The user just clicked Authorize —
         // explicit intent — so apply the queued changes right away and start
         // the flow against the runtime that actually has our callback URL.
         if (saved.restartDeferred) {
-          const applied = await applyPendingOpenCodeRestart();
+          const applied = await applyPendingOmpRestart();
           if (applied.requiresManualRestart) {
             throw new McpAuthorizationError(
-              'The callback URL was saved, but OpenCode must be restarted manually before authorization can start.',
+              'The callback URL was saved, but OMP must be restarted manually before authorization can start.',
             );
           }
           if (!applied.ok) {

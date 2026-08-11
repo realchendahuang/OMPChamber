@@ -66,7 +66,7 @@ export const AgentGroupDetail: React.FC<AgentGroupDetailProps> = ({
     setCurrentSession(session.id, session.path);
   }, [selectSession, setCurrentSession]);
 
-  // Auto-select first session when group changes and sync OpenCode session
+  // Auto-select first session when group changes and sync OMP session
   React.useEffect(() => {
     if (group.sessions.length > 0) {
       const session = selectedSessionId

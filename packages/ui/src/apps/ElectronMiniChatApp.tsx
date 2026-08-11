@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { MiniChatLayout } from '@/components/mini-chat/MiniChatLayout';
 import { usePushVisibilityBeacon } from '@/hooks/usePushVisibilityBeacon';
 import { useWindowTitle } from '@/hooks/useWindowTitle';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import type { RuntimeAPIs } from '@/lib/api/types';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 import { useConfigStore } from '@/stores/useConfigStore';
@@ -301,7 +301,7 @@ export function ElectronMiniChatApp({ apis }: ElectronMiniChatAppProps) {
   const currentDirectory = useDirectoryStore((state) => state.currentDirectory);
 
   React.useEffect(() => {
-    opencodeClient.setDirectory(currentDirectory || config.directory || undefined);
+    agentClient.setDirectory(currentDirectory || config.directory || undefined);
   }, [config.directory, currentDirectory]);
 
   React.useEffect(() => {
@@ -316,7 +316,7 @@ export function ElectronMiniChatApp({ apis }: ElectronMiniChatAppProps) {
 
   return (
     <ErrorBoundary>
-      <SyncProvider sdk={opencodeClient.getSdkClient()} directory={currentDirectory || config.directory || ''}>
+      <SyncProvider sdk={agentClient.getSdkClient()} directory={currentDirectory || config.directory || ''}>
         <RuntimeAPIProvider apis={apis}>
           <TooltipProvider delayDuration={300} skipDelayDuration={150}>
             <div className="h-full text-foreground bg-background">

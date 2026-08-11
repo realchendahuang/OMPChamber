@@ -644,7 +644,7 @@ const TurnBlock = React.memo(({
 
     const turnGroupingContextBase = React.useMemo(() => {
         const userCreatedAt = (turn.userMessage.info.time as { created?: number } | undefined)?.created;
-        // OpenCode 1.4.0 moved variant from top-level to model.variant on UserMessage.
+        // OMP 1.4.0 moved variant from top-level to model.variant on UserMessage.
         // Prefer the new location, fall back to the legacy one for older servers.
         const info = turn.userMessage.info as { variant?: unknown; model?: { variant?: unknown } } | undefined;
         const rawVariant = info?.model?.variant ?? info?.variant;

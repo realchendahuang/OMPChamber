@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 import { useSessionWorktreeStore } from './session-worktree-store';
@@ -203,9 +203,9 @@ describe('routeMessage directory scoping', () => {
     // The session directory travels as an explicit request param (not via
     // client-wide directory scoping), so concurrent sends can't cross-talk.
     const calls = [];
-    const originalShellSession = opencodeClient.shellSession;
+    const originalShellSession = agentClient.shellSession;
 
-    opencodeClient.shellSession = async (params) => {
+    agentClient.shellSession = async (params) => {
       calls.push(params);
       return { info: {}, parts: [] };
     };
@@ -220,7 +220,7 @@ describe('routeMessage directory scoping', () => {
         inputMode: 'shell',
       });
     } finally {
-      opencodeClient.shellSession = originalShellSession;
+      agentClient.shellSession = originalShellSession;
     }
 
     expect(calls).toHaveLength(1);
@@ -244,7 +244,7 @@ describe('sendMessage captured target', () => {
       ensureChild: () => childStore,
       getChild: () => childStore,
     };
-    setActionRefs(opencodeClient, childStores, () => '/current/project');
+    setActionRefs(agentClient, childStores, () => '/current/project');
     setOptimisticRefs(() => {}, () => {});
     useConfigStore.setState({ isConnected: true });
     useSessionUIStore.setState({
@@ -253,15 +253,15 @@ describe('sendMessage captured target', () => {
       newSessionDraft: { open: false, directoryOverride: null, parentID: null },
     });
 
-    originalSendMessage = opencodeClient.sendMessage;
-    opencodeClient.sendMessage = async (params) => {
+    originalSendMessage = agentClient.sendMessage;
+    agentClient.sendMessage = async (params) => {
       calls.push(params);
       return 'msg';
     };
   });
 
   afterEach(() => {
-    opencodeClient.sendMessage = originalSendMessage;
+    agentClient.sendMessage = originalSendMessage;
   });
 
   const sendToTarget = (target) => useSessionUIStore.getState().sendMessage(
@@ -321,7 +321,7 @@ describe('slash-command goal objectives', () => {
       .toBe('/issue--to-pr LIN-123');
   });
 
-  test('matches OpenCode positional and implicit argument expansion', () => {
+  test('matches OMP positional and implicit argument expansion', () => {
     expect(expandSlashCommandGoalObjective('/move "src old" dist extra', [{
       name: 'move',
       template: 'Move $1 to $2',
@@ -410,7 +410,7 @@ describe('createSession draft lifecycle', () => {
   let originalCreateSession;
 
   beforeEach(() => {
-    originalCreateSession = opencodeClient.createSession;
+    originalCreateSession = agentClient.createSession;
     useSessionUIStore.setState({
       currentSessionId: null,
       currentSessionDirectory: null,
@@ -419,11 +419,11 @@ describe('createSession draft lifecycle', () => {
   });
 
   afterEach(() => {
-    opencodeClient.createSession = originalCreateSession;
+    agentClient.createSession = originalCreateSession;
   });
 
   test('keeps the draft open when session creation fails', async () => {
-    opencodeClient.createSession = async () => {
+    agentClient.createSession = async () => {
       throw new Error('offline');
     };
 
@@ -436,7 +436,7 @@ describe('createSession draft lifecycle', () => {
 });
 
 describe('routeMessage skill invocation', () => {
-  // OpenCode registers every skill as a command (source: "skill"), so a skill
+  // OMP registers every skill as a command (source: "skill"), so a skill
   // selected from the slash menu must be dispatched via session.command so its
   // content is injected — not sent as a plain "/name" text message (issue #1605).
   const sendCommandCalls = [];
@@ -463,7 +463,7 @@ describe('routeMessage skill invocation', () => {
       ensureChild: () => childStore,
       getChild: () => childStore,
     };
-    setActionRefs(opencodeClient, childStores, () => '/skills/project');
+    setActionRefs(agentClient, childStores, () => '/skills/project');
     setOptimisticRefs(() => {}, () => {});
     useConfigStore.setState({ isConnected: true });
 
@@ -472,21 +472,21 @@ describe('routeMessage skill invocation', () => {
     useCommandsStore.setState({ commands: [] });
     useSkillsStore.setState({ skills: [] });
 
-    originalSendCommand = opencodeClient.sendCommand;
-    originalSendMessage = opencodeClient.sendMessage;
-    opencodeClient.sendCommand = async (params) => {
+    originalSendCommand = agentClient.sendCommand;
+    originalSendMessage = agentClient.sendMessage;
+    agentClient.sendCommand = async (params) => {
       sendCommandCalls.push(params);
       return 'msg';
     };
-    opencodeClient.sendMessage = async (params) => {
+    agentClient.sendMessage = async (params) => {
       sendMessageCalls.push(params);
       return 'msg';
     };
   });
 
   afterEach(() => {
-    opencodeClient.sendCommand = originalSendCommand;
-    opencodeClient.sendMessage = originalSendMessage;
+    agentClient.sendCommand = originalSendCommand;
+    agentClient.sendMessage = originalSendMessage;
     useSkillsStore.setState({ skills: [] });
   });
 
@@ -546,15 +546,15 @@ describe('archiveSessions option forwarding', () => {
 
   beforeEach(() => {
     updateSessionCalls = [];
-    originalUpdateSession = opencodeClient.updateSession;
-    opencodeClient.updateSession = (sessionId) => {
+    originalUpdateSession = agentClient.updateSession;
+    agentClient.updateSession = (sessionId) => {
       updateSessionCalls.push(sessionId);
       return Promise.resolve(null);
     };
   });
 
   afterEach(() => {
-    opencodeClient.updateSession = originalUpdateSession;
+    agentClient.updateSession = originalUpdateSession;
   });
 
   // The store used to accept an options object and silently drop it, so a
@@ -585,15 +585,15 @@ describe('deleteSessions option forwarding', () => {
 
   beforeEach(() => {
     deleteSessionCalls = [];
-    originalDeleteSession = opencodeClient.deleteSession;
-    opencodeClient.deleteSession = (sessionId) => {
+    originalDeleteSession = agentClient.deleteSession;
+    agentClient.deleteSession = (sessionId) => {
       deleteSessionCalls.push(sessionId);
       return Promise.resolve(true);
     };
   });
 
   afterEach(() => {
-    opencodeClient.deleteSession = originalDeleteSession;
+    agentClient.deleteSession = originalDeleteSession;
   });
 
   // The store accepted an options object and dropped it on both the single and

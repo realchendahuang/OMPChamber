@@ -12,8 +12,8 @@
  * Abort controller created once at init, cleaned up via returned cleanup fn.
  */
 
-import type { Event, OpencodeClient, SessionStatus } from "@ompchamber/agent-protocol/domain-types"
-import { opencodeClient } from "@/lib/opencode/client"
+import type { Event, AgentClient, SessionStatus } from "@ompchamber/agent-protocol/domain-types"
+import { agentClient } from "@/lib/agent/client"
 import { getRuntimeUrlResolver } from "@/lib/runtime-url"
 import { clearRuntimeUrlAuthToken, refreshRuntimeUrlAuthToken } from "@/lib/runtime-auth"
 import { type RelayTunnelWebSocket } from "@/lib/relay/tunnel-client"
@@ -48,7 +48,7 @@ type EventPipelineDelivery = {
 }
 
 export type EventPipelineInput = {
-  sdk: OpencodeClient
+  sdk: AgentClient
   routeDirectory?: (directory: string, payload: Event) => string
   /** Called after stream reconnects (visibility restore or heartbeat timeout). */
   onReconnect?: () => void
@@ -208,7 +208,7 @@ function resolveEventPayload(payload: unknown): Event | null {
 function buildGlobalEventWsUrl(lastEventId?: string): string {
   let baseUrl = "/api"
   try {
-    const client = opencodeClient as { getBaseUrl?: () => string }
+    const client = agentClient as { getBaseUrl?: () => string }
     if (typeof client.getBaseUrl === "function") {
       baseUrl = client.getBaseUrl()
     }

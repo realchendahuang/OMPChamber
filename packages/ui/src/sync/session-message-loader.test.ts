@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { Message, OpencodeClient, Part } from "@ompchamber/agent-protocol/domain-types"
+import type { Message, AgentClient, Part } from "@ompchamber/agent-protocol/domain-types"
 import { ChildStoreManager } from "./child-store"
 import { SessionMessageLoader } from "./session-message-loader"
 import {
@@ -32,7 +32,7 @@ const createLoader = (messages: (input: {
   before?: string
 }) => Promise<unknown>) => {
   const childStores = new ChildStoreManager()
-  const sdk = { session: { messages } } as unknown as OpencodeClient
+  const sdk = { session: { messages } } as unknown as AgentClient
   const loader = new SessionMessageLoader(childStores, { sdk, runtimeKey: "runtime-a" })
   return { childStores, loader }
 }

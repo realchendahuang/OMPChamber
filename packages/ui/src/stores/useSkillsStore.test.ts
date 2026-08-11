@@ -15,8 +15,8 @@ const runtimeFetchMock = async (url: string, init?: RequestInit) => {
   return runtimeFetchImpl(url, init);
 };
 
-mock.module('@/lib/opencode/client', () => ({
-  opencodeClient: {
+mock.module('@/lib/agent/client', () => ({
+  agentClient: {
     getDirectory: () => getDirectoryImpl(),
     checkHealth: async () => true,
   },

@@ -58,7 +58,7 @@ mock.module('@/lib/startupTrace', () => ({
   markStartupTrace: mock(() => undefined),
 }));
 
-const { opencodeClient } = await import(`./client?cache-test=${Date.now()}`);
+const { agentClient } = await import(`./client?cache-test=${Date.now()}`);
 
 beforeEach(() => {
   runtimeKey = 'test-runtime';
@@ -66,34 +66,34 @@ beforeEach(() => {
   promptAsyncResults.length = 0;
 });
 
-describe('opencodeClient getConfig cache', () => {
+describe('agentClient getConfig cache', () => {
   test('cleared stale in-flight requests do not repopulate cache or delete newer in-flight requests', async () => {
-    const first = opencodeClient.getConfig('/workspace/project');
+    const first = agentClient.getConfig('/workspace/project');
     expect(configCalls).toBe(1);
 
-    opencodeClient.clearConfigCache();
+    agentClient.clearConfigCache();
 
-    const second = opencodeClient.getConfig('/workspace/project');
+    const second = agentClient.getConfig('/workspace/project');
     expect(configCalls).toBe(2);
 
     configResolvers[0]?.({ data: { model: 'old/model' } });
     expect(await first).toEqual({ model: 'old/model' });
 
-    const third = opencodeClient.getConfig('/workspace/project');
+    const third = agentClient.getConfig('/workspace/project');
     expect(configCalls).toBe(2);
 
     configResolvers[1]?.({ data: { model: 'new/model' } });
     expect(await second).toEqual({ model: 'new/model' });
     expect(await third).toEqual({ model: 'new/model' });
 
-    const cached = await opencodeClient.getConfig('/workspace/project');
+    const cached = await agentClient.getConfig('/workspace/project');
     expect(cached).toEqual({ model: 'new/model' });
     expect(configCalls).toBe(2);
   });
 });
 
-describe('opencodeClient prompt retry behavior', () => {
-  const sendPrompt = (providerID = 'anthropic') => opencodeClient.sendMessage({
+describe('agentClient prompt retry behavior', () => {
+  const sendPrompt = (providerID = 'anthropic') => agentClient.sendMessage({
     id: 'ses_1',
     providerID,
     modelID: 'claude-sonnet',
@@ -165,7 +165,7 @@ describe('opencodeClient prompt retry behavior', () => {
 
   test('does not dispatch after the runtime changes while preparing attachments', async () => {
     runtimeKey = 'runtime-a';
-    const pending = opencodeClient.sendMessage({
+    const pending = agentClient.sendMessage({
       id: 'ses_runtime_race',
       providerID: 'runtime-race-provider',
       modelID: 'model-a',

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Session } from '@ompchamber/agent-protocol/domain-types';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { ensureGlobalSessionsLoaded, useGlobalSessionsStore, resolveGlobalSessionDirectory } from '@/stores/useGlobalSessionsStore';
 import { useSessionUIStore } from '@/sync/session-ui-store';
 import { getAllSyncSessions } from '@/sync/sync-refs';
@@ -158,9 +158,9 @@ export const useSessionAutoCleanup = (enabledOrOptions?: boolean | CleanupOption
 
           try {
             if (sessionRetentionAction === 'archive') {
-              await opencodeClient.updateSession(id, { time: { archived: Date.now() } }, directory);
+              await agentClient.updateSession(id, { time: { archived: Date.now() } }, directory);
             } else {
-              await opencodeClient.deleteSession(id, directory);
+              await agentClient.deleteSession(id, directory);
             }
             completedIds.push(id);
           } catch {

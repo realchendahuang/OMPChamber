@@ -3,7 +3,7 @@
 // Token colors reference CSS custom properties (`--md-syntax-*`) instead of
 // concrete colors, so a highlighted code block does NOT need to be re-tokenized
 // when the app theme changes — only the CSS variables on the markdown container
-// update, and the browser repaints. This mirrors OpenCode's `var(--syntax-*)`
+// update, and the browser repaints. This mirrors OMP's `var(--syntax-*)`
 // theme approach and keeps highlighting results cacheable across theme switches.
 //
 // This module is intentionally dependency-free (no `@pierre/diffs`, no React) so

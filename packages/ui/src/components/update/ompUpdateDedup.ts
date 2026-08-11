@@ -1,7 +1,7 @@
 /**
- * Pure decision helpers for the OpenCode update toast and PWA install toast.
+ * Pure decision helpers for the OMP update toast and PWA install toast.
  *
- * Extracted from `OpenCodeUpdateToast.tsx` and `usePwaInstallPrompt.ts` so the
+ * Extracted from `OmpUpdateToast.tsx` and `usePwaInstallPrompt.ts` so the
  * dedup decisions can be unit-tested without a DOM, storage, or React. The
  * React surfaces remain the sole owners of side effects (storage writes,
  * `toast.info`, event listeners). This module only answers the question
@@ -35,7 +35,7 @@ export const shouldShowPwaInstallToast = (input: PwaInstallToastDecisionInput): 
   return true;
 };
 
-export interface OpenCodeUpdateToastDecisionInput {
+export interface OmpUpdateToastDecisionInput {
   /** Version string reported by the server (already trimmed by the caller). */
   readonly version: string;
   /** Most recent version the user explicitly dismissed, or `null` if none. */
@@ -45,15 +45,15 @@ export interface OpenCodeUpdateToastDecisionInput {
 }
 
 /**
- * Returns `true` if the OpenCode update toast should be shown for `version`.
+ * Returns `true` if the OMP update toast should be shown for `version`.
  *
  * Empty/whitespace-only versions short-circuit to `false`. A non-null
  * `dismissedVersion` matching the incoming version also short-circuits; a
  * different `dismissedVersion` means a newer release has appeared since the
  * last dismissal and the toast surfaces again.
  */
-export const shouldShowOpenCodeUpdateToast = (
-  input: OpenCodeUpdateToastDecisionInput,
+export const shouldShowOmpUpdateToast = (
+  input: OmpUpdateToastDecisionInput,
 ): boolean => {
   if (!input.version) return false;
   if (input.seenVersions.has(input.version)) return false;
@@ -62,21 +62,21 @@ export const shouldShowOpenCodeUpdateToast = (
 };
 
 /**
- * Coerces the `detail.version` carried by an `ompchamber:opencode-update-available`
+ * Coerces the `detail.version` carried by an `ompchamber:omp-update-available`
  * CustomEvent into a trimmed string, or returns `''` when the payload is
  * missing or shaped unexpectedly.
  *
  * Only `string` is accepted; numeric or boolean payloads are rejected because
  * downstream callers compare versions by literal equality.
  */
-export const resolveOpenCodeUpdateVersion = (detail: unknown): string => {
+export const resolveOmpUpdateVersion = (detail: unknown): string => {
   if (detail === null || typeof detail !== 'object') return '';
   const candidate = (detail as { version?: unknown }).version;
   if (typeof candidate !== 'string') return '';
   return candidate.trim();
 };
 
-export interface OpenCodeUpgradeStatusLike {
+export interface OmpUpgradeStatusLike {
   readonly available?: boolean | null;
   readonly latestVersion?: string | null;
   readonly upgrade?: {
@@ -89,8 +89,8 @@ export interface OpenCodeUpgradeStatusLike {
  * payload. Returns `''` when the payload is missing the field, has the wrong
  * type, or reports `available !== true`.
  */
-export const resolveOpenCodeUpgradeStatusVersion = (
-  status: OpenCodeUpgradeStatusLike | null | undefined,
+export const resolveOmpUpgradeStatusVersion = (
+  status: OmpUpgradeStatusLike | null | undefined,
 ): string => {
   if (!status) return '';
   if (status.upgrade?.supported !== true) return '';

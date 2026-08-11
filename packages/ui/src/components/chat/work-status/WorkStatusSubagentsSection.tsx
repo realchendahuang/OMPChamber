@@ -42,7 +42,7 @@ export const WorkStatusSubagentsSection: React.FC<Props> = ({ sessionId, directo
   // OMP never lists child sessions in the session list, so live subagent
   // state arrives through `ompchamber:subagent` events instead. The store
   // snapshot is the authoritative source there; the live-session path stays
-  // for OpenCode-shaped runtimes that materialize subagents as sessions.
+  // for OMP-shaped runtimes that materialize subagents as sessions.
   const subagentSnapshots = useDirectorySync(
     React.useCallback(
       (state: State) => (sessionId ? state.subagent[sessionId] ?? [] : []),

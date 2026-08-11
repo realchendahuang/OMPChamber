@@ -413,7 +413,7 @@ export const VSCodeLayout: React.FC = () => {
         }
 
         const configState = useConfigStore.getState();
-        // If OpenCode is still warming up, the initial provider/agent loads can fail and be swallowed by retries.
+        // If OMP is still warming up, the initial provider/agent loads can fail and be swallowed by retries.
         // Only mark bootstrap complete when core datasets are present so we keep retrying on cold starts.
         if (!configState.isInitialized || !configState.isConnected || configState.providers.length === 0 || configState.agents.length === 0) {
           return;

@@ -2,7 +2,7 @@ import { useSessionUIStore } from '@/sync/session-ui-store';
 import { getSyncSessions } from '@/sync/sync-refs';
 import { useUIStore } from '@/stores/useUIStore';
 import { getRuntimeUrlResolver } from './runtime-url';
-import { opencodeClient } from './opencode/client';
+import { agentClient } from './agent/client';
 import { runtimeFetch } from './runtime-fetch';
 
 declare const __APP_VERSION__: string | undefined;
@@ -31,7 +31,7 @@ type OMPChamberHealthSnapshot = {
   bunBinaryResolved?: unknown;
 };
 
-type OMPChamberOpencodeResolution = {
+type OMPChamberOmpResolution = {
   configured?: unknown;
   resolved?: unknown;
   resolvedDir?: unknown;
@@ -148,7 +148,7 @@ const formatLaunchRuntime = (wrapperType: string, node: string, bun: string): st
   return 'direct executable';
 };
 
-const buildOpenCodeStatusReport = async (): Promise<string> => {
+const buildOmpStatusReport = async (): Promise<string> => {
   const now = new Date();
   const appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '(unknown)';
   const platform = typeof navigator !== 'undefined' ? navigator.userAgent : '(no navigator)';
@@ -180,8 +180,8 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
     }
   })();
 
-  const ompchamberOpencodeResolutionResult: {
-    data: OMPChamberOpencodeResolution | null;
+  const ompchamberOmpResolutionResult: {
+    data: OMPChamberOmpResolution | null;
     status: number | null;
     error: string | null;
   } = await (async () => {
@@ -213,7 +213,7 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
       if (!json || typeof json !== 'object' || Array.isArray(json)) {
         return { data: null, status: resp.status, error: `invalid json-shape content-type=${contentType}` };
       }
-      return { data: json as OMPChamberOpencodeResolution, status: resp.status, error: null };
+      return { data: json as OMPChamberOmpResolution, status: resp.status, error: null };
     } catch (error) {
       return {
         data: null,
@@ -261,21 +261,21 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
   lines.push(`Time: ${now.toISOString()}`);
   lines.push(`OMPChamber version: ${appVersion}`);
   lines.push(`Runtime: ${origin || '(unknown)'} (api=${apiBase || '(unknown)'})`);
-  lines.push(`OpenCode SDK base: ${opencodeClient.getBaseUrl()}`);
+  lines.push(`OMP SDK base: ${agentClient.getBaseUrl()}`);
   lines.push(`Event stream: ${eventStreamStatus}`);
   lines.push(`Directory: ${directory || '(none)'}`);
   lines.push(`Platform: ${platform}`);
 
-  const runtimeOpenCodePort = normalizePort(ompchamberHealth?.openCodePort);
-  lines.push(`OpenCode runtime port: ${runtimeOpenCodePort ?? '(unknown)'}`);
+  const runtimeOmpPort = normalizePort(ompchamberHealth?.openCodePort);
+  lines.push(`OMP runtime port: ${runtimeOmpPort ?? '(unknown)'}`);
   if (typeof ompchamberHealth?.openCodeRunning === 'boolean') {
-    lines.push(`OpenCode runtime running: ${ompchamberHealth.openCodeRunning ? 'yes' : 'no'}`);
+    lines.push(`OMP runtime running: ${ompchamberHealth.openCodeRunning ? 'yes' : 'no'}`);
   }
   if (typeof ompchamberHealth?.openCodeSecureConnection === 'boolean') {
-    lines.push(`Secure OpenCode connection: ${ompchamberHealth.openCodeSecureConnection ? 'true' : 'false'}`);
+    lines.push(`Secure OMP connection: ${ompchamberHealth.openCodeSecureConnection ? 'true' : 'false'}`);
   }
   if (typeof ompchamberHealth?.openCodeAuthSource === 'string' && ompchamberHealth.openCodeAuthSource.trim()) {
-    lines.push(`OpenCode auth source: ${ompchamberHealth.openCodeAuthSource}`);
+    lines.push(`OMP auth source: ${ompchamberHealth.openCodeAuthSource}`);
   }
 
   if (typeof window !== 'undefined') {
@@ -288,7 +288,7 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
   const isLikelyMac = /Mac OS X|Macintosh/.test(platform);
   if (isLikelyMac) {
     lines.push('');
-    lines.push('OpenCode CLI resolution:');
+    lines.push('OMP CLI resolution:');
 
     const launchDiagnostics = isRecord(ompchamberHealth?.lastOpenCodeLaunchDiagnostics)
       ? ompchamberHealth.lastOpenCodeLaunchDiagnostics
@@ -296,52 +296,52 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
     const actualLaunchArgs = launchDiagnostics && Array.isArray(launchDiagnostics.args)
       ? launchDiagnostics.args.filter((value): value is string => typeof value === 'string')
       : [];
-    const ompchamberOpencodeResolution = ompchamberOpencodeResolutionResult.data;
+    const ompchamberOmpResolution = ompchamberOmpResolutionResult.data;
     const configured =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.configured === 'string'
-        ? ompchamberOpencodeResolution.configured
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.configured === 'string'
+        ? ompchamberOmpResolution.configured
         : null;
     const resolved =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.resolved === 'string'
-        ? ompchamberOpencodeResolution.resolved
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.resolved === 'string'
+        ? ompchamberOmpResolution.resolved
         : (ompchamberHealth && typeof ompchamberHealth.opencodeBinaryResolved === 'string' ? ompchamberHealth.opencodeBinaryResolved : '');
     const resolvedDir =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.resolvedDir === 'string'
-        ? ompchamberOpencodeResolution.resolvedDir
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.resolvedDir === 'string'
+        ? ompchamberOmpResolution.resolvedDir
         : '';
     const source =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.source === 'string'
-        ? ompchamberOpencodeResolution.source
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.source === 'string'
+        ? ompchamberOmpResolution.source
         : (ompchamberHealth && typeof ompchamberHealth.opencodeBinarySource === 'string' ? ompchamberHealth.opencodeBinarySource : '');
     const configuredLaunchBinary =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.launchBinary === 'string'
-        ? ompchamberOpencodeResolution.launchBinary
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.launchBinary === 'string'
+        ? ompchamberOmpResolution.launchBinary
         : (ompchamberHealth && typeof ompchamberHealth.opencodeLaunchBinary === 'string' ? ompchamberHealth.opencodeLaunchBinary : '');
     const configuredLaunchWrapperType =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.launchWrapperType === 'string'
-        ? ompchamberOpencodeResolution.launchWrapperType
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.launchWrapperType === 'string'
+        ? ompchamberOmpResolution.launchWrapperType
         : (ompchamberHealth && typeof ompchamberHealth.opencodeLaunchWrapperType === 'string' ? ompchamberHealth.opencodeLaunchWrapperType : '');
     const configuredLaunchArgs =
-      ompchamberOpencodeResolution && Array.isArray(ompchamberOpencodeResolution.launchArgs)
-        ? ompchamberOpencodeResolution.launchArgs.filter((value): value is string => typeof value === 'string')
+      ompchamberOmpResolution && Array.isArray(ompchamberOmpResolution.launchArgs)
+        ? ompchamberOmpResolution.launchArgs.filter((value): value is string => typeof value === 'string')
         : (ompchamberHealth && Array.isArray(ompchamberHealth.opencodeLaunchArgs)
           ? ompchamberHealth.opencodeLaunchArgs.filter((value): value is string => typeof value === 'string')
           : []);
     const node =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.node === 'string'
-        ? ompchamberOpencodeResolution.node
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.node === 'string'
+        ? ompchamberOmpResolution.node
         : (ompchamberHealth && typeof ompchamberHealth.nodeBinaryResolved === 'string' ? ompchamberHealth.nodeBinaryResolved : '');
     const bun =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.bun === 'string'
-        ? ompchamberOpencodeResolution.bun
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.bun === 'string'
+        ? ompchamberOmpResolution.bun
         : (ompchamberHealth && typeof ompchamberHealth.bunBinaryResolved === 'string' ? ompchamberHealth.bunBinaryResolved : '');
     const detectedNow =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.detectedNow === 'string'
-        ? ompchamberOpencodeResolution.detectedNow
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.detectedNow === 'string'
+        ? ompchamberOmpResolution.detectedNow
         : '';
     const detectedSourceNow =
-      ompchamberOpencodeResolution && typeof ompchamberOpencodeResolution.detectedSourceNow === 'string'
-        ? ompchamberOpencodeResolution.detectedSourceNow
+      ompchamberOmpResolution && typeof ompchamberOmpResolution.detectedSourceNow === 'string'
+        ? ompchamberOmpResolution.detectedSourceNow
         : '';
 
     if (configured !== null) {
@@ -350,9 +350,9 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
 
     if (resolved) {
       const dir = resolvedDir || (resolved.includes('/') ? resolved.split('/').slice(0, -1).join('/') || '/' : '');
-      lines.push(`- opencode: ${resolved}${dir ? ` (dir=${dir})` : ''}`);
+      lines.push(`- omp: ${resolved}${dir ? ` (dir=${dir})` : ''}`);
     } else {
-      lines.push('- opencode: (n/a)');
+      lines.push('- omp: (n/a)');
     }
 
     lines.push(`- source: ${source || '(n/a)'}`);
@@ -374,14 +374,14 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
       lines.push(`- launch-args: ${configuredLaunchArgs.length ? configuredLaunchArgs.join(' ') : '(none)'}`);
       lines.push(`- runtime: ${formatLaunchRuntime(configuredLaunchWrapperType || '', node, bun)}`);
     }
-    if (!ompchamberOpencodeResolution && ompchamberOpencodeResolutionResult.error) {
-      lines.push(`- resolution-endpoint: ${ompchamberOpencodeResolutionResult.error}`);
+    if (!ompchamberOmpResolution && ompchamberOmpResolutionResult.error) {
+      lines.push(`- resolution-endpoint: ${ompchamberOmpResolutionResult.error}`);
     }
   }
 
   lines.push('');
   if (probes.length) {
-    lines.push('OpenCode API probes:');
+    lines.push('OMP API probes:');
     for (const probe of probes) {
       if (!probe.result) {
         lines.push(`- ${probe.label}: (no url)`);
@@ -392,7 +392,7 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
       lines.push(`- ${probe.label}: ${ok ? 'ok' : 'fail'} status=${status} time=${elapsedMs}ms ${summary}${suffix}`);
     }
   } else {
-    lines.push('OpenCode API probes: (skipped)');
+    lines.push('OMP API probes: (skipped)');
   }
 
   lines.push('');
@@ -400,9 +400,9 @@ const buildOpenCodeStatusReport = async (): Promise<string> => {
   return lines.join('\n');
 };
 
-export const showOpenCodeStatus = async (): Promise<void> => {
-  const text = await buildOpenCodeStatusReport();
+export const showOmpStatus = async (): Promise<void> => {
+  const text = await buildOmpStatusReport();
   const ui = useUIStore.getState();
-  ui.setOpenCodeStatusText(text);
-  ui.setOpenCodeStatusDialogOpen(true);
+  ui.setOmpStatusText(text);
+  ui.setOmpStatusDialogOpen(true);
 };

@@ -6,7 +6,7 @@ import type { PluginEntry, PluginFile, RegistryResult } from './usePluginsStore'
 
 const activeProjectPath = '/workspace/project';
 
-const refreshAfterOpenCodeRestartMock = mock(async () => undefined);
+const refreshAfterOmpRestartMock = mock(async () => undefined);
 const startConfigUpdateMock = mock(() => undefined);
 const finishConfigUpdateMock = mock(() => undefined);
 
@@ -18,14 +18,14 @@ mock.module('@/stores/useProjectsStore', () => ({
   },
 }));
 
-mock.module('@/lib/opencode/client', () => ({
-  opencodeClient: {
+mock.module('@/lib/agent/client', () => ({
+  agentClient: {
     getDirectory: () => '/fallback/project',
   },
 }));
 
 mock.module('@/stores/useAgentsStore', () => ({
-  refreshAfterOpenCodeRestart: refreshAfterOpenCodeRestartMock,
+  refreshAfterOmpRestart: refreshAfterOmpRestartMock,
 }));
 
 mock.module('@/lib/configUpdate', () => ({

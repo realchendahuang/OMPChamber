@@ -1,10 +1,10 @@
 /**
  * DomainClient — the OMPChamber HTTP client surface the UI consumes.
  *
- * Implements the `OpencodeClient` contract from
+ * Implements the `AgentClient` contract from
  * `@ompchamber/agent-protocol/domain-types` on top of `runtimeFetch`, so the
- * UI never imports the OpenCode SDK. The server adapter (OMP engine) exposes
- * the same OpenCode-shaped endpoints; this client is a thin, dependency-free
+ * UI never imports the OMP SDK. The server adapter (OMP engine) exposes
+ * the same OMP-shaped endpoints; this client is a thin, dependency-free
  * replacement for the generated SDK client with identical result semantics:
  *
  *   - non-2xx responses return `{ error, response }` (error = parsed body)
@@ -41,7 +41,7 @@ import type {
   McpStatusResult,
   MoveSessionOptions,
   MoveSessionResult,
-  OpencodeClient,
+  AgentClient,
   PathGetResult,
   PermissionListOptions,
   PermissionListResult,
@@ -156,7 +156,7 @@ const parseJsonBody = async (response: Response): Promise<unknown> => {
   }
 };
 
-export class DomainClient implements OpencodeClient {
+export class DomainClient implements AgentClient {
   private baseUrl: string;
   private directory: string | undefined;
   private fetchImpl: typeof runtimeFetch;
@@ -900,4 +900,4 @@ export const createDomainClient = (config: {
   baseUrl: string;
   directory?: string;
   fetch?: typeof runtimeFetch;
-}): OpencodeClient => new DomainClient(config);
+}): AgentClient => new DomainClient(config);

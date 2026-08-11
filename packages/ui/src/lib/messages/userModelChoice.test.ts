@@ -61,7 +61,7 @@ describe('findLatestUserModelChoice', () => {
   test('[issue-2404] skips synthetic subagent-completion nudges so manual override is not clobbered', () => {
     // Real prompt sent with the manual override (model-b).
     const realPrompt = userMessage('u-real', { providerID: 'provider', modelID: 'model-b' })
-    // After a delegated child session goes idle, OpenCode injects a synthetic
+    // After a delegated child session goes idle, OMP injects a synthetic
     // user nudge that often carries the agent default model (model-a).
     const syntheticNudge = userMessage('u-nudge', { providerID: 'provider', modelID: 'model-a' })
     const messages = [realPrompt, assistantMessage('a1'), syntheticNudge]

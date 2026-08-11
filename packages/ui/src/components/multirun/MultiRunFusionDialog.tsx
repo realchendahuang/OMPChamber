@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Icon } from '@/components/icon/Icon';
 import { ProviderLogo } from '@/components/ui/ProviderLogo';
 import { useI18n } from '@/lib/i18n';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { resolveGlobalSessionDirectory, useGlobalSessionsStore } from '@/stores/useGlobalSessionsStore';
 import { useSessionUIStore } from '@/sync/session-ui-store';
@@ -40,8 +40,8 @@ const getLastAssistantText = async (source: FusionSource): Promise<string> => {
   const messages = getSyncMessages(source.session.id, directory);
 
   if (messages.length === 0 && source.directory) {
-    const result = await opencodeClient.withDirectory(source.directory, () =>
-      opencodeClient.getSdkClient().session.messages({
+    const result = await agentClient.withDirectory(source.directory, () =>
+      agentClient.getSdkClient().session.messages({
         sessionID: source.session.id,
         directory: source.directory ?? undefined,
         limit: 50,
@@ -166,7 +166,7 @@ export function MultiRunFusionDialog({
       useSessionUIStore.getState().setCurrentSession(fusionSession.id, directory);
       onOpenChange(false);
 
-      await opencodeClient.sendMessage({
+      await agentClient.sendMessage({
         id: fusionSession.id,
         providerID,
         modelID,
@@ -178,7 +178,7 @@ export function MultiRunFusionDialog({
           ...usableSources.map((item, index) => ({ text: buildSourcePart(item.source, item.text, index), synthetic: true })),
           { text: '\n\n--- FUSION INPUTS END ---\nNow write the final fused answer.', synthetic: true },
         ],
-        directory: directory ?? opencodeClient.getDirectory(),
+        directory: directory ?? agentClient.getDirectory(),
       });
     } catch (error) {
       console.error('[MultiRunFusion] Failed to start fusion', error);

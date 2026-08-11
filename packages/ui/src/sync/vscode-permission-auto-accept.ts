@@ -1,5 +1,5 @@
 import type { PermissionRequest, Session } from "@ompchamber/agent-protocol/domain-types"
-import { opencodeClient } from "@/lib/opencode/client"
+import { agentClient } from "@/lib/agent/client"
 import { usePermissionStore } from "@/stores/permissionStore"
 import { getAllSyncSessionMap, getDirectoryState } from "./sync-refs"
 import * as sessionActions from "./session-actions"
@@ -123,10 +123,10 @@ export function createVSCodePermissionAutoAcceptRuntime(dependencies: Dependenci
 const runtime = createVSCodePermissionAutoAcceptRuntime({
   getPolicy: () => usePermissionStore.getState().autoAccept,
   getSessions: getAllSyncSessionMap,
-  getSession: (sessionId, directory) => opencodeClient.getSession(sessionId, directory),
+  getSession: (sessionId, directory) => agentClient.getSession(sessionId, directory),
   getKnownPendingPermissions: (directory) => Object.values(getDirectoryState(directory)?.permission ?? {}).flat(),
-  listPendingPermissions: (directory) => opencodeClient.listPendingPermissions({ directories: [directory] }),
-  getPermissionState: async (sessionId, requestId, directory) => (await opencodeClient.fetchPermission(sessionId, requestId, directory)).state,
+  listPendingPermissions: (directory) => agentClient.listPendingPermissions({ directories: [directory] }),
+  getPermissionState: async (sessionId, requestId, directory) => (await agentClient.fetchPermission(sessionId, requestId, directory)).state,
   reply: (sessionId, requestId, directory) => sessionActions.respondToPermission(sessionId, requestId, "once", directory),
   wait: (delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs)),
 })

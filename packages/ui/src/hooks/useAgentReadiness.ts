@@ -1,6 +1,6 @@
 import { useConfigStore } from '@/stores/useConfigStore';
 
-export function useOpenCodeReadiness() {
+export function useAgentReadiness() {
   const isInitialized = useConfigStore((s) => s.isInitialized);
   const connectionPhase = useConfigStore((s) => s.connectionPhase);
   const lastDisconnectReason = useConfigStore((s) => s.lastDisconnectReason);

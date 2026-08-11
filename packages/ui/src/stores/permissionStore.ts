@@ -7,7 +7,7 @@ import { runtimeFetch } from "@/lib/runtime-fetch";
 import { isVSCodeRuntime } from "@/lib/desktop";
 import { createDeferredSafeJSONStorage } from "./utils/safeStorage";
 import { useSessionUIStore } from "@/sync/session-ui-store";
-import { opencodeClient } from "@/lib/opencode/client";
+import { agentClient } from "@/lib/agent/client";
 import { getRuntimeKey } from "@/lib/runtime-switch";
 
 type PermissionPolicySnapshot = {
@@ -158,7 +158,7 @@ export const usePermissionStore = create<PermissionStore>()(persist((set, get) =
         set({ saving: true });
         try {
             const directory = useSessionUIStore.getState().getDirectoryForSession(sessionId)
-                ?? opencodeClient.getDirectory()
+                ?? agentClient.getDirectory()
                 ?? undefined;
             const snapshot = await requestSnapshot(
                 `/api/permission-auto-accept/sessions/${encodeURIComponent(sessionId)}`,

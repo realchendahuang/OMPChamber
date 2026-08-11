@@ -24,7 +24,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
   const { t } = useI18n();
   const showDiagnostics = import.meta.env.DEV;
   const [version, setVersion] = React.useState<string | null>(null);
-  const [openCodeVersion, setOpenCodeVersion] = React.useState<string | null>(null);
+  const [ompVersion, setOmpVersion] = React.useState<string | null>(null);
   const [isCopyingDiagnostics, setIsCopyingDiagnostics] = React.useState(false);
   const [copiedDiagnostics, setCopiedDiagnostics] = React.useState(false);
   const [diagnosticsReport, setDiagnosticsReport] = React.useState<string | null>(null);
@@ -87,7 +87,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
     if (!open) return;
 
     let cancelled = false;
-    const fetchOpenCodeVersion = async () => {
+    const fetchOmpVersion = async () => {
       try {
         const response = await runtimeFetch('/api/opencode/upgrade-status', {
           headers: { Accept: 'application/json' },
@@ -96,14 +96,14 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
         const data = await response.json().catch(() => null) as null | { currentVersion?: unknown };
         const currentVersion = typeof data?.currentVersion === 'string' ? data.currentVersion.trim() : '';
         if (!cancelled && currentVersion) {
-          setOpenCodeVersion(currentVersion);
+          setOmpVersion(currentVersion);
         }
       } catch {
-        // OpenCode version is best-effort in About.
+        // OMP version is best-effort in About.
       }
     };
 
-    void fetchOpenCodeVersion();
+    void fetchOmpVersion();
     return () => {
       cancelled = true;
     };
@@ -152,8 +152,8 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
               {displayVersion && (
                 <p>{t('aboutDialog.ompchamberVersionLabel', { version: displayVersion })}</p>
               )}
-              {openCodeVersion && (
-                <p>{t('aboutDialog.openCodeVersionLabel', { version: openCodeVersion })}</p>
+              {ompVersion && (
+                <p>{t('aboutDialog.ompVersionLabel', { version: ompVersion })}</p>
               )}
             </div>
           </div>

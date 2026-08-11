@@ -15,7 +15,7 @@ import { dropdownTriggerVariants } from '@/components/ui/dropdown-trigger';
 import { MobileOverlayPanel } from '@/components/ui/MobileOverlayPanel';
 import { Icon } from "@/components/icon/Icon";
 import { useI18n } from '@/lib/i18n';
-import { useOpenCodeReadiness } from '@/hooks/useOpenCodeReadiness';
+import { useAgentReadiness } from '@/hooks/useAgentReadiness';
 
 interface AgentSelectorProps {
     agentName: string;
@@ -33,7 +33,7 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({
     dropdownPortalToBody = false,
 }) => {
     const { t } = useI18n();
-    const { isReady, isUnavailable } = useOpenCodeReadiness();
+    const { isReady, isUnavailable } = useAgentReadiness();
     const configAgents = useConfigStore((state) => state.agents);
     const agentsStoreAgents = useAgentsStore((state) => state.agents);
     const loadAgentsStore = useAgentsStore((state) => state.loadAgents);

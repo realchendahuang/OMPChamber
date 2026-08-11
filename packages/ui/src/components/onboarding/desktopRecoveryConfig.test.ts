@@ -8,7 +8,7 @@ describe('getDesktopRecoveryConfig', () => {
   test('local-unavailable exposes both actions and Retry Local', () => {
     const config = getDesktopRecoveryConfig('local-unavailable');
 
-    expect(config.title).toBe('Local OpenCode Unavailable');
+    expect(config.title).toBe('Local OMP Unavailable');
     expect(config.iconKey).toBe('local');
     expect(config.showRetry).toBe(true);
     expect(config.retryLabel).toBe('Retry Local');

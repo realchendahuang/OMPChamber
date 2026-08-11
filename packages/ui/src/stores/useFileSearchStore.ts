@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { opencodeClient, type ProjectFileSearchHit } from '@/lib/opencode/client';
+import { agentClient, type ProjectFileSearchHit } from '@/lib/agent/client';
 import { getRuntimeKey } from '@/lib/runtime-switch';
 
 const CACHE_TTL_MS = 30_000;
@@ -79,7 +79,7 @@ export const useFileSearchStore = create<FileSearchStoreState>()(
           return inflight;
         }
 
-        const searchPromise = opencodeClient
+        const searchPromise = agentClient
           .searchFiles(normalizedQuery, {
             directory: normalizedDirectory,
             limit,

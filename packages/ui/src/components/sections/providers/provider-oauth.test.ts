@@ -12,7 +12,7 @@ import {
   type ProviderOAuthTranslator,
 } from './provider-oauth';
 
-/** Mirrors the github-copilot auth method shipped by OpenCode. */
+/** Mirrors the github-copilot auth method shipped by OMP. */
 const copilotPrompts = [
   {
     type: 'select',
@@ -204,7 +204,7 @@ describe('describeOAuthError', () => {
   const t: ProviderOAuthTranslator = (key) => key;
   const fallback = 'settings.providers.page.toast.oauthCompleteFailed';
 
-  /** Names come from OpenCode's ProviderAuthApiError schema. */
+  /** Names come from OMP's ProviderAuthApiError schema. */
   test('maps each provider auth error name to its own message', () => {
     expect(describeOAuthError({ name: 'ProviderAuthOauthMissing', data: {} }, t, fallback))
       .toBe('settings.providers.page.auth.oauth.error.sessionExpired');

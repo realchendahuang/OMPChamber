@@ -620,8 +620,8 @@ interface UIStore {
   isCommandPaletteOpen: boolean;
   isHelpDialogOpen: boolean;
   isAboutDialogOpen: boolean;
-  isOpenCodeStatusDialogOpen: boolean;
-  openCodeStatusText: string;
+  isOmpStatusDialogOpen: boolean;
+  ompStatusText: string;
   isSessionCreateDialogOpen: boolean;
   isScheduledTasksDialogOpen: boolean;
   isArchivePageOpen: boolean;
@@ -648,7 +648,7 @@ interface UIStore {
   chatRenderMode: ChatRenderMode;
   activityRenderMode: ActivityRenderMode;
   showDeletionDialog: boolean;
-  /** When true, confirm before applying deferred OpenCode restart from Settings. */
+  /** When true, confirm before applying deferred OMP restart from Settings. */
   showOpenCodeRestartConfirm: boolean;
   autoDeleteEnabled: boolean;
   /** Global file-editor autosave. Default true for backward compatibility. */
@@ -795,8 +795,8 @@ interface UIStore {
   toggleHelpDialog: () => void;
   setHelpDialogOpen: (open: boolean) => void;
   setAboutDialogOpen: (open: boolean) => void;
-  setOpenCodeStatusDialogOpen: (open: boolean) => void;
-  setOpenCodeStatusText: (text: string) => void;
+  setOmpStatusDialogOpen: (open: boolean) => void;
+  setOmpStatusText: (text: string) => void;
   setSessionCreateDialogOpen: (open: boolean) => void;
   setScheduledTasksDialogOpen: (open: boolean) => void;
   setArchivePageOpen: (open: boolean) => void;
@@ -962,8 +962,8 @@ export const useUIStore = create<UIStore>()(
         isCommandPaletteOpen: false,
         isHelpDialogOpen: false,
         isAboutDialogOpen: false,
-        isOpenCodeStatusDialogOpen: false,
-        openCodeStatusText: '',
+        isOmpStatusDialogOpen: false,
+        ompStatusText: '',
         isSessionCreateDialogOpen: false,
         isScheduledTasksDialogOpen: false,
         isArchivePageOpen: false,
@@ -1656,12 +1656,12 @@ export const useUIStore = create<UIStore>()(
           set({ isAboutDialogOpen: open });
         },
 
-        setOpenCodeStatusDialogOpen: (open) => {
-          set({ isOpenCodeStatusDialogOpen: open });
+        setOmpStatusDialogOpen: (open) => {
+          set({ isOmpStatusDialogOpen: open });
         },
 
-        setOpenCodeStatusText: (text) => {
-          set({ openCodeStatusText: text });
+        setOmpStatusText: (text) => {
+          set({ ompStatusText: text });
         },
 
         setSessionCreateDialogOpen: (open) => {

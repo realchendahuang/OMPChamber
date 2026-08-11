@@ -1,11 +1,11 @@
 import { describe, test, expect } from 'bun:test';
 
 import {
-    resolveOpenCodeUpdateVersion,
-    resolveOpenCodeUpgradeStatusVersion,
-    shouldShowOpenCodeUpdateToast,
+    resolveOmpUpdateVersion,
+    resolveOmpUpgradeStatusVersion,
+    shouldShowOmpUpdateToast,
     shouldShowPwaInstallToast,
-} from '../openCodeUpdateDedup';
+} from '../ompUpdateDedup';
 
 describe('shouldShowPwaInstallToast', () => {
     test('returns true when nothing blocks the toast', () => {
@@ -69,10 +69,10 @@ describe('shouldShowPwaInstallToast', () => {
     });
 });
 
-describe('shouldShowOpenCodeUpdateToast', () => {
+describe('shouldShowOmpUpdateToast', () => {
     test('returns true for a fresh version with no dismissal and an empty seen set', () => {
         expect(
-            shouldShowOpenCodeUpdateToast({
+            shouldShowOmpUpdateToast({
                 version: '1.16.0',
                 dismissedVersion: null,
                 seenVersions: new Set(),
@@ -82,7 +82,7 @@ describe('shouldShowOpenCodeUpdateToast', () => {
 
     test('returns false for an empty version string', () => {
         expect(
-            shouldShowOpenCodeUpdateToast({
+            shouldShowOmpUpdateToast({
                 version: '',
                 dismissedVersion: null,
                 seenVersions: new Set(),
@@ -92,7 +92,7 @@ describe('shouldShowOpenCodeUpdateToast', () => {
 
     test('returns false when the version was already surfaced in this session', () => {
         expect(
-            shouldShowOpenCodeUpdateToast({
+            shouldShowOmpUpdateToast({
                 version: '1.16.0',
                 dismissedVersion: null,
                 seenVersions: new Set(['1.16.0']),
@@ -102,7 +102,7 @@ describe('shouldShowOpenCodeUpdateToast', () => {
 
     test('returns false when the dismissed version matches the incoming version', () => {
         expect(
-            shouldShowOpenCodeUpdateToast({
+            shouldShowOmpUpdateToast({
                 version: '1.16.0',
                 dismissedVersion: '1.16.0',
                 seenVersions: new Set(),
@@ -112,7 +112,7 @@ describe('shouldShowOpenCodeUpdateToast', () => {
 
     test('returns true when a different version was previously dismissed', () => {
         expect(
-            shouldShowOpenCodeUpdateToast({
+            shouldShowOmpUpdateToast({
                 version: '1.17.0',
                 dismissedVersion: '1.16.0',
                 seenVersions: new Set(),
@@ -122,7 +122,7 @@ describe('shouldShowOpenCodeUpdateToast', () => {
 
     test('treats null dismissedVersion as no prior dismissal', () => {
         expect(
-            shouldShowOpenCodeUpdateToast({
+            shouldShowOmpUpdateToast({
                 version: '1.16.0',
                 dismissedVersion: null,
                 seenVersions: new Set(['1.15.0']),
@@ -132,7 +132,7 @@ describe('shouldShowOpenCodeUpdateToast', () => {
 
     test('seen set blocks even when dismissed version differs', () => {
         expect(
-            shouldShowOpenCodeUpdateToast({
+            shouldShowOmpUpdateToast({
                 version: '1.16.0',
                 dismissedVersion: '1.15.0',
                 seenVersions: new Set(['1.16.0']),
@@ -141,44 +141,44 @@ describe('shouldShowOpenCodeUpdateToast', () => {
     });
 });
 
-describe('resolveOpenCodeUpdateVersion', () => {
+describe('resolveOmpUpdateVersion', () => {
     test('returns the trimmed version when detail.version is a string', () => {
-        expect(resolveOpenCodeUpdateVersion({ version: '1.16.0' })).toBe('1.16.0');
+        expect(resolveOmpUpdateVersion({ version: '1.16.0' })).toBe('1.16.0');
     });
 
     test('trims surrounding whitespace from a string version', () => {
-        expect(resolveOpenCodeUpdateVersion({ version: '  1.16.0  ' })).toBe('1.16.0');
+        expect(resolveOmpUpdateVersion({ version: '  1.16.0  ' })).toBe('1.16.0');
     });
 
     test('returns empty string when detail is null', () => {
-        expect(resolveOpenCodeUpdateVersion(null)).toBe('');
+        expect(resolveOmpUpdateVersion(null)).toBe('');
     });
 
     test('returns empty string when detail is undefined', () => {
-        expect(resolveOpenCodeUpdateVersion(undefined)).toBe('');
+        expect(resolveOmpUpdateVersion(undefined)).toBe('');
     });
 
     test('returns empty string when detail is not an object', () => {
-        expect(resolveOpenCodeUpdateVersion('1.16.0')).toBe('');
-        expect(resolveOpenCodeUpdateVersion(42)).toBe('');
-        expect(resolveOpenCodeUpdateVersion(true)).toBe('');
+        expect(resolveOmpUpdateVersion('1.16.0')).toBe('');
+        expect(resolveOmpUpdateVersion(42)).toBe('');
+        expect(resolveOmpUpdateVersion(true)).toBe('');
     });
 
     test('returns empty string when the version field is missing', () => {
-        expect(resolveOpenCodeUpdateVersion({})).toBe('');
+        expect(resolveOmpUpdateVersion({})).toBe('');
     });
 
     test('returns empty string when the version field is non-string', () => {
-        expect(resolveOpenCodeUpdateVersion({ version: 116 })).toBe('');
-        expect(resolveOpenCodeUpdateVersion({ version: null })).toBe('');
-        expect(resolveOpenCodeUpdateVersion({ version: { major: 1 } })).toBe('');
+        expect(resolveOmpUpdateVersion({ version: 116 })).toBe('');
+        expect(resolveOmpUpdateVersion({ version: null })).toBe('');
+        expect(resolveOmpUpdateVersion({ version: { major: 1 } })).toBe('');
     });
 });
 
-describe('resolveOpenCodeUpgradeStatusVersion', () => {
+describe('resolveOmpUpgradeStatusVersion', () => {
     test('returns the trimmed latestVersion when available is true', () => {
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 available: true,
                 latestVersion: '1.16.0',
                 upgrade: { supported: true },
@@ -188,7 +188,7 @@ describe('resolveOpenCodeUpgradeStatusVersion', () => {
 
     test('trims surrounding whitespace from latestVersion', () => {
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 available: true,
                 latestVersion: '  1.16.0  ',
                 upgrade: { supported: true },
@@ -197,16 +197,16 @@ describe('resolveOpenCodeUpgradeStatusVersion', () => {
     });
 
     test('returns empty string when status is null', () => {
-        expect(resolveOpenCodeUpgradeStatusVersion(null)).toBe('');
+        expect(resolveOmpUpgradeStatusVersion(null)).toBe('');
     });
 
     test('returns empty string when status is undefined', () => {
-        expect(resolveOpenCodeUpgradeStatusVersion(undefined)).toBe('');
+        expect(resolveOmpUpgradeStatusVersion(undefined)).toBe('');
     });
 
     test('returns empty string when available is false', () => {
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 available: false,
                 latestVersion: '1.16.0',
             }),
@@ -215,13 +215,13 @@ describe('resolveOpenCodeUpgradeStatusVersion', () => {
 
     test('fails closed when the server does not explicitly support upgrades', () => {
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 available: true,
                 latestVersion: '1.16.0',
             }),
         ).toBe('');
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 available: true,
                 latestVersion: '1.16.0',
                 upgrade: { supported: false },
@@ -231,12 +231,12 @@ describe('resolveOpenCodeUpgradeStatusVersion', () => {
 
     test('returns empty string when available is missing or null', () => {
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 latestVersion: '1.16.0',
             }),
         ).toBe('');
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 available: null,
                 latestVersion: '1.16.0',
             }),
@@ -244,12 +244,12 @@ describe('resolveOpenCodeUpgradeStatusVersion', () => {
     });
 
     test('returns empty string when latestVersion is missing', () => {
-        expect(resolveOpenCodeUpgradeStatusVersion({ available: true })).toBe('');
+        expect(resolveOmpUpgradeStatusVersion({ available: true })).toBe('');
     });
 
     test('returns empty string when latestVersion is non-string', () => {
         expect(
-            resolveOpenCodeUpgradeStatusVersion({
+            resolveOmpUpgradeStatusVersion({
                 available: true,
                 latestVersion: null,
             }),

@@ -2,7 +2,7 @@
  * OMPChamber Agent Domain Protocol — the single source of truth for the
  * domain model that both the React UI and the OMP adapter speak.
  *
- * The React UI MUST NOT import harness types (OMP / OpenCode). It only ever
+ * The React UI MUST NOT import harness types (OMP / the former OpenCode SDK). It only ever
  * sees these domain types. The OMP adapter (in the server) normalizes OMP
  * raw frames into these types before anything is shown in the UI.
  *

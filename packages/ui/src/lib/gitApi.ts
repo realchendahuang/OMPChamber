@@ -1,6 +1,6 @@
 
 import * as gitHttp from './gitApiHttp';
-import { opencodeClient } from './opencode/client';
+import { agentClient } from './agent/client';
 import { renderMagicPrompt } from './magicPrompts';
 import { runtimeFetch } from './runtime-fetch';
 import { materializeOpenDraftSession, useSessionUIStore } from '@/sync/session-ui-store';
@@ -267,7 +267,7 @@ const parseCommitStructured = (structured: Record<string, unknown> | null): { su
 
 // Legacy transport: run the structured generation inside the active chat
 // session. Kept as the fallback for setups with no direct provider login
-// (vanilla installs on OpenCode's free models), where the small-model
+// (vanilla installs on OMP's free models), where the small-model
 // endpoint has nothing to call but the session itself still works.
 async function generateCommitMessageViaSession(
   directory: string,
@@ -637,8 +637,8 @@ const runStructuredGenerationInActiveSession = async ({
 
   requestChatForceScrollBottom(generationSession.sessionId);
 
-  const response = await opencodeClient.withDirectory(directory, async () => {
-    return opencodeClient.getApiClient().session.prompt({
+  const response = await agentClient.withDirectory(directory, async () => {
+    return agentClient.getApiClient().session.prompt({
       sessionID: generationSession.sessionId,
       ...(trimmedDirectory.length > 0 ? { directory: trimmedDirectory } : {}),
       model: {

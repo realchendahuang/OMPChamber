@@ -8,7 +8,7 @@ import { MobileOverlayPanel } from '@/components/ui/MobileOverlayPanel';
 import { ProviderLogo } from '@/components/ui/ProviderLogo';
 import { Icon } from '@/components/icon/Icon';
 import { useModelLists } from '@/hooks/useModelLists';
-import { useOpenCodeReadiness } from '@/hooks/useOpenCodeReadiness';
+import { useAgentReadiness } from '@/hooks/useAgentReadiness';
 import { useDeviceInfo } from '@/lib/device';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -49,7 +49,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     compact = false,
 }) => {
     const { t } = useI18n();
-    const { isReady, isUnavailable } = useOpenCodeReadiness();
+    const { isReady, isUnavailable } = useAgentReadiness();
     const providers = useConfigStore((state) => state.providers) as ModelPickerProvider[];
     const modelsMetadata = useConfigStore((state) => state.modelsMetadata);
     const isMobile = useUIStore((state) => state.isMobile);

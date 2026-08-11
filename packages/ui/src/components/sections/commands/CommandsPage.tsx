@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui';
 import { useCommandsStore, type CommandConfig, type CommandScope } from '@/stores/useCommandsStore';
-import { usePendingOpenCodeRestartStore } from '@/stores/usePendingOpenCodeRestartStore';
+import { usePendingOmpRestartStore } from '@/stores/usePendingOmpRestartStore';
 import { useShallow } from 'zustand/react/shallow';
 import { ModelSelector } from '../agents/ModelSelector';
 import { AgentSelector } from './AgentSelector';
@@ -171,7 +171,7 @@ export const CommandsPage: React.FC = () => {
       }
 
       if (success) {
-        const deferred = usePendingOpenCodeRestartStore.getState().changes.some(
+        const deferred = usePendingOmpRestartStore.getState().changes.some(
           (change) => change.scope === 'commands' && change.id.startsWith(`commands:${commandName}:`),
         );
         toast.success(

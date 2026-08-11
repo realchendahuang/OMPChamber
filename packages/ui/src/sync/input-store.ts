@@ -231,7 +231,7 @@ export const useInputStore = create<InputState>()((set, get) => ({
     if (isDuplicate) return
     const dataUrl = toFileUrl(path)
     // `file://` URLs are the same contract used by server-source attachments.
-    // The submission path passes `dataUrl` as `url` directly to the OpenCode
+    // The submission path passes `dataUrl` as `url` directly to the OMP
     // server, which resolves `file://` paths natively. No base64 encoding needed.
     const attached: AttachedFile = {
       id,

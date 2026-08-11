@@ -1,5 +1,5 @@
 /**
- * Tests for interrupted-turn reconciliation (#2577): when a managed OpenCode
+ * Tests for interrupted-turn reconciliation (#2577): when a managed OMP
  * process dies mid-turn, the persisted turn never settles — the trailing
  * assistant message has no time.completed and its tool parts stay running.
  * Once the session is authoritatively settled, `interruptedTurnToolParts`

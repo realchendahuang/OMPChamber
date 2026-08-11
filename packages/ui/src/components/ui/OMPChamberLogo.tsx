@@ -244,7 +244,7 @@ export const OMPChamberLogo: React.FC<OMPChamberLogoProps> = ({
         strokeLinejoin="round"
       />
       
-      {/* OpenCode logo on top face */}
+      {/* OMP logo on top face */}
       <g
         opacity={1}
         className={isAnimated ? 'oc-logo-glow' : undefined}
@@ -252,10 +252,10 @@ export const OMPChamberLogo: React.FC<OMPChamberLogoProps> = ({
       >
         {/*
           Isometric transform for top face:
-          OpenCode logo (32x40 viewBox) centered and projected to isometric plane
+          OMP logo (32x40 viewBox) centered and projected to isometric plane
         */}
         <g transform={`${isoMatrix} scale(0.75)`}>
-          {/* OpenCode logo - outer frame with inner square */}
+          {/* OMP logo - outer frame with inner square */}
           {/* Outer frame (centered at origin, original: 0,0 to 32,40) */}
           <path
             fillRule="evenodd"

@@ -9,7 +9,7 @@ import { useUpdateStore } from '@/stores/useUpdateStore';
 import { useThemeSystem } from '@/contexts/useThemeSystem';
 import { sessionEvents } from '@/lib/sessionEvents';
 import { createWorktreeSession } from '@/lib/worktreeSessionCreator';
-import { showOpenCodeStatus } from '@/lib/openCodeStatus';
+import { showOmpStatus } from '@/lib/ompStatus';
 import { addSelectionToChat } from '@/lib/addSelectionToChat';
 
 const getActiveElementSelectedText = (): string => {
@@ -321,8 +321,8 @@ export const useMenuActions = (
           break;
 
         case 'download-logs': {
-          void showOpenCodeStatus().catch(() => {
-            toast.error('Failed to collect OpenCode status');
+          void showOmpStatus().catch(() => {
+            toast.error('Failed to collect OMP status');
           });
           break;
         }

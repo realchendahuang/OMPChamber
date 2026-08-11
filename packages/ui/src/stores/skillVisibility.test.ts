@@ -53,7 +53,7 @@ describe('filterSkillsByRuntimeFlags', () => {
 
   test('prefers the .agents copy when a name exists in both roots', () => {
     // `.claude/skills` entries are commonly symlinks into `.agents/skills`;
-    // OpenCode scans `.agents` last, so it wins the collision.
+    // OMP scans `.agents` last, so it wins the collision.
     const result = filterSkillsByRuntimeFlags([CLAUDE('dup'), AGENTS('dup')], ENABLED);
     expect(result).toHaveLength(1);
     expect(result[0].path).toContain('.agents');

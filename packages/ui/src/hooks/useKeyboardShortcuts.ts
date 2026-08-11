@@ -9,7 +9,7 @@ import { useCurrentSessionActivity } from '@/hooks/useSessionActivity';
 import { createWorktreeSession } from '@/lib/worktreeSessionCreator';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { canUseElectronDesktopIPC, invokeDesktop, isVSCodeRuntime } from '@/lib/desktop';
-import { showOpenCodeStatus } from '@/lib/openCodeStatus';
+import { showOmpStatus } from '@/lib/ompStatus';
 import {
   eventMatchesShortcut,
   eventMatchesShortcutPrefix,
@@ -281,7 +281,7 @@ export const useKeyboardShortcuts = () => {
 
       if (eventMatchesShortcut(e, combo('open_status'))) {
         e.preventDefault();
-        void showOpenCodeStatus();
+        void showOmpStatus();
         return;
       }
 

@@ -1,4 +1,4 @@
-import type { OpencodeClient, Session } from "@ompchamber/agent-protocol/domain-types";
+import type { AgentClient, Session } from "@ompchamber/agent-protocol/domain-types";
 import { runBackgroundNetworkTask } from '@/lib/background-network';
 import { retry } from "@/sync/retry";
 import { stripSessionListDetails } from "@/sync/sanitize";
@@ -76,7 +76,7 @@ const unwrapSessionList = (
 };
 
 /**
- * OpenCode's `archived` query flag means "also include archived sessions", not
+ * OMP's `archived` query flag means "also include archived sessions", not
  * "return only archived sessions": the server simply drops its
  * `time_archived IS NULL` condition. Callers that ask for the archived list
  * expect archived-only records, so narrow the response here, at the data
@@ -106,7 +106,7 @@ export const splitGlobalSessionsByArchived = <T extends GlobalSessionRecord>(
 };
 
 export async function listGlobalSessionPages(
-    apiClient: OpencodeClient,
+    apiClient: AgentClient,
     options: {
         directory?: string;
         archived: boolean;

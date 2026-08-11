@@ -9,7 +9,7 @@ import {
 } from './taskToolModel';
 
 describe('taskToolModel', () => {
-    test('reads the current OpenCode running-state identity contract', () => {
+    test('reads the current OMP running-state identity contract', () => {
         expect(readTaskSessionIdFromRecord({ sessionId: 'child-live' })).toBe('child-live');
         expect(readTaskSessionIdFromRecord({})).toBe(undefined);
     });

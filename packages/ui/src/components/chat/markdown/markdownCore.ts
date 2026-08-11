@@ -11,7 +11,7 @@ const escapeAttr = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // ---------------------------------------------------------------------------
-// Streaming block segmentation (port of OpenCode's markdown-stream)
+// Streaming block segmentation (port of OMP's markdown-stream)
 // ---------------------------------------------------------------------------
 
 type MarkdownBlock = {
@@ -317,7 +317,7 @@ const sanitize = (html: string): string => {
 
 
 // ---------------------------------------------------------------------------
-// Per-block HTML cache (LRU, mirrors OpenCode's checksum cache)
+// Per-block HTML cache (LRU, mirrors OMP's checksum cache)
 // ---------------------------------------------------------------------------
 
 const CACHE_MAX = 240;

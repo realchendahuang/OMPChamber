@@ -117,9 +117,9 @@ const mockSdk = {
   },
 }
 
-// Mock opencodeClient singleton
-mock.module("@/lib/opencode/client", () => ({
-  opencodeClient: {
+// Mock agentClient singleton
+mock.module("@/lib/agent/client", () => ({
+  agentClient: {
     getScopedSdkClient: (directory: string) => {
       scopedClientDirectories.push(directory)
       return mockScopedClient
@@ -280,7 +280,7 @@ mock.module("./sync-refs", () => ({
 import { create, type StoreApi } from "zustand"
 import { INITIAL_STATE } from "./types"
 import type { DirectoryStore } from "./child-store"
-import type { Message, OpencodeClient, Part, Session } from "@ompchamber/agent-protocol/domain-types"
+import type { Message, AgentClient, Part, Session } from "@ompchamber/agent-protocol/domain-types"
 
 type OptimisticAddCall = { sessionID: string; directory?: string | null; message: Message; parts: Part[] }
 type OptimisticRemoveCall = { sessionID: string; directory?: string | null; messageID: string }
@@ -348,7 +348,7 @@ describe("moveSessionToDirectory", () => {
     const destination = createStore({})
     const childStores = createChildStores([["/source", source], ["/destination", destination]])
     const { moveSessionToDirectory, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/source")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/source")
 
     await moveSessionToDirectory(source.getState().session[0], "/source", "/destination", true)
 
@@ -413,7 +413,7 @@ describe("confirmed session removal", () => {
       session: [{ id: "session-a", directory: "/test/project", time: { created: 1 } } as Session],
     })
     const { deleteSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await deleteSession("session-a")).toBe(false)
     expect(source.getState().session.map((item) => item.id)).toEqual(["session-a"])
@@ -426,7 +426,7 @@ describe("confirmed session removal", () => {
       session: [{ id: "session-a", directory: "/test/project", time: { created: 1 } } as Session],
     })
     const { deleteSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await deleteSession("session-a")).toBe(true)
     expect(source.getState().session).toEqual([])
@@ -445,7 +445,7 @@ describe("confirmed session removal", () => {
     const { getRuntimeKey, switchRuntimeEndpoint } = await import("../lib/runtime-switch")
     switchRuntimeEndpoint({ apiBaseUrl: "http://delete-scope.test", runtimeKey: "delete-scope" })
     const { deleteSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await deleteSession("session-a")).toBe(true)
     // The cleanup identity must carry the captured runtime, which is what lets
@@ -465,7 +465,7 @@ describe("confirmed session removal", () => {
       switchRuntimeEndpoint({ apiBaseUrl: "http://delete-runtime-b.test", runtimeKey: "delete-runtime-b" })
     }
     const { deleteSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await deleteSession("session-a")).toBe(false)
     // Session IDs are not unique across runtimes: committing here could evict an
@@ -486,7 +486,7 @@ describe("confirmed session removal", () => {
       switchRuntimeEndpoint({ apiBaseUrl: "http://delete-404-b.test", runtimeKey: "delete-404-b" })
     }
     const { deleteSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     // A 404 only proves "already deleted" for the captured runtime. After a
     // switch it describes the wrong runtime, so it must not commit cleanup.
@@ -502,7 +502,7 @@ describe("confirmed session removal", () => {
       session: [{ id: "session-a", directory: "/test/project", time: { created: 1 } } as Session],
     })
     const { deleteSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await deleteSession("session-a")).toBe(true)
     expect(source.getState().session).toEqual([])
@@ -526,7 +526,7 @@ describe("confirmed session removal", () => {
       }
     }
     const { deleteSessions, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     const result = await deleteSessions(["session-a", "session-b", "session-c"])
 
@@ -544,7 +544,7 @@ describe("confirmed session removal", () => {
       session: [{ id: "session-a", directory: "/test/project", time: { created: 1 } } as Session],
     })
     const { archiveSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await archiveSession("session-a")).toBe(false)
     expect(source.getState().session.map((item) => item.id)).toEqual(["session-a"])
@@ -559,7 +559,7 @@ describe("confirmed session removal", () => {
       session: [{ id: "session-a", directory: "/test/project", time: { created: 1 } } as Session],
     })
     const { archiveSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await archiveSession("session-a")).toBe(true)
     expect(source.getState().session).toEqual([])
@@ -579,7 +579,7 @@ describe("confirmed session removal", () => {
       switchRuntimeEndpoint({ apiBaseUrl: "http://archive-runtime-b.test", runtimeKey: "archive-runtime-b" })
     }
     const { archiveSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await archiveSession("session-a")).toBe(false)
     expect(getRuntimeKey()).toBe("archive-runtime-b")
@@ -607,7 +607,7 @@ describe("confirmed session removal", () => {
       }
     }
     const { archiveSessions, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     const result = await archiveSessions(["session-a", "session-b", "session-c"])
 
@@ -634,7 +634,7 @@ describe("confirmed session removal", () => {
     })
     const { getRuntimeKey } = await import("../lib/runtime-switch")
     const { archiveSessions, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     const result = await archiveSessions(["session-a", "session-b"], {
       expectedRuntimeKey: getRuntimeKey(),
@@ -659,7 +659,7 @@ describe("session restore (unarchive)", () => {
       session: [],
     })
     const { unarchiveSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await unarchiveSession("session-a")).toBe(false)
     expect(globalUpsertedSessions).toEqual([])
@@ -674,7 +674,7 @@ describe("session restore (unarchive)", () => {
       session: [],
     })
     const { unarchiveSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await unarchiveSession("session-a")).toBe(true)
     // The server cannot clear time.archived over HTTP, so the action must
@@ -695,7 +695,7 @@ describe("session restore (unarchive)", () => {
       session: [],
     })
     const { unarchiveSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     // A silent server-side no-op must surface as a failure, not a success toast.
     expect(await unarchiveSession("session-a")).toBe(false)
@@ -716,7 +716,7 @@ describe("session restore (unarchive)", () => {
       switchRuntimeEndpoint({ apiBaseUrl: "http://restore-runtime-b.test", runtimeKey: "restore-runtime-b" })
     }
     const { unarchiveSession, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     expect(await unarchiveSession("session-a")).toBe(false)
     expect(getRuntimeKey()).toBe("restore-runtime-b")
@@ -740,7 +740,7 @@ describe("session restore (unarchive)", () => {
       }
     }
     const { unarchiveSessions, setActionRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, createChildStores([["/test/project", source]]), () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, createChildStores([["/test/project", source]]), () => "/test/project")
 
     const result = await unarchiveSessions(["session-a", "session-b", "session-c"])
 
@@ -789,7 +789,7 @@ describe("shareSession live state", () => {
     sessionShareResult = { data: unsharedSession }
 
     const { setActionRefs, unshareSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
 
     const result = await unshareSession("session-a")
 
@@ -808,7 +808,7 @@ describe("shareSession live state", () => {
     sessionShareResult = { data: staleResponse }
 
     const { setActionRefs, unshareSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
 
     const result = await unshareSession("session-a")
 
@@ -825,7 +825,7 @@ describe("shareSession live state", () => {
     sessionShareResult = { data: sharedSession }
 
     const { setActionRefs, shareSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
 
     const result = await shareSession("session-a")
 
@@ -853,7 +853,7 @@ describe("shareSession live state", () => {
     sessionShareResult = { data: unsharedSession }
 
     const { setActionRefs, unshareSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
 
     await unshareSession("session-a")
 
@@ -877,7 +877,7 @@ describe("shareSession live state", () => {
     sessionShareResult = { data: sessionWithDiff }
 
     const { setActionRefs, shareSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
 
     const result = await shareSession("session-a")
 
@@ -906,7 +906,7 @@ describe("updateSessionTitle live state", () => {
     sessionUpdateResult = { data: updatedSession }
 
     const { setActionRefs, updateSessionTitle } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
 
     await updateSessionTitle("session-a", "New Title")
 
@@ -938,7 +938,7 @@ describe("optimisticSend target directory", () => {
     let sentMessageID = ""
 
     const { optimisticSend, setActionRefs, setOptimisticRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
     setOptimisticRefs(
       (input) => {
         optimisticAdd = input
@@ -982,7 +982,7 @@ describe("optimisticSend target directory", () => {
     const optimisticShadow = new Set([revertedMessage.id])
 
     const { optimisticSend, setActionRefs, setOptimisticRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/target/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/target/project")
     setOptimisticRefs(
       (input) => {
         optimisticMessage = input.message
@@ -1027,7 +1027,7 @@ describe("optimisticSend target directory", () => {
     const childStores = createChildStores([["/target/project", targetStore]])
 
     const { optimisticSend, setActionRefs, setOptimisticRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/target/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/target/project")
     setOptimisticRefs(
       (input) => targetStore.setState((state) => ({
         message: { ...state.message, [input.sessionID]: [...(state.message[input.sessionID] ?? []), input.message] },
@@ -1063,7 +1063,7 @@ describe("optimisticSend target directory", () => {
     switchRuntimeEndpoint({ apiBaseUrl: "http://runtime-a.test", runtimeKey: "runtime-a" })
 
     const { optimisticSend, setActionRefs, setOptimisticRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/target/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/target/project")
     setOptimisticRefs(
       (input) => {
         optimisticAdd = input
@@ -1112,7 +1112,7 @@ describe("optimisticSend target directory", () => {
     let sentMessageID = ""
 
     const { optimisticSend, setActionRefs, setOptimisticRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/target/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/target/project")
     setOptimisticRefs(
       () => {},
       (input) => {
@@ -1163,7 +1163,7 @@ describe("optimisticSend target directory", () => {
 
     const { markAmbiguousTransportFailure } = await import("@/lib/relay/transport-error")
     const { optimisticSend, setActionRefs, setOptimisticRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/target/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/target/project")
     setOptimisticRefs(
       () => {},
       (input) => {
@@ -1204,7 +1204,7 @@ describe("optimisticSend target directory", () => {
     let optimisticConfirm: OptimisticRemoveCall | null = null
 
     const { optimisticSend, setActionRefs, setOptimisticRefs } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/target/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/target/project")
     setOptimisticRefs(
       () => {},
       (input) => {
@@ -1262,7 +1262,7 @@ describe("respondToPermission passes directory", () => {
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, respondToPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     await respondToPermission("session-a", "perm-1", "once")
 
@@ -1276,7 +1276,7 @@ describe("respondToPermission passes directory", () => {
     const childStores = createChildStores([])
 
     const { setActionRefs, respondToPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     await respondToPermission("session-b", "perm-2", "always")
 
@@ -1290,7 +1290,7 @@ describe("respondToPermission passes directory", () => {
     const childStores = createChildStores([])
 
     const { setActionRefs, respondToPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/fallback/dir")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/fallback/dir")
 
     await respondToPermission("unknown-session", "perm-3", "reject")
 
@@ -1304,7 +1304,7 @@ describe("respondToPermission passes directory", () => {
     const childStores = createChildStores([])
 
     const { setActionRefs, respondToPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/stale/current")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/stale/current")
 
     await respondToPermission("unknown-session", "perm-event", "once", "/event/project")
 
@@ -1342,7 +1342,7 @@ describe("revertToMessage passes session directory", () => {
     sessionRevertResult = { data: { id: "session-a", time: { created: 1, updated: 2 }, revert: { messageID: "msg_2" } } }
 
     const { setActionRefs, revertToMessage } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/current/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/current/project")
 
     await revertToMessage("session-a", "msg_2")
 
@@ -1365,7 +1365,7 @@ describe("revertToMessage passes session directory", () => {
     sessionRevertResult = { error: { message: "rejected" }, response: { status: 500 } }
 
     const { setActionRefs, revertToMessage } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     let thrown: unknown
     try {
@@ -1403,7 +1403,7 @@ describe("dismissPermission passes directory", () => {
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, dismissPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     await dismissPermission("session-a", "perm-10")
 
@@ -1425,7 +1425,7 @@ describe("respondToQuestion passes directory", () => {
     const childStores = createChildStores([])
 
     const { setActionRefs, respondToQuestion } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     await respondToQuestion("session-a", "q-1", [["answer1"]])
 
@@ -1452,7 +1452,7 @@ describe("respondToQuestion passes directory", () => {
     questionReplyError = Object.assign(new Error("question.reply failed (404): QuestionNotFoundError"), { status: 404 })
 
     const { setActionRefs, respondToQuestion } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     let thrown: unknown
     try {
@@ -1477,7 +1477,7 @@ describe("rejectQuestion passes directory", () => {
     const childStores = createChildStores([])
 
     const { setActionRefs, rejectQuestion } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     await rejectQuestion("session-a", "q-2")
 
@@ -1515,7 +1515,7 @@ describe("blocking request reply routing and stale recovery (issue OPE-236)", ()
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, respondToQuestion } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project", enqueueMaterialization)
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project", enqueueMaterialization)
 
     await respondToQuestion("session-wt", "q-wt", [["Yes"]])
 
@@ -1535,7 +1535,7 @@ describe("blocking request reply routing and stale recovery (issue OPE-236)", ()
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, respondToPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project", enqueueMaterialization)
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project", enqueueMaterialization)
 
     await respondToPermission("session-wt", "perm-wt", "once")
 
@@ -1553,7 +1553,7 @@ describe("blocking request reply routing and stale recovery (issue OPE-236)", ()
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, respondToQuestion } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project", enqueueMaterialization)
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project", enqueueMaterialization)
 
     await respondToQuestion("session-a", "q-1", [["Yes"]])
 
@@ -1584,7 +1584,7 @@ describe("blocking request reply routing and stale recovery (issue OPE-236)", ()
     questionReplyError = Object.assign(new Error("question.reply failed (404): QuestionNotFoundError"), { status: 404 })
 
     const { setActionRefs, respondToQuestion } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project", enqueueMaterialization)
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project", enqueueMaterialization)
 
     let thrown: unknown
     try {
@@ -1622,7 +1622,7 @@ describe("blocking request reply routing and stale recovery (issue OPE-236)", ()
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, rejectQuestion } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project", enqueueMaterialization)
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project", enqueueMaterialization)
 
     // Success: no recovery enqueued — the normal question.rejected event flow clears state.
     await rejectQuestion("session-a", "q-1")
@@ -1683,7 +1683,7 @@ describe("dismissOpenQuestionsForSession", () => {
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, dismissOpenQuestionsForSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     const dismissed = await dismissOpenQuestionsForSession("session-a")
 
@@ -1707,7 +1707,7 @@ describe("dismissOpenQuestionsForSession", () => {
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, dismissOpenQuestionsForSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     const dismissed = await dismissOpenQuestionsForSession("session-a")
 
@@ -1732,7 +1732,7 @@ describe("dismissOpenQuestionsForSession", () => {
     questionRejectError = Object.assign(new Error("question.reject failed (404): QuestionNotFoundError"), { status: 404 })
 
     const { setActionRefs, dismissOpenQuestionsForSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     const dismissed = await dismissOpenQuestionsForSession("session-a")
 
@@ -1759,7 +1759,7 @@ describe("dismissPermission not-found handling", () => {
     permissionReplyError = Object.assign(new Error("permission.reply failed (404): PermissionNotFoundError"), { status: 404 })
 
     const { setActionRefs, dismissPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     await expect(dismissPermission("session-a", "perm-stale")).rejects.toThrow()
     expect(replyCalls.filter((call) => call.method === "permission.reply")).toHaveLength(1)
@@ -1774,7 +1774,7 @@ describe("dismissPermission not-found handling", () => {
     permissionReplyError = Object.assign(new Error("permission.reply failed (500)"), { status: 500 })
 
     const { setActionRefs, dismissPermission } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     await expect(dismissPermission("session-a", "perm-500")).rejects.toThrow()
     // A non-not-found failure leaves store reconciliation to the next server event.
@@ -1794,7 +1794,7 @@ describe("dismissOpenPermissionsForSession", () => {
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, dismissOpenPermissionsForSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     const dismissed = await dismissOpenPermissionsForSession("session-a")
 
@@ -1817,7 +1817,7 @@ describe("dismissOpenPermissionsForSession", () => {
     const childStores = createChildStores([["/test/project", store]])
 
     const { setActionRefs, dismissOpenPermissionsForSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     const dismissed = await dismissOpenPermissionsForSession("session-a")
 
@@ -1842,7 +1842,7 @@ describe("dismissOpenPermissionsForSession", () => {
     permissionReplyError = Object.assign(new Error("permission.reply failed (404): PermissionNotFoundError"), { status: 404 })
 
     const { setActionRefs, dismissOpenPermissionsForSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     const dismissed = await dismissOpenPermissionsForSession("session-a")
 
@@ -1863,7 +1863,7 @@ describe("dismissOpenPermissionsForSession", () => {
     permissionReplyError = Object.assign(new Error("permission.reply failed (500)"), { status: 500 })
 
     const { setActionRefs, dismissOpenPermissionsForSession } = await import("./session-actions")
-    setActionRefs(mockSdk as unknown as OpencodeClient, childStores, () => "/test/project")
+    setActionRefs(mockSdk as unknown as AgentClient, childStores, () => "/test/project")
 
     const errors: unknown[][] = []
     const originalError = console.error

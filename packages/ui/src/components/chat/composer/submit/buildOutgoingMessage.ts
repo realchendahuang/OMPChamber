@@ -6,7 +6,7 @@
  * resolved to attachments, a linked GitHub issue or PR, synthetic parts from
  * conflict resolution, and an instruction naming the skills mentioned inline.
  *
- * OpenCode takes one primary message plus additional parts, so all of that has
+ * OMP takes one primary message plus additional parts, so all of that has
  * to be flattened into that shape — and the flattening has rules that are easy
  * to get wrong and impossible to see when they are spread through a 400-line
  * handler. They are stated here, as a pure function over injected resolvers,

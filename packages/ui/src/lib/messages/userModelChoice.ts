@@ -33,7 +33,7 @@ export const extractUserModelChoice = (message: MessageLike): UserModelChoice | 
   const agent = typeof message.agent === 'string' && message.agent.trim().length > 0
     ? message.agent
     : (typeof message.mode === 'string' && message.mode.trim().length > 0 ? message.mode : undefined)
-  // OpenCode 1.4.0 moved variant from top-level to model.variant.
+  // OMP 1.4.0 moved variant from top-level to model.variant.
   const variantCandidate = message.model?.variant ?? message.variant
   const variant = typeof variantCandidate === 'string' && variantCandidate.trim().length > 0
     ? variantCandidate

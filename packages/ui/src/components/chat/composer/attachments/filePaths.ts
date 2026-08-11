@@ -2,7 +2,7 @@
  * Path handling for composer attachments and dropped files.
  *
  * Three representations meet here: what the user sees in the prompt (a
- * project-relative mention), what the OpenCode server is given (a `file://`
+ * project-relative mention), what the OMP server is given (a `file://`
  * URL), and what a host application hands over on drop (a native path, a
  * percent-encoded URI, or a JSON payload with either buried inside).
  */

@@ -16,7 +16,7 @@ import { create } from "zustand"
 import type { Session, Part, Message, TextPart } from "@ompchamber/agent-protocol/domain-types"
 import type { AttachedFile, SessionContextUsage, SessionWorktreeAttachment } from "@/stores/types/sessionTypes"
 import type { WorktreeMetadata } from "@/types/worktree"
-import { opencodeClient } from "@/lib/opencode/client"
+import { agentClient } from "@/lib/agent/client"
 import { runtimeFetch } from "@/lib/runtime-fetch"
 import { useConfigStore } from "@/stores/useConfigStore"
 import { useProjectsStore } from "@/stores/useProjectsStore"
@@ -138,7 +138,7 @@ export function routeMessage(params: {
 }): Promise<void> {
   const requestDirectory = params.directory ?? undefined
   if (params.inputMode === "shell") {
-    return opencodeClient.shellSession({
+    return agentClient.shellSession({
       runtimeKey: params.runtimeKey,
       sessionId: params.sessionId,
       directory: requestDirectory,
@@ -157,7 +157,7 @@ export function routeMessage(params: {
     const syncCommands = dirState?.command ?? []
     const storeCommands = useCommandsStore.getState().commands
 
-    // OpenCode registers every skill as a command (source: "skill"), but the
+    // OMP registers every skill as a command (source: "skill"), but the
     // commands store filters skills out and the synced command list is only
     // hydrated at bootstrap. Consult the live skills store so a skill selected
     // from the slash menu is invoked via session.command (injecting its
@@ -176,7 +176,7 @@ export function routeMessage(params: {
         agent: params.agent,
         directory: requestDirectory,
         files: params.files,
-        send: (messageID) => opencodeClient.sendCommand({
+        send: (messageID) => agentClient.sendCommand({
           runtimeKey: params.runtimeKey,
           id: params.sessionId,
           providerID: params.providerID,
@@ -203,7 +203,7 @@ export function routeMessage(params: {
     agent: params.agent,
     directory: requestDirectory,
     files: params.files,
-    send: (messageID) => opencodeClient.sendMessage({
+    send: (messageID) => agentClient.sendMessage({
       runtimeKey: params.runtimeKey,
       id: params.sessionId,
       providerID: params.providerID,
@@ -516,7 +516,7 @@ const reportSessionDirectoryConflict = (
   reportedDirectoryConflicts.add(conflictKey)
   console.warn(
     "[session-directory] session directory sources disagree; using the higher-authority one. "
-    + "Run __opencodeDebug.diagnoseSessionDirectory() for the full picture.",
+    + "Run __ompDebug.diagnoseSessionDirectory() for the full picture.",
     {
       sessionId,
       using: resolution.source,
@@ -735,7 +735,7 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
       id,
       (sid) => get().worktreeMetadata.get(sid),
     )
-    const fallbackDir = opencodeClient.getDirectory() ?? directoryState.currentDirectory ?? null
+    const fallbackDir = agentClient.getDirectory() ?? directoryState.currentDirectory ?? null
     const knownDir = (directoryHint ? normalizePath(directoryHint) : null) ?? sessionDir
     const resolvedDir = knownDir ?? fallbackDir
     // `fallbackDir` is the active directory, not this session's directory. It
@@ -779,9 +779,9 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
       if (sessionProject && projectsState.activeProjectId !== sessionProject.id) {
         projectsState.setActiveProjectIdOnly(sessionProject.id)
       }
-      opencodeClient.setDirectory(resolvedDir ?? undefined)
+      agentClient.setDirectory(resolvedDir ?? undefined)
     } catch (e) {
-      console.warn("Failed to set OpenCode directory for session switch:", e)
+      console.warn("Failed to set OMP directory for session switch:", e)
     }
 
     // Defer viewport anchor save for previous session — not needed for the
@@ -852,7 +852,7 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
       pendingChangesBarDismissed: new Map(),
     })
     if (restoredSessionId) {
-      setActiveSession(restoredDirectory ?? opencodeClient.getDirectory() ?? "", restoredSessionId)
+      setActiveSession(restoredDirectory ?? agentClient.getDirectory() ?? "", restoredSessionId)
     } else {
       setActiveSession("", "")
     }
@@ -1260,7 +1260,7 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
           try {
             objective = expandSlashCommandGoalObjective(
               content,
-              await opencodeClient.listCommandsWithDetails(goalDirectory),
+              await agentClient.listCommandsWithDetails(goalDirectory),
             )
           } catch {
             // Command dispatch remains authoritative; raw invocation is a safe objective fallback.
@@ -1417,7 +1417,7 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
     const targetFolderId = draft.targetFolderId
 
     try {
-      const dir = directoryOverride ?? opencodeClient.getDirectory()
+      const dir = directoryOverride ?? agentClient.getDirectory()
       const session = await createSessionAction(title, dir, parentID ?? null, metadata)
       if (!session) return null
 
@@ -1616,7 +1616,7 @@ export const useSessionUIStore = create<SessionUIState>()((set, get) => ({
 
     if (!pID || !mID) return
 
-    const sourceDirectory = normalizePath(directory ?? opencodeClient.getDirectory() ?? null)
+    const sourceDirectory = normalizePath(directory ?? agentClient.getDirectory() ?? null)
     let sessionDirectory = sourceDirectory
     let createdWorktree: WorktreeMetadata | null = null
     let createdWorktreeProject: { id: string; path: string } | null = null

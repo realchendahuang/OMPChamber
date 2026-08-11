@@ -1,11 +1,11 @@
 /**
  * Narrowing the discovered skill list to what the agent can actually invoke.
  *
- * OMPChamber scans every root it knows about. OpenCode loads a narrower set,
+ * OMPChamber scans every root it knows about. OMP loads a narrower set,
  * governed by environment flags the browser cannot read — the server reports
  * them alongside the scan.
  *
- * OpenCode's own skill-list endpoint cannot serve as the authority here:
+ * OMP's own skill-list endpoint cannot serve as the authority here:
  * measured against 1.18.14, it returns only global and builtin skills and omits
  * the project `.agents`/`.claude` skills the agent demonstrably has. Mirroring
  * its discovery rules is the only way to match what the agent sees.
@@ -56,7 +56,7 @@ export const filterSkillsByRuntimeFlags = <T extends SkillLike>(
     return true;
   });
 
-  // Deduplicate by name, preferring `.agents` — the same order OpenCode's
+  // Deduplicate by name, preferring `.agents` — the same order OMP's
   // last-write-wins scan produces.
   const byName = new Map<string, T>();
   for (const skill of allowed) {

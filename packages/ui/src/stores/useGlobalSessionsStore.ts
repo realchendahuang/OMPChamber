@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { OpencodeClient, Session } from '@ompchamber/agent-protocol/domain-types';
-import { opencodeClient } from '@/lib/opencode/client';
+import type { AgentClient, Session } from '@ompchamber/agent-protocol/domain-types';
+import { agentClient } from '@/lib/agent/client';
 import { listGlobalSessionPages, splitGlobalSessionsByArchived } from '@/stores/globalSessions';
 import { getReviewTransferDirection, type ReviewTransferDirection } from '@/lib/reviewFlow';
 import { getOriginalSessionID, getReviewSessionID } from '@/lib/sessionReviewMetadata';
@@ -251,10 +251,10 @@ type DirectoryPageResult = {
 };
 
 const fetchDirectoryPages = async (
-  sdk: OpencodeClient,
+  sdk: AgentClient,
   directories: Set<string>,
 ): Promise<DirectoryPageResult> => {
-  const currentDirectory = normalizePath(opencodeClient.getDirectory());
+  const currentDirectory = normalizePath(agentClient.getDirectory());
   const orderedDirectories = [...directories].sort((left, right) => {
     if (left === currentDirectory) return -1;
     if (right === currentDirectory) return 1;
@@ -527,7 +527,7 @@ export const useGlobalSessionsStore = create<GlobalSessionsState>((set, get) => 
     const baselineRevision = get().mutationRevision;
     const loadPromise = (async () => {
       try {
-        const sdk = opencodeClient.getSdkClient();
+        const sdk = agentClient.getSdkClient();
         // One inclusive fetch, split client-side. The server's
         // `time_archived IS NULL` active filter would exclude restored
         // sessions (`time.archived` falsy-but-present), so an
@@ -588,7 +588,7 @@ export const useGlobalSessionsStore = create<GlobalSessionsState>((set, get) => 
 
     const generation = loadGeneration;
     const baselineRevision = get().mutationRevision;
-    const sdk = opencodeClient.getSdkClient();
+    const sdk = agentClient.getSdkClient();
     const fetched = await fetchDirectoryPages(sdk, directorySet);
 
     if (generation !== loadGeneration) {

@@ -20,7 +20,7 @@ import {
 } from '@/lib/responseStyle';
 import type { DesktopSettings } from '@/lib/desktop';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { noteDeferredRestartFromPayload, recordDeferredOpenCodeRestart } from '@/lib/opencode/deferredRestart';
+import { noteDeferredRestartFromPayload, recordDeferredOmpRestart } from '@/lib/agent/deferredRestart';
 import { SettingsPageLayout } from '@/components/sections/shared/SettingsPageLayout';
 import {
   SettingsSection,
@@ -273,7 +273,7 @@ export const BehaviorPage: React.FC = () => {
         t('settings.behavior.page.toast.saveFailed'),
       );
       setInitialOptimizeSystemPrompt(optimizeSystemPrompt);
-      recordDeferredOpenCodeRestart('behavior', { id: 'optimize-system-prompt' });
+      recordDeferredOmpRestart('behavior', { id: 'optimize-system-prompt' });
       toast.success(t('settings.view.pendingRestart.saved'));
     } catch (error) {
       const message = error instanceof Error ? error.message : t('settings.behavior.page.toast.saveFailed');

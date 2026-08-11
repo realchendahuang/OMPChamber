@@ -4,7 +4,7 @@ import { canUseElectronDesktopIPC, invokeDesktop, isDesktopLocalOriginActive } f
 import { getRuntimeApiBaseUrl } from '@/lib/runtime-switch';
 import { desktopHostsGet, getDesktopHostApiUrl, locationMatchesHost, redactSensitiveUrl } from '@/lib/desktopHosts';
 import { getSyncChildStores, getAllSyncSessions } from '@/sync/sync-refs';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { useGlobalSessionStatusStore, applyGlobalSessionStatusSnapshot } from '@/sync/global-session-status';
 import { compareSessionsByLifecycleOrder, useSessionOrderingStore } from '@/sync/session-ordering';
 import { useNotificationStore } from '@/sync/notification-store';
@@ -461,7 +461,7 @@ export const useTraySync = (): void => {
       await Promise.all([...targets.entries()].map(async ([directory, sessionIds]) => {
         // null = fetch failed → keep that directory's current entries;
         // {} = authoritative "everything here is idle".
-        const raw = await opencodeClient.getSessionStatusForDirectory(directory).catch(() => null);
+        const raw = await agentClient.getSessionStatusForDirectory(directory).catch(() => null);
         if (disposed || raw === null) return;
         applyGlobalSessionStatusSnapshot(directory, raw, sessionIds);
       }));

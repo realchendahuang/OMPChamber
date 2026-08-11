@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { McpStatus } from '@ompchamber/agent-protocol/domain-types';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 
 export type McpStatusMap = Record<string, McpStatus>;
@@ -34,9 +34,9 @@ const toKey = (directory: string | null | undefined): string => normalizeDirecto
 const getMcpApiClient = (directory: string | null | undefined) => {
   const normalized = normalizeDirectory(directory);
   if (!normalized) {
-    return opencodeClient.getApiClient();
+    return agentClient.getApiClient();
   }
-  return opencodeClient.getScopedApiClient(normalized);
+  return agentClient.getScopedApiClient(normalized);
 };
 
 export const computeMcpHealth = (status: McpStatusMap | null | undefined): McpHealth => {
@@ -73,7 +73,7 @@ interface McpStore {
   disconnect: (name: string, directory?: string | null) => Promise<void>;
   startAuth: (name: string, directory?: string | null) => Promise<string>;
   /**
-   * OpenCode's native full OAuth flow: OpenCode opens the browser, receives
+   * OMP's native full OAuth flow: OMP opens the browser, receives
    * the callback on its own fixed loopback listener, and exchanges the code
    * itself. Resolves only when the whole flow finishes (minutes, not ms).
    */

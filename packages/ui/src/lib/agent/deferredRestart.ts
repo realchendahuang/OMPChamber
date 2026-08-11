@@ -1,7 +1,7 @@
 import {
-  usePendingOpenCodeRestartStore,
-  type PendingOpenCodeRestartScope,
-} from '@/stores/usePendingOpenCodeRestartStore';
+  usePendingOmpRestartStore,
+  type PendingOmpRestartScope,
+} from '@/stores/usePendingOmpRestartStore';
 
 export type ConfigMutationPayload = {
   requiresReload?: boolean;
@@ -24,11 +24,11 @@ export function isDeferredRestartPayload(payload: ConfigMutationPayload): boolea
   return payload.restartDeferred === true || (payload.requiresRestart === true && payload.requiresReload !== true);
 }
 
-export function recordDeferredOpenCodeRestart(
-  scope: PendingOpenCodeRestartScope,
+export function recordDeferredOmpRestart(
+  scope: PendingOmpRestartScope,
   options?: { id?: string; label?: string },
 ): void {
-  usePendingOpenCodeRestartStore.getState().recordChange({
+  usePendingOmpRestartStore.getState().recordChange({
     scope,
     id: options?.id,
     label: options?.label,
@@ -36,46 +36,46 @@ export function recordDeferredOpenCodeRestart(
 }
 
 /**
- * If the mutation response deferred the OpenCode restart, record it and return true.
+ * If the mutation response deferred the OMP restart, record it and return true.
  * Callers should skip immediate refresh overlays when this returns true.
  */
 export function noteDeferredRestartFromPayload(
   payload: ConfigMutationPayload,
-  scope: PendingOpenCodeRestartScope,
+  scope: PendingOmpRestartScope,
   options?: { id?: string; label?: string },
 ): boolean {
   if (!isDeferredRestartPayload(payload)) {
     return false;
   }
-  recordDeferredOpenCodeRestart(scope, options);
+  recordDeferredOmpRestart(scope, options);
   return true;
 }
 
-export async function applyPendingOpenCodeRestart(options?: {
+export async function applyPendingOmpRestart(options?: {
   message?: string;
 }): Promise<{ ok: boolean; requiresManualRestart?: boolean }> {
-  const store = usePendingOpenCodeRestartStore.getState();
+  const store = usePendingOmpRestartStore.getState();
   if (store.isApplying) {
     return { ok: false };
   }
 
   store.setApplying(true);
   try {
-    const { reloadOpenCodeConfiguration } = await import('@/stores/useAgentsStore');
-    await reloadOpenCodeConfiguration({
+    const { reloadOmpConfiguration } = await import('@/stores/useAgentsStore');
+    await reloadOmpConfiguration({
       message: options?.message,
       mode: 'projects',
       scopes: ['all'],
     });
-    usePendingOpenCodeRestartStore.getState().clear();
+    usePendingOmpRestartStore.getState().clear();
     return { ok: true };
   } catch (error) {
     if ((error as Error & { requiresManualRestart?: boolean })?.requiresManualRestart) {
       // Changes are already on disk; clear the badge after delivering manual-restart guidance.
-      usePendingOpenCodeRestartStore.getState().clear();
+      usePendingOmpRestartStore.getState().clear();
       return { ok: false, requiresManualRestart: true };
     }
-    usePendingOpenCodeRestartStore.getState().setApplying(false);
+    usePendingOmpRestartStore.getState().setApplying(false);
     throw error;
   }
 }

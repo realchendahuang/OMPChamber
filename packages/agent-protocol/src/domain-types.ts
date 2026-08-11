@@ -1,14 +1,14 @@
 /**
- * OMPChamber Domain Types — the OpenCode-shaped surface the UI consumes.
+ * OMPChamber Domain Types — the OMP-shaped surface the UI consumes.
  *
  * These types mirror the wire shapes the OMPChamber server exposes through
  * its HTTP adapter (`/api/session`, `/api/session/:id/message`, ...). They
  * are the single source of truth for the React UI: the UI MUST NOT import
- * harness types (OMP / OpenCode SDK). The server adapter normalizes OMP
+ * harness types (OMP / the former OpenCode SDK). The server adapter normalizes OMP
  * state into these shapes before anything is shown in the UI.
  *
  * This file is intentionally framework- and harness-agnostic. It is a
- * structural mirror of the OpenCode SDK v2 client types so the existing UI
+ * structural mirror of the historical OpenCode SDK v2 client types so the existing UI
  * keeps working unchanged while the engine behind it is OMP.
  */
 
@@ -899,7 +899,7 @@ export type SdkResult<T> = {
 };
 
 // ---------------------------------------------------------------------------
-// OpencodeClient — the client surface the UI consumes
+// AgentClient — the client surface the UI consumes
 // ---------------------------------------------------------------------------
 
 export type SseEvent = {
@@ -1460,7 +1460,7 @@ export type ExperimentalApi = {
  * The client surface the UI consumes. The server adapter implements these
  * endpoints; the UI never reaches for a harness-specific client.
  */
-export type OpencodeClient = {
+export type AgentClient = {
   session: SessionApi;
   global: GlobalApi;
   config: ConfigApi;

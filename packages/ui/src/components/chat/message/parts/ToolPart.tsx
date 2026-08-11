@@ -1867,7 +1867,7 @@ const ToolPartContent: React.FC<ToolPartProps> = ({
             return undefined;
         }
 
-        // Current OpenCode publishes this authoritative join while the Task is
+        // Current OMP publishes this authoritative join while the Task is
         // running. The remaining sources only support older persisted parts.
         const metadataSessionId = readTaskSessionIdFromRecord(metadata);
         if (metadataSessionId) {

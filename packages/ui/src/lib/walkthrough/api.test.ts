@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 // A server older than this client does not answer 404-with-JSON: unmatched
-// `/api/*` reaches the OpenCode proxy, and OpenCode serves its embedded web UI
+// `/api/*` reaches the OMP proxy, and OMP serves its embedded web UI
 // for any unknown path — HTML, status 200. These tests pin that the panel gets
 // an actionable code instead of a JSON parser error.
 
@@ -18,7 +18,7 @@ import type { WalkthroughSource } from './types';
 const SOURCE: WalkthroughSource = { kind: 'working-tree', scope: 'all' };
 
 const html = (status: number) =>
-  new Response('<!doctype html><html><body>OpenCode</body></html>', {
+  new Response('<!doctype html><html><body>OMP</body></html>', {
     status,
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   });

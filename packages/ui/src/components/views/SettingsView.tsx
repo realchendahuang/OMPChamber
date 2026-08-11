@@ -47,11 +47,11 @@ import { isWindowsArm64 as isWindowsArm64Platform } from '@/lib/platform';
 import { useI18n } from '@/lib/i18n';
 import { Icon } from "@/components/icon/Icon";
 import { McpIcon } from '@/components/icons/McpIcon';
-import { OpenCodeReloadFooterAction } from '@/components/views/OpenCodeReloadFooterAction';
+import { OmpReloadFooterAction } from '@/components/views/OmpReloadFooterAction';
 import {
-  selectPendingOpenCodeRestartCount,
-  usePendingOpenCodeRestartStore,
-} from '@/stores/usePendingOpenCodeRestartStore';
+  selectPendingOmpRestartCount,
+  usePendingOmpRestartStore,
+} from '@/stores/usePendingOmpRestartStore';
 import {
   SETTINGS_PAGE_METADATA,
   getSettingsNavIcon,
@@ -101,7 +101,7 @@ const pageOrder: SettingsPageSlug[] = [
   'remote-instances',
   'tunnel',
   'git',
-  // 'opencode' group — OpenCode
+  // 'omp' group — OMP
   'providers',
   'agents',
   'behavior',
@@ -115,7 +115,7 @@ const pageOrder: SettingsPageSlug[] = [
   'skills.catalog',
 ];
 
-const NAV_GROUP_ORDER = ['general', 'projects', 'opencode', 'content'] as const;
+const NAV_GROUP_ORDER = ['general', 'projects', 'omp', 'content'] as const;
 
 const ADD_PROVIDER_SETTINGS_ID = '__add_provider__';
 
@@ -179,7 +179,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
   const { t } = useI18n();
   const deviceInfo = useDeviceInfo();
   const isMobile = forceMobile ?? deviceInfo.isMobile;
-  const pendingRestartCount = usePendingOpenCodeRestartStore(selectPendingOpenCodeRestartCount);
+  const pendingRestartCount = usePendingOmpRestartStore(selectPendingOmpRestartCount);
 
   const settingsPageRaw = useUIStore((state) => state.settingsPage);
   const isSettingsDialogOpen = useUIStore((state) => state.isSettingsDialogOpen);
@@ -920,7 +920,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
         <div className="overflow-hidden transition-opacity duration-150 opacity-100">
           <div className="border-t border-border bg-background px-4 py-1.5 space-y-0.5 sm:bg-sidebar">
             {(!runtimeCtx.isVSCode || pendingRestartCount > 0) && (
-              <OpenCodeReloadFooterAction />
+              <OmpReloadFooterAction />
             )}
           </div>
         </div>

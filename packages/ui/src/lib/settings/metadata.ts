@@ -30,7 +30,7 @@ export type SettingsPageSlug =
 type SettingsPageGroup =
   | 'general'
   | 'projects'
-  | 'opencode'
+  | 'omp'
   | 'content';
 
 export interface SettingsRuntimeContext {
@@ -84,7 +84,7 @@ export const SETTINGS_PAGE_METADATA: readonly SettingsPageMeta[] = [
   {
     slug: 'providers',
     title: 'Providers',
-    group: 'opencode',
+    group: 'omp',
     kind: 'split',
     keywords: ['provider', 'providers', 'models', 'model', 'api key', 'api keys', 'openai', 'anthropic', 'ollama', 'credentials'],
   },
@@ -98,35 +98,35 @@ export const SETTINGS_PAGE_METADATA: readonly SettingsPageMeta[] = [
   {
     slug: 'agents',
     title: 'Agents',
-    group: 'opencode',
+    group: 'omp',
     kind: 'split',
     keywords: ['agent', 'agents', 'prompts', 'tools', 'permissions'],
   },
   {
     slug: 'behavior',
     title: 'Behavior',
-    group: 'opencode',
+    group: 'omp',
     kind: 'single',
     keywords: ['behavior', 'agents.md', 'system prompt', 'global rules', 'instructions', 'override'],
   },
   {
     slug: 'commands',
     title: 'Commands',
-    group: 'opencode',
+    group: 'omp',
     kind: 'split',
     keywords: ['command', 'commands', 'slash', 'macros', 'automation'],
   },
   {
     slug: 'mcp',
     title: 'MCP',
-    group: 'opencode',
+    group: 'omp',
     kind: 'split',
     keywords: ['mcp', 'model context protocol', 'servers', 'tools', 'remote', 'stdio'],
   },
   {
     slug: 'plugins',
     title: 'Plugins',
-    group: 'opencode',
+    group: 'omp',
     kind: 'split',
     keywords: ['plugin', 'plugins', 'extensions', 'addons', 'npm', 'opencode-wakatime'],
   },

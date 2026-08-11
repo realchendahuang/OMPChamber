@@ -64,7 +64,7 @@ import { GitHubPrPickerDialog } from '@/components/session/GitHubPrPickerDialog'
 import { Icon } from "@/components/icon/Icon";
 import { DraftPresetChips } from './DraftPresetChips';
 import { useChatSearchDirectory } from '@/hooks/useChatSearchDirectory';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import { useGitStore, useIsGitRepo } from '@/stores/useGitStore';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 import { useSkillsStore } from '@/stores/useSkillsStore';
@@ -599,7 +599,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
             return { sanitizedText: rawText, attachments: [] };
         }
 
-        const clientDirectory = opencodeClient.getDirectory() || '';
+        const clientDirectory = agentClient.getDirectory() || '';
         const root = (chatSearchDirectory || clientDirectory).replace(/\\/g, '/').replace(/\/+$/, '');
         const seenPaths = new Set<string>();
         const attachments: AttachedFile[] = [];
@@ -1005,7 +1005,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
         // the card instantly (optimistic) and formally rejects the question.
         // Rejecting unblocks the agent's tool but does NOT end its turn, so a
         // direct send would race with the still-active run and be silently
-        // discarded by the OpenCode runner. Instead we queue the message; the
+        // discarded by the OMP runner. Instead we queue the message; the
         // queued-message auto-send hook delivers it as the next turn once the
         // rejected turn winds down and the session returns to idle. This avoids
         // aborting the turn (which would surface an "aborted" notice).
@@ -1021,7 +1021,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
             // vanishes the card instantly (optimistic); rejecting unblocks the
             // agent's tool but does NOT end its turn, so a direct send would
             // race with the still-active run and be silently discarded by the
-            // OpenCode runner. Instead we queue; the queued-message auto-send
+            // OMP runner. Instead we queue; the queued-message auto-send
             // hook delivers it as the next turn once the rejected turn winds
             // down and the session returns to idle (parity with #1740).
             const [deniedPermissions, dismissedQuestions] = await Promise.all([
@@ -1133,7 +1133,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                 try {
                     await sessionActions.waitForConnectionOrThrow();
                     const compactDirectory = useSessionUIStore.getState().getDirectoryForSession(currentSessionId) || currentDirectory || undefined;
-                    await opencodeClient.summarizeSession(currentSessionId, currentProviderId, currentModelId, compactDirectory);
+                    await agentClient.summarizeSession(currentSessionId, currentProviderId, currentModelId, compactDirectory);
                 } catch (error) {
                     toast.error(getSubmitErrorMessage(error, t('chat.chatInput.toast.compactFailed')));
                 }
@@ -1360,7 +1360,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
         // instead of through the composer input — the collapsed mobile pill has
         // no mounted textarea to stage it in.
         const draft = (composerRef.current?.getValue() ?? messageRef.current).trim();
-        // OpenCode recognizes slash commands only when their arguments follow
+        // OMP recognizes slash commands only when their arguments follow
         // the command on the same line. Skills retain the multiline prompt form.
         const presetText = draft ? `${text}${type === 'command' ? ' ' : '\n'}${draft}` : text;
         void handleSubmitRef.current({ presetText });

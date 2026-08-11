@@ -31,7 +31,7 @@ export const AboutSettings: React.FC<AboutSettingsProps> = ({ initialUpdateDialo
   const [updateDialogOpen, setUpdateDialogOpen] = React.useState(initialUpdateDialogOpen);
   const [showChecking, setShowChecking] = React.useState(false);
   const [ompchamberVersion, setOMPChamberVersion] = React.useState<string | null>(null);
-  const [openCodeVersion, setOpenCodeVersion] = React.useState<string | null>(null);
+  const [ompVersion, setOmpVersion] = React.useState<string | null>(null);
   const updateStore = useUpdateStore(useShallow((s) => ({
     info: s.info,
     checking: s.checking,
@@ -79,7 +79,7 @@ export const AboutSettings: React.FC<AboutSettingsProps> = ({ initialUpdateDialo
   React.useEffect(() => {
     let cancelled = false;
 
-    const loadOpenCodeVersion = async () => {
+    const loadOmpVersion = async () => {
       try {
         const response = await runtimeFetch('/api/opencode/upgrade-status', {
           method: 'GET',
@@ -90,13 +90,13 @@ export const AboutSettings: React.FC<AboutSettingsProps> = ({ initialUpdateDialo
         const version = typeof data?.currentVersion === 'string' && data.currentVersion.trim().length > 0
           ? data.currentVersion.trim()
           : null;
-        if (!cancelled) setOpenCodeVersion(version);
+        if (!cancelled) setOmpVersion(version);
       } catch {
-        if (!cancelled) setOpenCodeVersion(null);
+        if (!cancelled) setOmpVersion(null);
       }
     };
 
-    void loadOpenCodeVersion();
+    void loadOmpVersion();
 
     return () => {
       cancelled = true;
@@ -134,7 +134,7 @@ export const AboutSettings: React.FC<AboutSettingsProps> = ({ initialUpdateDialo
           <h2 className={`mt-4 ${SETTINGS_BRAND_TITLE_CLASS}`}>OMPChamber</h2>
           <div className="mt-2 space-y-1 typography-ui text-muted-foreground">
             <p>{t('aboutDialog.ompchamberVersionLabel', { version: currentVersion })}</p>
-            <p>{t('aboutDialog.openCodeVersionLabel', { version: openCodeVersion || t('settings.ompchamber.about.state.unknown') })}</p>
+            <p>{t('aboutDialog.ompVersionLabel', { version: ompVersion || t('settings.ompchamber.about.state.unknown') })}</p>
           </div>
           <InstanceServiceUrls />
         </div>
@@ -238,8 +238,8 @@ export const AboutSettings: React.FC<AboutSettingsProps> = ({ initialUpdateDialo
             <span className="typography-meta text-muted-foreground font-mono">{currentVersion}</span>
           </div>
           <div className="flex min-w-0 flex-col">
-            <span className={SETTINGS_FIELD_LABEL_CLASS}>{t('settings.ompchamber.about.field.openCodeVersion')}</span>
-            <span className="typography-meta text-muted-foreground font-mono">{openCodeVersion || t('settings.ompchamber.about.state.unknown')}</span>
+            <span className={SETTINGS_FIELD_LABEL_CLASS}>{t('settings.ompchamber.about.field.ompVersion')}</span>
+            <span className="typography-meta text-muted-foreground font-mono">{ompVersion || t('settings.ompchamber.about.state.unknown')}</span>
           </div>
           
           <div className="flex items-center gap-3">

@@ -2,7 +2,7 @@ import React from 'react';
 import { useSessionUIStore } from '@/sync/session-ui-store';
 import { useSessionStatus, useSessionMessages, useSessionPermissions, useSessionQuestions } from '@/sync/sync-context';
 
-// Mirrors OpenCode SessionStatus: busy|retry|idle.
+// Mirrors OMP SessionStatus: busy|retry|idle.
 type SessionActivityPhase = 'idle' | 'busy' | 'retry';
 
 export interface SessionActivityResult {

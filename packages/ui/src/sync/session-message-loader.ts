@@ -1,4 +1,4 @@
-import type { Message, OpencodeClient, Part } from "@ompchamber/agent-protocol/domain-types"
+import type { Message, AgentClient, Part } from "@ompchamber/agent-protocol/domain-types"
 import type { ChildStoreManager, DirectoryStore } from "./child-store"
 import { Binary } from "./binary"
 import { retry } from "./retry"
@@ -67,7 +67,7 @@ type LoadPerformanceDetails = {
 }
 
 type LoaderConfiguration = {
-  sdk: OpencodeClient
+  sdk: AgentClient
   runtimeKey: string
 }
 
@@ -128,7 +128,7 @@ const createDefaultState = (generation = 0): SessionMessageLoadState => ({
 export const EMPTY_SESSION_MESSAGE_LOAD_STATE = createDefaultState()
 
 export class SessionMessageLoader {
-  private sdk: OpencodeClient
+  private sdk: AgentClient
   private runtimeKey: string
   private sdkEpoch = 0
   private disposed = false

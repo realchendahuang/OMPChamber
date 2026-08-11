@@ -70,8 +70,8 @@ mock.module("@/stores/utils/safeStorage", () => ({
   }),
 }))
 
-mock.module("@/lib/opencode/client", () => ({
-  opencodeClient: {
+mock.module("@/lib/agent/client", () => ({
+  agentClient: {
     getDirectory: () => null,
     setDirectory: mock(() => undefined),
   },

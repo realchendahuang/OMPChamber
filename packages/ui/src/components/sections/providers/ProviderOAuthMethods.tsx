@@ -12,7 +12,7 @@ import { useI18n, type I18nKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { copyTextToClipboard } from '@/lib/clipboard';
 import { openExternalUrl } from '@/lib/url';
-import { opencodeClient } from '@/lib/opencode/client';
+import { agentClient } from '@/lib/agent/client';
 import {
   collectPromptInputs,
   defaultPromptValues,
@@ -26,7 +26,7 @@ import {
 } from './provider-oauth';
 
 export interface ProviderOAuthMethod {
-  /** Index into the provider's full auth-method list, which is what OpenCode's `method` parameter addresses. */
+  /** Index into the provider's full auth-method list, which is what OMP's `method` parameter addresses. */
   index: number;
   label: string;
   prompts?: unknown;
@@ -104,7 +104,7 @@ export const ProviderOAuthMethods: React.FC<ProviderOAuthMethodsProps> = ({
     callbackAbortRef.current = controller;
 
     try {
-      const result = await opencodeClient.getSdkClient().provider.oauth.callback(
+      const result = await agentClient.getSdkClient().provider.oauth.callback(
         {
           providerID: providerId,
           method: methodIndex,
@@ -144,7 +144,7 @@ export const ProviderOAuthMethods: React.FC<ProviderOAuthMethodsProps> = ({
 
     let authorization: OAuthAuthorization;
     try {
-      const result = await opencodeClient.getSdkClient().provider.oauth.authorize({
+      const result = await agentClient.getSdkClient().provider.oauth.authorize({
         providerID: providerId,
         method: methodIndex,
         ...(Object.keys(inputs).length > 0 ? { inputs } : {}),

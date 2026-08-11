@@ -15,7 +15,7 @@ import type {
   Agent,
   TextPartInput,
   FilePartInput,
-  OpencodeClient,
+  AgentClient,
 } from "@ompchamber/agent-protocol/domain-types";
 import { isAmbiguousTransportFailure, markAmbiguousTransportFailure } from "@/lib/relay/transport-error";
 import { FilesystemError, parseFilesystemErrorReason } from "@/lib/api/files-errors";
@@ -23,7 +23,7 @@ import type { PermissionRequest } from "@/types/permission";
 import type { QuestionRequest } from "@/types/question";
 
 /**
- * Tagged result of `OpencodeService.fetchPermission()`. The caller can
+ * Tagged result of `OmpService.fetchPermission()`. The caller can
  * distinguish a server-confirmed "no longer pending" permission (HTTP
  * 404) from a fetch failure (network error, malformed response, or a
  * pre-v1.17.12 server without the V2 endpoint).
@@ -47,7 +47,7 @@ import {
 // Can be overridden with VITE_OPENCODE_URL for absolute URLs in special deployments
 const DEFAULT_BASE_URL = import.meta.env.VITE_OPENCODE_URL || "/api";
 const CONFIG_CACHE_TTL_MS = 10_000;
-const OPENCODE_HEALTH_TIMEOUT_MS = 4_000;
+const OMP_HEALTH_TIMEOUT_MS = 4_000;
 
 /**
  * Render an SDK error payload into a short string for Error messages.
@@ -156,7 +156,7 @@ const ensureAbsoluteBaseUrl = (candidate: string): string => {
   try {
     return new URL(normalized, baseReference).toString();
   } catch (error) {
-    console.warn("Failed to normalize OpenCode base URL:", error);
+    console.warn("Failed to normalize OMP base URL:", error);
     return normalized;
   }
 };
@@ -189,7 +189,7 @@ const createTimeoutSignal = (timeoutMs: number): { signal: AbortSignal; cleanup:
   };
 };
 
-const createRuntimeOpencodeClient = (config: { baseUrl: string; directory?: string }): OpencodeClient => {
+const createRuntimeAgentClient = (config: { baseUrl: string; directory?: string }): AgentClient => {
   return createDomainClient({
     ...config,
   });
@@ -253,10 +253,10 @@ const getDesktopFilesApi = (): FilesAPI | null => {
   return null;
 };
 
-class OpencodeService {
-  private client: OpencodeClient;
+class OmpService {
+  private client: AgentClient;
   private baseUrl: string;
-  private scopedClients: Map<string, OpencodeClient> = new Map();
+  private scopedClients: Map<string, AgentClient> = new Map();
   private currentDirectory: string | undefined = undefined;
   private directoryContextQueue: Promise<void> = Promise.resolve();
   private listDirectoryInFlight: Map<string, Promise<FilesystemEntry[]>> = new Map();
@@ -271,7 +271,7 @@ class OpencodeService {
     const runtimeBase = resolveRuntimeBaseUrl();
     const requestedBaseUrl = runtimeBase || baseUrl;
     this.baseUrl = ensureAbsoluteBaseUrl(requestedBaseUrl);
-    this.client = createRuntimeOpencodeClient({ baseUrl: this.baseUrl });
+    this.client = createRuntimeAgentClient({ baseUrl: this.baseUrl });
   }
 
   private assertRuntimeUnchanged(runtimeKey?: string): void {
@@ -291,7 +291,7 @@ class OpencodeService {
       return;
     }
     this.baseUrl = nextBaseUrl;
-    this.client = createRuntimeOpencodeClient({ baseUrl: this.baseUrl });
+    this.client = createRuntimeAgentClient({ baseUrl: this.baseUrl });
     this.scopedClients.clear();
     this.listDirectoryInFlight.clear();
     this.configProvidersInFlight.clear();
@@ -301,12 +301,12 @@ class OpencodeService {
   }
 
   /** Expose the raw SDK client for direct use (e.g., SyncProvider) */
-  getSdkClient(): OpencodeClient {
+  getSdkClient(): AgentClient {
     return this.client;
   }
 
   /** Get a scoped SDK client for a specific directory */
-  getScopedSdkClient(directory: string): OpencodeClient {
+  getScopedSdkClient(directory: string): AgentClient {
     return this.getScopedApiClient(directory);
   }
 
@@ -314,14 +314,14 @@ class OpencodeService {
    * Returns an SDK client scoped to a project directory.
    * Needed for worktree APIs where backend ignores per-call directory.
    */
-  getScopedApiClient(directory: string): OpencodeClient {
+  getScopedApiClient(directory: string): AgentClient {
     const normalized = this.normalizeCandidatePath(directory) ?? directory;
     const key = normalized || '';
     const existing = this.scopedClients.get(key);
     if (existing) {
       return existing;
     }
-    const scoped = createRuntimeOpencodeClient({ baseUrl: this.baseUrl, directory: normalized });
+    const scoped = createRuntimeAgentClient({ baseUrl: this.baseUrl, directory: normalized });
     this.scopedClients.set(key, scoped);
     return scoped;
   }
@@ -394,7 +394,7 @@ class OpencodeService {
   setDirectory(directory: string | undefined) {
     const normalized = this.normalizeCandidatePath(directory) ?? directory;
     if (this.currentDirectory !== normalized) {
-      markStartupTrace('opencodeClient:setDirectory', {
+      markStartupTrace('agentClient:setDirectory', {
         previous: this.currentDirectory ?? null,
         next: normalized ?? null,
       });
@@ -434,7 +434,7 @@ class OpencodeService {
   }
 
   // Get the raw API client for direct access
-  getApiClient(): OpencodeClient {
+  getApiClient(): AgentClient {
     return this.client;
   }
 
@@ -506,7 +506,7 @@ class OpencodeService {
   }
 
   /**
-   * Best-effort probe whether a directory is accessible to OpenCode.
+   * Best-effort probe whether a directory is accessible to OMP.
    * This is intentionally NOT the same as local filesystem access in the UI runtime.
    */
   async probeDirectory(directory: string): Promise<boolean> {
@@ -1171,7 +1171,7 @@ class OpencodeService {
   /**
    * Programmatically evaluate and (when approval is required) create a
    * permission request for a session via the V2 endpoint introduced in
-   * OpenCode SDK v1.17.12. Wraps `session.permission.create`.
+   * OpenCode SDK v1.17.12 (shape retained). Wraps `session.permission.create`.
    *
    * Returns `{ id, effect }` on success, or `null` on any failure
    * (network error, 4xx/5xx response, malformed payload, or pre-v1.17.12
@@ -1218,7 +1218,7 @@ class OpencodeService {
 
   /**
    * Fetch a pending permission request owned by a session via the V2
-   * endpoint introduced in OpenCode SDK v1.17.12. Wraps
+   * endpoint introduced in OpenCode SDK v1.17.12 (shape retained). Wraps
    * `session.permission.get`.
    *
    * Returns a tagged `FetchPermissionResult` so the caller can distinguish
@@ -1418,25 +1418,25 @@ class OpencodeService {
     const key = effectiveDirectory ?? '';
     const cached = this.configCache.get(key);
     if (cached && cached.expiresAt > Date.now()) {
-      markStartupTrace('opencodeClient.getConfig:cacheHit', { directory: effectiveDirectory ?? null });
+      markStartupTrace('agentClient.getConfig:cacheHit', { directory: effectiveDirectory ?? null });
       return cached.config;
     }
 
     const existing = this.configInFlight.get(key);
     if (existing) {
-      markStartupTrace('opencodeClient.getConfig:deduped', { directory: effectiveDirectory ?? null });
+      markStartupTrace('agentClient.getConfig:deduped', { directory: effectiveDirectory ?? null });
       return existing;
     }
 
     const generation = this.configCacheGeneration;
     const request = (async () => {
-      markStartupTrace('opencodeClient.getConfig:start', { directory: effectiveDirectory ?? null });
+      markStartupTrace('agentClient.getConfig:start', { directory: effectiveDirectory ?? null });
       const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
       const scopedClient = effectiveDirectory ? this.getScopedApiClient(effectiveDirectory) : this.client;
       const response = await scopedClient.config.get();
       if (!response.data) throw new Error('Failed to get config');
       const ended = typeof performance !== 'undefined' ? performance.now() : Date.now();
-      markStartupTrace('opencodeClient.getConfig:end', {
+      markStartupTrace('agentClient.getConfig:end', {
         directory: effectiveDirectory ?? null,
         durationMs: Math.round(ended - started),
       });
@@ -1560,7 +1560,7 @@ class OpencodeService {
         return response.data;
       }
 
-      // SDK gap / endpoint drift: current OpenCode exposes the authoritative
+      // SDK gap / endpoint drift: current OMP exposes the authoritative
       // agent list at /agent, while app.agents can be empty on some runtimes.
       const fallbackResponse = await runtimeFetch('/api/agent', {
         ...(effectiveDirectory ? { query: { directory: effectiveDirectory } } : {}),
@@ -1712,16 +1712,16 @@ class OpencodeService {
       const healthUrl = normalizedBase === '/api' || normalizedBase.endsWith('/api')
         ? '/api/opencode/health'
         : `${normalizedBase}/opencode/health`;
-      markStartupTrace('opencodeClient.checkHealth:url', { baseUrl: this.baseUrl, healthUrl });
-      const timeout = createTimeoutSignal(OPENCODE_HEALTH_TIMEOUT_MS);
+      markStartupTrace('agentClient.checkHealth:url', { baseUrl: this.baseUrl, healthUrl });
+      const timeout = createTimeoutSignal(OMP_HEALTH_TIMEOUT_MS);
       const response = await runtimeFetch(healthUrl, { signal: timeout.signal }).finally(timeout.cleanup);
-      markStartupTrace('opencodeClient.checkHealth:response', { status: response.status });
+      markStartupTrace('agentClient.checkHealth:response', { status: response.status });
       if (!response.ok) {
         return false;
       }
 
       const healthData = await response.json();
-      markStartupTrace('opencodeClient.checkHealth:result', { healthy: healthData?.healthy });
+      markStartupTrace('agentClient.checkHealth:result', { healthy: healthData?.healthy });
 
       return healthData?.healthy === true;
     } catch {
@@ -1973,14 +1973,14 @@ class OpencodeService {
     }
   }
 
-  async setOpenCodeWorkingDirectory(directoryPath: string | null | undefined): Promise<DirectorySwitchResult | null> {
+  async setOmpWorkingDirectory(directoryPath: string | null | undefined): Promise<DirectorySwitchResult | null> {
     if (!directoryPath || typeof directoryPath !== 'string' || !directoryPath.trim()) {
-      console.warn('[OpencodeClient] setOpenCodeWorkingDirectory: invalid path', directoryPath);
+      console.warn('[AgentClient] setOmpWorkingDirectory: invalid path', directoryPath);
       return null;
     }
 
     const url = `${this.baseUrl}/opencode/directory`;
-    console.log('[OpencodeClient] POST', url, 'with path:', directoryPath);
+    console.log('[AgentClient] POST', url, 'with path:', directoryPath);
 
     try {
       const response = await runtimeFetch(url, {
@@ -1998,7 +1998,7 @@ class OpencodeService {
         const message =
           typeof error.error === 'string' && error.error.length > 0
             ? error.error
-            : 'Failed to update OpenCode working directory';
+            : 'Failed to update OMP working directory';
         throw new Error(message);
       }
 
@@ -2012,13 +2012,13 @@ class OpencodeService {
         path: directoryPath
       };
     } catch (error) {
-      console.warn('Failed to update OpenCode working directory:', error);
+      console.warn('Failed to update OMP working directory:', error);
       throw error;
     }
   }
 }
 
 // Exported singleton instance
-export const opencodeClient = new OpencodeService();
+export const agentClient = new OmpService();
 
 // Exported types
