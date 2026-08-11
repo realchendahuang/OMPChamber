@@ -1336,36 +1336,34 @@ async function main(options = {}) {
     runtimeName: process.env.OMPCHAMBER_RUNTIME || 'web',
     serverStartedAt,
     gracefulShutdown,
-    getHealthSnapshot: () => {
-      const launchSpec = resolvedOpencodeBinary && !useWslForOpencode
-        ? resolveManagedOpenCodeLaunchSpec(resolvedOpencodeBinary)
-        : null;
-      return {
-        openCodePort,
-        openCodeRunning: Boolean(openCodePort && isOpenCodeReady && !isRestartingOpenCode),
-        openCodeSecureConnection: isOpenCodeConnectionSecure(),
-        openCodeAuthSource: openCodeAuthSource || null,
-        openCodeApiPrefix: '',
-        openCodeApiPrefixDetected: true,
-        isOpenCodeReady,
-        lastOpenCodeError,
-        lastOpenCodeLaunchDiagnostics,
-        opencodeBinaryResolved: resolvedOpencodeBinary || null,
-        opencodeBinarySource: resolvedOpencodeBinarySource || null,
-        opencodeLaunchBinary: launchSpec?.binary || null,
-        opencodeLaunchArgs: launchSpec?.args || [],
-        opencodeLaunchWrapperType: launchSpec?.wrapperType || null,
-        opencodeViaWsl: useWslForOpencode,
-        opencodeWslBinary: resolvedWslBinary || null,
-        opencodeWslPath: resolvedWslOpencodePath || null,
-        opencodeWslDistro: resolvedWslDistro || null,
-        nodeBinaryResolved: resolvedNodeBinary || null,
-        bunBinaryResolved: resolvedBunBinary || null,
-        desktopNotifyEnabled: ENV_DESKTOP_NOTIFY,
-        planModeExperimentalEnabled: PLAN_MODE_EXPERIMENT_ENABLED,
-        apiOnly,
-      };
-    },
+    getHealthSnapshot: () => ({
+      // OpenCode-shaped health fields are kept for UI compatibility; the OMP
+      // engine is always "ready" once the server is up and there is no
+      // upstream OpenCode process to report.
+      openCodePort: null,
+      openCodeRunning: true,
+      openCodeSecureConnection: false,
+      openCodeAuthSource: null,
+      openCodeApiPrefix: '',
+      openCodeApiPrefixDetected: true,
+      isOpenCodeReady: true,
+      lastOpenCodeError: null,
+      lastOpenCodeLaunchDiagnostics: null,
+      opencodeBinaryResolved: null,
+      opencodeBinarySource: null,
+      opencodeLaunchBinary: null,
+      opencodeLaunchArgs: [],
+      opencodeLaunchWrapperType: null,
+      opencodeViaWsl: false,
+      opencodeWslBinary: null,
+      opencodeWslPath: null,
+      opencodeWslDistro: null,
+      nodeBinaryResolved: null,
+      bunBinaryResolved: null,
+      desktopNotifyEnabled: ENV_DESKTOP_NOTIFY,
+      planModeExperimentalEnabled: PLAN_MODE_EXPERIMENT_ENABLED,
+      apiOnly,
+    }),
     // Port this instance serves on and the active tunnel's public URL (if
     // any), for /api/system/info. Resolved lazily because the tunnel runtime
     // is created after these base routes are registered.
