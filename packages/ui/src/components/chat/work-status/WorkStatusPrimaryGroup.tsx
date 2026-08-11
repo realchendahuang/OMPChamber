@@ -10,6 +10,8 @@ import { useUIStore } from '@/stores/useUIStore';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { normalizeProjectPath } from '@/lib/projectResolution';
 import { resolveUsageTone } from '@/lib/quota';
+import { sessionEvents } from '@/lib/sessionEvents';
+import { normalizePath } from '@/lib/pathNormalization';
 import { computeContextUsage } from './contextUsage';
 import {
   WorkStatusCallout,
@@ -49,6 +51,8 @@ export const WorkStatusPrimaryGroup: React.FC<Props> = ({ sessionId, directory, 
   const session = useSession(sessionId ?? '', directory ?? undefined);
   const { git } = useRuntimeAPIs();
   const ensureStatus = useGitStore((state) => state.ensureStatus);
+  const fetchStatus = useGitStore((state) => state.fetchStatus);
+  const clearDiffCache = useGitStore((state) => state.clearDiffCache);
 
   const gitStatus = useGitStore(
     React.useCallback(
@@ -60,9 +64,24 @@ export const WorkStatusPrimaryGroup: React.FC<Props> = ({ sessionId, directory, 
   // Warm the shared git cache through the background-network gate so the panel
   // never competes with the chat's own bootstrap traffic for sockets.
   React.useEffect(() => {
-    if (!directory || !git) return;
+    if (!showRepository || !directory || !git) return;
     void runBackgroundNetworkTask(() => ensureStatus(directory, git));
-  }, [directory, git, ensureStatus]);
+  }, [directory, git, ensureStatus, showRepository]);
+
+  // Own the live invalidation for the repository readout. The desktop
+  // composer's changed-files row no longer renders, so this panel must not
+  // depend on ChatInput (or an opened Git surface) to refresh the shared cache
+  // on its behalf.
+  React.useEffect(() => {
+    if (!showRepository || !directory || !git) return;
+    return sessionEvents.onGitRefreshHint((hint) => {
+      if (normalizePath(hint.directory) !== normalizePath(directory)) return;
+      if (hint.paths?.length) {
+        clearDiffCache(directory, hint.paths);
+      }
+      void fetchStatus(directory, git, { silent: true });
+    });
+  }, [clearDiffCache, directory, fetchStatus, git, showRepository]);
 
   const branch = gitStatus?.current?.trim() || null;
 

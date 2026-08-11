@@ -25,6 +25,8 @@ It is **not** a context-panel surface. It is not registered in
 `lib/surfaces/registry.ts`, has no rail icon, no tab, no persisted width and no
 resizer. It is a card floating inside the chat column — rounded border, faint
 fill, its own margin — rather than a docked pane flush against the window edge.
+When it overlays the transcript, it uses the shared `oc-glass-panel` surface;
+the inline card keeps its lighter, non-blurred fill instead.
 
 ## Placement
 
@@ -85,7 +87,7 @@ endpoint and no polling of its own.
 | Block | Source | Notes |
 |---|---|---|
 | Context + cost | `contextUsage.ts` over `useSessionMessages`, `Session.cost` | see below — the store getters cannot serve this |
-| Branch, ahead/behind, attention | `useGitStore` directory state | warmed via `runBackgroundNetworkTask(ensureStatus)` |
+| Branch, ahead/behind, attention | `useGitStore` directory state | warmed via `runBackgroundNetworkTask(ensureStatus)` and refreshed from Git mutation hints |
 | Changed files | `useGitStore` status `files` + `diffStats` | working tree, not session-authored edits |
 | PR + checks | `usePrVisualSummary` | **read-only** |
 | Subagents | child sessions from `useAllLiveSessions` (`parentID`) + `useAllSessionStatuses` | |
@@ -200,6 +202,11 @@ An empty card is a border around a settings icon, which reads as a fault. Each
 section decides for itself that it has nothing to say, so they report through
 `presenceContext.ts` and the panel collapses when none rendered. Deriving that
 at the panel level would mean duplicating every data source the sections read.
+
+There is one deliberate exception: when the user hides every section, the card
+stays visible with a localized empty state and section controls. Collapsing that
+state would also hide the only recovery path. A panel with enabled sections but
+no data still follows the presence reports and collapses as before.
 
 The scroll offset resets on session change: restoring one session's offset into
 another's shorter panel lands somewhere arbitrary.
@@ -325,6 +332,11 @@ The panel now performs these itself, silently and through the
 background-network gate, so it cannot compete with chat bootstrap traffic for
 sockets. A panel that reports a subsystem's state cannot depend on an unrelated
 component having been mounted or opened.
+
+The repository section follows the same ownership rule. It subscribes directly
+to `sessionEvents` Git refresh hints and refreshes its directory's shared Git
+cache, rather than relying on the composer's former changed-files row or on the
+Git context surface being opened first.
 
 ## Persisted panel state
 

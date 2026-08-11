@@ -1472,11 +1472,19 @@ async function main(options = {}) {
     // Relay demand = any paired device or pending pairing session that uses the
     // relay transport. Drives the auto on/off lifecycle.
     hasRelayDemand: async () => {
-      const [pendingRelay, deviceRelay] = await Promise.all([
-        clientPairingRuntime.hasActiveRelaySession().catch(() => false),
-        remoteClientAuthRuntime.hasActiveRelayClients().catch(() => false),
+      // A store read failure must NOT masquerade as "no demand": reconcile
+      // persists enabled=false and severs paired devices. Any affirmative
+      // answer wins; otherwise a failed check aborts reconcile (throw) so the
+      // relay keeps its current state until a trustworthy read succeeds.
+      const [pendingRelay, deviceRelay] = await Promise.allSettled([
+        clientPairingRuntime.hasActiveRelaySession(),
+        remoteClientAuthRuntime.hasActiveRelayClients(),
       ]);
-      return pendingRelay || deviceRelay;
+      if (pendingRelay.status === 'fulfilled' && pendingRelay.value) return true;
+      if (deviceRelay.status === 'fulfilled' && deviceRelay.value) return true;
+      if (pendingRelay.status === 'rejected') throw pendingRelay.reason;
+      if (deviceRelay.status === 'rejected') throw deviceRelay.reason;
+      return false;
     },
   });
   relayServiceInstance = relayService;
@@ -1615,7 +1623,7 @@ async function main(options = {}) {
     expressApp: app,
     httpServer: server,
     getPort: () => tunnelRuntimeContext.getActivePort(),
-    getOpenCodePort: () => openCodePort,
+    getOpenCodePort: () => null,
     getTunnelUrl: () => tunnelService.getPublicUrl(),
     getQuitRiskStatus: () => ({
       tunnel: {
@@ -1623,22 +1631,16 @@ async function main(options = {}) {
       },
       scheduledTasks: scheduledTasksRuntime.getStatus(),
     }),
-    isReady: () => isOpenCodeReady,
+    isReady: () => true,
     restartOpenCode: () => restartOpenCode(),
-    getOpenCodeProcessInfo: () => {
-      const managed = Boolean((openCodeProcess || openCodePort) && !ENV_SKIP_OPENCODE_START && !isExternalOpenCode);
-      // Only ever expose pid/port for a server WE manage. The Electron-side
-      // killer kills by port (lsof + kill -KILL), so returning a port we don't
-      // own — e.g. an external/desktop OpenCode on 4096 we attached to — would
-      // let a single miscomputed `managed` flag take down the user's separate
-      // server. Structurally withhold what isn't ours so the killer has no
-      // target, instead of relying on the flag check alone.
-      return {
-        managed,
-        pid: managed && typeof openCodeProcess?.pid === 'number' ? openCodeProcess.pid : null,
-        port: managed ? openCodePort : null,
-      };
-    },
+    getOpenCodeProcessInfo: () => ({
+      // The OMP engine runs in-process; there is no managed OpenCode process
+      // to expose. Structurally withhold pid/port so the Electron-side killer
+      // has no target.
+      managed: false,
+      pid: null,
+      port: null,
+    }),
     stop: (shutdownOptions = {}) => {
       realtimeProxyRuntime.stop();
       clearInterval(relayReconcileTimer);

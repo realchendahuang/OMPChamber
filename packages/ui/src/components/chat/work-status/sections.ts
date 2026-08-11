@@ -49,6 +49,32 @@ export const isWorkStatusSectionVisible = (
   id: WorkStatusSectionId,
 ): boolean => !hidden?.includes(id);
 
+/**
+ * True when every known section id appears in the hidden set.
+ *
+ * Uses `.every()` instead of a length comparison so that stale ids left over
+ * from a removed section cannot inflate the count past the current list length.
+ */
+export const areAllWorkStatusSectionsHidden = (
+  hidden: readonly string[] | null | undefined,
+): boolean =>
+  hidden != null && WORK_STATUS_SECTION_IDS.every((id) => hidden.includes(id));
+
+export const getWorkStatusPanelPresentation = ({
+  visible,
+  contentMounted,
+  renderedSections,
+  allSectionsHidden,
+}: {
+  visible: boolean;
+  contentMounted: boolean;
+  renderedSections: number;
+  allSectionsHidden: boolean;
+}): { interactive: boolean; showEmptyState: boolean } => ({
+  interactive: visible && (renderedSections > 0 || allSectionsHidden),
+  showEmptyState: contentMounted && allSectionsHidden,
+});
+
 export const sanitizeWorkStatusHiddenSections = (value: unknown): WorkStatusSectionId[] => {
   if (!Array.isArray(value)) return [];
   const seen = new Set<WorkStatusSectionId>();

@@ -138,13 +138,16 @@ export const createRemoteClientAuthRuntime = ({ fsPromises, path, crypto, storeP
   };
 
   // Relay-transport demand from paired devices: any non-revoked, non-expired
-  // client that was paired over the relay.
+  // client that was paired over the relay OR was actually observed connecting
+  // through the relay tunnel (lastTransport). The observed transport is the
+  // authoritative signal — it covers records written before usesRelay existed
+  // and devices re-paired via a QR that carried no relay candidate.
   const hasActiveRelayClients = async () => {
     return withStoreMutation(async () => {
       const store = await readStore();
       const now = Date.now();
       return store.clients.some((client) => {
-        if (client.usesRelay !== true) return false;
+        if (client.usesRelay !== true && client.lastTransport !== 'relay') return false;
         if (client.revokedAt) return false;
         const expires = Date.parse(client.expiresAt || '');
         return !Number.isFinite(expires) || expires > now;
@@ -247,9 +250,15 @@ export const createRemoteClientAuthRuntime = ({ fsPromises, path, crypto, storeP
       if (client.expiresAt && Date.parse(client.expiresAt) <= Date.now()) return null;
       const now = Date.now();
       const lastUsedAt = Date.parse(client.lastUsedAt || '');
+      // Self-heal the paired-over-relay flag from the authoritative signal: a
+      // request that arrived through the tunnel proves this device uses the
+      // relay, regardless of what the pairing-time snapshot recorded. Sticky on
+      // purpose — a later LAN request must not turn the relay host off again.
+      const healUsesRelay = transport === 'relay' && client.usesRelay !== true;
+      if (healUsesRelay) client.usesRelay = true;
       // Write on the throttle interval — or immediately when the transport
       // changed, so a LAN⇄relay switch is visible right away, not a minute late.
-      if (!Number.isFinite(lastUsedAt) || now - lastUsedAt >= LAST_USED_WRITE_INTERVAL_MS || client.lastTransport !== transport) {
+      if (healUsesRelay || !Number.isFinite(lastUsedAt) || now - lastUsedAt >= LAST_USED_WRITE_INTERVAL_MS || client.lastTransport !== transport) {
         client.lastUsedAt = new Date(now).toISOString();
         client.lastTransport = transport;
         await writeStore(store);

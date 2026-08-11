@@ -5,7 +5,7 @@ declare global {
     __OMPCHAMBER_HOME__?: string;
     __OMPCHAMBER_MACOS_MAJOR__?: number;
     __OMPCHAMBER_LOCAL_ORIGIN__?: string;
-    __OMPCHAMBER_ELECTRON__?: { runtime?: string; arch?: string; macVibrancy?: boolean; macVibrancySupported?: boolean; trayEnabled?: boolean };
+    __OMPCHAMBER_ELECTRON__?: { runtime?: string; arch?: string; trayEnabled?: boolean };
     __OMPCHAMBER_PLATFORM__?: string;
     __OMPCHAMBER_DESKTOP_BOOT_OUTCOME__?: DesktopBootOutcome;
   }

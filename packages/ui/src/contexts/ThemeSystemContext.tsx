@@ -347,9 +347,7 @@ export function ThemeSystemProvider({ children, defaultThemeId }: ThemeSystemPro
     if (typeof document === 'undefined') {
       return;
     }
-    const hasMacVibrancy = document.documentElement.hasAttribute('data-oc-vibrancy')
-      || window.__OMPCHAMBER_ELECTRON__?.macVibrancy === true;
-    const chromeColor = hasMacVibrancy ? 'transparent' : theme.colors.surface.background;
+    const chromeColor = theme.colors.surface.background;
 
     document.body.style.backgroundColor = chromeColor;
 
@@ -546,18 +544,18 @@ export function ThemeSystemProvider({ children, defaultThemeId }: ThemeSystemPro
     }
 
     const scopedWindow = window as unknown as {
-      __ompchamberApplyThemeSync?: (payload: ThemeSyncPayload) => void;
+      __openchamberApplyThemeSync?: (payload: ThemeSyncPayload) => void;
     };
 
-    scopedWindow.__ompchamberApplyThemeSync = applyIncomingThemeSync;
+    scopedWindow.__openchamberApplyThemeSync = applyIncomingThemeSync;
 
     if (receivesParentThemeSync && window.parent !== window) {
       window.parent.postMessage({ type: 'ompchamber:theme-sync-request' }, window.location.origin);
     }
 
     return () => {
-      if (scopedWindow.__ompchamberApplyThemeSync === applyIncomingThemeSync) {
-        delete scopedWindow.__ompchamberApplyThemeSync;
+      if (scopedWindow.__openchamberApplyThemeSync === applyIncomingThemeSync) {
+        delete scopedWindow.__openchamberApplyThemeSync;
       }
     };
   }, [applyIncomingThemeSync, receivesParentThemeSync]);

@@ -336,7 +336,7 @@ const DesktopServicesMenu = React.memo(function DesktopServicesMenu({
       </Tooltip>
       <DropdownMenuContent
         align="end"
-        className="w-[min(27rem,calc(100vw-2rem))] max-h-[75vh] overflow-y-auto bg-[var(--surface-elevated)] p-0"
+        className="w-[min(27rem,calc(100vw-2rem))] max-h-[75vh] overflow-y-auto p-0"
       >
         {isDesktopApp ? (
           <div>
