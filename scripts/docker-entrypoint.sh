@@ -3,8 +3,23 @@ set -eu
 
 HOME="/home/ompchamber"
 
+# The server still reads the legacy OPENCODE_CONFIG_DIR name
+# (packages/web/server/lib/ompchamber/shared.js).
 OPENCODE_CONFIG_DIR="${OPENCODE_CONFIG_DIR:-${HOME}/.config/opencode}"
 export OPENCODE_CONFIG_DIR
+
+# The web CLI's serve preflight still resolves the agent binary via
+# OPENCODE_BINARY (packages/web/bin/cli.js) while the server launches the OMP
+# engine via OMP_BINARY (packages/web/server/index.js). Point both at the OMP
+# CLI installed in the image.
+if [ -z "${OMP_BINARY:-}" ] && command -v omp >/dev/null 2>&1; then
+  OMP_BINARY="$(command -v omp)"
+  export OMP_BINARY
+fi
+if [ -z "${OPENCODE_BINARY:-}" ] && [ -n "${OMP_BINARY:-}" ]; then
+  OPENCODE_BINARY="${OMP_BINARY}"
+  export OPENCODE_BINARY
+fi
 
 SSH_DIR="${HOME}/.ssh"
 SSH_PRIVATE_KEY_PATH="${SSH_DIR}/id_ed25519"
@@ -50,19 +65,9 @@ if [ -n "${OMPCHAMBER_UI_PASSWORD:-}" ]; then
   echo "[entrypoint] UI password set, enabling authentication"
 fi
 
-if [ "${OH_MY_OPENCODE:-false}" = "true" ]; then
-  OMO_CONFIG_FILE="${OPENCODE_CONFIG_DIR}/oh-my-opencode.json"
-
-  if [ ! -f "${OMO_CONFIG_FILE}" ]; then
-    echo "[entrypoint] npm installing oh-my-opencode..."
-    npm install -g oh-my-opencode
-
-    OMO_INSTALL_ARGS="--no-tui --claude=no --openai=no --gemini=no --copilot=no --opencode-zen=no --zai-coding-plan=no --kimi-for-coding=no --skip-auth"
-
-    echo "[entrypoint] oh-my-opencode installing..."
-    oh-my-opencode install ${OMO_INSTALL_ARGS}
-  fi
-fi
+# The oh-my-opencode plugin installer was removed: it targets the OpenCode
+# backend and cannot work with the OMP engine. Configure OMP extensions
+# through the OMP CLI's own config instead.
 
 # Docker containers need to listen on all interfaces for port mapping to work.
 OMPCHAMBER_HOST="${OMPCHAMBER_HOST:-0.0.0.0}"

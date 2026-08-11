@@ -10,9 +10,12 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./data/ompchamber:/home/ompchamber/.config/ompchamber
-      - ./data/opencode/share:/home/ompchamber/.local/share/opencode
-      - ./data/opencode/state:/home/ompchamber/.local/state/opencode
-      - ./data/opencode/config:/home/ompchamber/.config/opencode
+      # Container-side targets stay on the legacy opencode paths because the
+      # server still defaults to ~/.local/share/opencode (auth) and
+      # ~/.config/opencode (agents/commands/skills/config).
+      - ./data/agent/share:/home/ompchamber/.local/share/opencode
+      - ./data/agent/state:/home/ompchamber/.local/state/opencode
+      - ./data/agent/config:/home/ompchamber/.config/opencode
       - ./data/ssh:/home/ompchamber/.ssh
       - ./workspaces:/home/ompchamber/workspaces
     environment:
@@ -26,8 +29,4 @@ services:
     # OMPCHAMBER_TUNNEL_HOSTNAME: app.example.com  # required for managed-remote
     # OMPCHAMBER_TUNNEL_TOKEN: your_cloudflare_token  # required for managed-remote
     # OMPCHAMBER_TUNNEL_CONFIG: /home/ompchamber/.cloudflared/config.yml  # optional for managed-local
-    # OH_MY_OPENCODE: true # enable oh-my-opencode
-    # OPENCODE_HOST: http://172.17.0.1:4096 # Connect to external OpenCode server
-    # OPENCODE_SKIP_START: true # skip start opencode
-    # OMPCHAMBER_OPENCODE_HOSTNAME: 0.0.0.0 # Bind OpenCode to all interfaces
     restart: unless-stopped

@@ -45,9 +45,11 @@ USER ompchamber
 ENV NPM_CONFIG_PREFIX=/home/ompchamber/.npm-global
 ENV PATH=${NPM_CONFIG_PREFIX}/bin:${PATH}
 
+# Install the OMP agent CLI, pinned to the same version the Electron bundle
+# uses (PINNED_OMP_VERSION in packages/electron/scripts/prepare-omp-cli.mjs).
 RUN npm config set prefix /home/ompchamber/.npm-global && mkdir -p /home/ompchamber/.npm-global && \
   mkdir -p /home/ompchamber/.local /home/ompchamber/.config /home/ompchamber/.ssh && \
-  npm install -g opencode-ai
+  npm install -g @oh-my-pi/pi-coding-agent@17.2.12
 
 # cloudflared 2026.3.0 - update digest explicitly when upgrading
 COPY --from=cloudflare/cloudflared@sha256:6d91c121b803126f7a5344005d17a9324788fc09d305b6e2560ec6040a7ae283 /usr/local/bin/cloudflared /usr/local/bin/cloudflared

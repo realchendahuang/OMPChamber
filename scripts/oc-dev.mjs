@@ -36,7 +36,11 @@ const configPath = path.join(os.homedir(), '.config', 'ompchamber', 'oc-dev.json
 const GLOBAL_PORT = '2606';
 const TESTING_PORT = '1202';
 const TESTING_DIR = 'testing-dev';
-const REMOTE_RUNTIME_ENV = 'PATH=$HOME/.opencode/bin:$HOME/.local/bin:$HOME/.bun/bin:$PATH; if [ -z "${OPENCODE_BINARY:-}" ]; then OPENCODE_CANDIDATE=$(command -v opencode 2>/dev/null || true); if [ -n "$OPENCODE_CANDIDATE" ]; then export OPENCODE_BINARY="$OPENCODE_CANDIDATE"; fi; fi';
+// Remote hosts run the web CLI, whose serve preflight still resolves the agent
+// binary via OPENCODE_BINARY (packages/web/bin/cli.js) while the server itself
+// launches the OMP engine via OMP_BINARY (packages/web/server/index.js). Probe
+// for `omp` and export both names so a remote instance can actually start.
+const REMOTE_RUNTIME_ENV = 'PATH=$HOME/.local/bin:$HOME/.bun/bin:$PATH; if [ -z "${OMP_BINARY:-}" ]; then OMP_CANDIDATE=$(command -v omp 2>/dev/null || true); if [ -n "$OMP_CANDIDATE" ]; then export OMP_BINARY="$OMP_CANDIDATE"; fi; fi; if [ -z "${OPENCODE_BINARY:-}" ] && [ -n "${OMP_BINARY:-}" ]; then export OPENCODE_BINARY="$OMP_BINARY"; fi';
 
 const isTty = Boolean(process.stdout.isTTY) && Boolean(process.stdin.isTTY);
 const isMac = process.platform === 'darwin';
@@ -53,7 +57,7 @@ Actions:
   start-mobile-dev                 Start mobile app with dev server live reload
   mobile-tools                     Mobile build/sync/deploy helper menu
   start-electron-app               Start Electron app in dev mode
-  prepare-opencode-cli             Download/cache bundled OpenCode CLI for Electron
+  prepare-omp-cli                  Download/cache bundled OMP CLI for Electron
   build-electron-app               Build Electron app artifacts
   start-vscode-extension           Build + launch VS Code extension host
   install-vscode-extension-local   Build, package, and install local VSIX
@@ -197,8 +201,8 @@ function normalizeAction(action = '') {
     'mobile-menu': 'mobile-tools',
     'remote-deploy-web': 'remote-deploy-web',
     'electron-dev': 'start-electron-app',
-    'opencode-cli': 'prepare-opencode-cli',
-    'electron-opencode-cli': 'prepare-opencode-cli',
+    'omp-cli': 'prepare-omp-cli',
+    'electron-omp-cli': 'prepare-omp-cli',
     'electron-build': 'build-electron-app',
     'vscode-dev': 'start-vscode-extension',
     'vscode-install-local': 'install-vscode-extension-local',
@@ -534,16 +538,16 @@ async function mobileTools(options, config) {
 }
 
 function startElectronApp() {
-  prepareOpenCodeCli();
+  prepareOmpCli();
   run('bun', ['run', 'electron:dev']);
 }
 
-function prepareOpenCodeCli() {
-  step('Preparing bundled OpenCode CLI', () => run('bun', ['--filter', '@ompchamber/electron', 'prepare:opencode-cli']));
+function prepareOmpCli() {
+  step('Preparing bundled OMP CLI', () => run('bun', ['--filter', '@ompchamber/electron', 'prepare:omp-cli']));
 }
 
 function buildElectronApp() {
-  prepareOpenCodeCli();
+  prepareOmpCli();
   run('bun', ['run', 'electron:build'], { env: { CSC_IDENTITY_AUTO_DISCOVERY: 'false' } });
   const distDir = path.join(repoRoot, 'packages/electron/dist');
   if (!existsSync(distDir) || !isMac) return;
@@ -609,7 +613,7 @@ async function chooseAction(config) {
     { value: 'start-mobile-dev', label: 'Start mobile dev' },
     { value: 'mobile-tools', label: 'Mobile tools' },
     { value: 'start-electron-app', label: 'Start Electron app' },
-    { value: 'prepare-opencode-cli', label: 'Prepare bundled OpenCode CLI' },
+    { value: 'prepare-omp-cli', label: 'Prepare bundled OMP CLI' },
     { value: 'build-electron-app', label: 'Build Electron app' },
     { value: 'start-vscode-extension', label: 'Start VS Code extension' },
     { value: 'install-vscode-extension-local', label: 'Install VS Code extension locally' },
@@ -656,8 +660,8 @@ async function main() {
     case 'start-electron-app':
       startElectronApp();
       break;
-    case 'prepare-opencode-cli':
-      prepareOpenCodeCli();
+    case 'prepare-omp-cli':
+      prepareOmpCli();
       break;
     case 'build-electron-app':
       buildElectronApp();
