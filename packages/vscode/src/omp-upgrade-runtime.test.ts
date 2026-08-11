@@ -1,6 +1,6 @@
 import { afterEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getOpenCodeUpgradeStatus, upgradeManagedOpenCode, type OpenCodeUpgradeManager } from './opencode-upgrade-runtime';
+import { getOmpUpgradeStatus, upgradeManagedOmp, type OmpUpgradeManager } from './omp-upgrade-runtime';
 
 const originalFetch = globalThis.fetch;
 
@@ -10,17 +10,17 @@ afterEach(() => {
 
 const createManager = (mode: 'managed' | 'external' = 'managed') => {
   let restartCount = 0;
-  const manager: OpenCodeUpgradeManager = {
+  const manager: OmpUpgradeManager = {
     getApiUrl: () => 'http://127.0.0.1:4096',
-    getOpenCodeAuthHeaders: () => ({ Authorization: 'Basic test' }),
+    getServerAuthHeaders: () => ({ Authorization: 'Basic test' }),
     getDebugInfo: () => ({ mode }),
     restart: async () => { restartCount += 1; },
   };
   return { manager, getRestartCount: () => restartCount };
 };
 
-describe('VS Code OpenCode upgrades', () => {
-  test('reports an available update for a managed OpenCode process', async () => {
+describe('VS Code OMP upgrades', () => {
+  test('reports an available update for a managed OMP server process', async () => {
     const { manager } = createManager();
     globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {
       const url = String(input);
@@ -29,7 +29,7 @@ describe('VS Code OpenCode upgrades', () => {
       return new Response(JSON.stringify({ tag_name: 'v1.18.9' }));
     }) as typeof fetch;
 
-    assert.deepEqual(await getOpenCodeUpgradeStatus(manager), {
+    assert.deepEqual(await getOmpUpgradeStatus(manager), {
       available: true,
       currentVersion: '1.18.8',
       latestVersion: '1.18.9',
@@ -37,7 +37,7 @@ describe('VS Code OpenCode upgrades', () => {
     });
   });
 
-  test('fails closed for externally managed OpenCode without contacting the updater', async () => {
+  test('fails closed for externally managed OMP without contacting the updater', async () => {
     const { manager } = createManager('external');
     let fetchCount = 0;
     globalThis.fetch = (async () => {
@@ -45,7 +45,7 @@ describe('VS Code OpenCode upgrades', () => {
       return new Response('{}');
     }) as typeof fetch;
 
-    assert.deepEqual(await upgradeManagedOpenCode(manager), {
+    assert.deepEqual(await upgradeManagedOmp(manager), {
       status: 409,
       body: {
         success: false,
@@ -56,7 +56,7 @@ describe('VS Code OpenCode upgrades', () => {
     assert.equal(fetchCount, 0);
   });
 
-  test('upgrades then restarts the extension-owned OpenCode process', async () => {
+  test('upgrades then restarts the extension-owned OMP server process', async () => {
     const { manager, getRestartCount } = createManager();
     let request: RequestInit | undefined;
     globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
@@ -65,7 +65,7 @@ describe('VS Code OpenCode upgrades', () => {
       return new Response(JSON.stringify({ success: true, version: '1.18.9' }));
     }) as typeof fetch;
 
-    assert.deepEqual(await upgradeManagedOpenCode(manager, '1.18.9'), {
+    assert.deepEqual(await upgradeManagedOmp(manager, '1.18.9'), {
       status: 200,
       body: { success: true, version: '1.18.9', restarted: true },
     });
@@ -80,8 +80,8 @@ describe('VS Code OpenCode upgrades', () => {
     let release: (response: Response) => void = () => {};
     globalThis.fetch = (() => new Promise<Response>((resolve) => { release = resolve; })) as typeof fetch;
 
-    const first = upgradeManagedOpenCode(manager);
-    const second = await upgradeManagedOpenCode(manager);
+    const first = upgradeManagedOmp(manager);
+    const second = await upgradeManagedOmp(manager);
     assert.equal(second.status, 409);
     assert.equal(second.body.code, 'OPENCODE_UPGRADE_IN_PROGRESS');
 

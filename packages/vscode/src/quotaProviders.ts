@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fetchOpenCodeGoUsage } from './opencodeGoQuota';
 import { readCredential } from './quotaCredentials';
-import { getProviderAuth, updateProviderAuth } from './opencodeAuth';
+import { getProviderAuth, updateProviderAuth } from './ompAuth';
 
 type AuthEntry = Record<string, unknown> | string;
 type AuthFile = Record<string, AuthEntry>;

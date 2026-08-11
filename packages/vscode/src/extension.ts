@@ -2,14 +2,14 @@ import * as vscode from 'vscode';
 import { ChatViewProvider } from './ChatViewProvider';
 import { AgentManagerPanelProvider } from './AgentManagerPanelProvider';
 import { SessionEditorPanelProvider } from './SessionEditorPanelProvider';
-import { createOpenCodeManager, type OpenCodeManager } from './opencode';
+import { createOmpServerManager, type OmpServerManager } from './serverProcess';
 import { startGlobalEventWatcher, stopGlobalEventWatcher, setChatViewProvider } from './sessionActivityWatcher';
 import { resolveWorkspaceFolders } from './workspaceResolver';
 
 let chatViewProvider: ChatViewProvider | undefined;
 let agentManagerProvider: AgentManagerPanelProvider | undefined;
 let sessionEditorProvider: SessionEditorPanelProvider | undefined;
-let openCodeManager: OpenCodeManager | undefined;
+let serverManager: OmpServerManager | undefined;
 let outputChannel: vscode.OutputChannel | undefined;
 
 let activeSessionId: string | null = null;
@@ -121,12 +121,12 @@ export async function activate(context: vscode.ExtensionContext) {
     await config.update('apiUrl', '', vscode.ConfigurationTarget.Global);
   }
 
-  // Create OpenCode manager first
-  openCodeManager = createOpenCodeManager(context);
+  // Create the server manager first
+  serverManager = createOmpServerManager(context);
 
   // Create chat view provider with manager reference
-  // The webview will show a loading state until OpenCode is ready
-  chatViewProvider = new ChatViewProvider(context, context.extensionUri, openCodeManager);
+  // The webview will show a loading state until the server is ready
+  chatViewProvider = new ChatViewProvider(context, context.extensionUri, serverManager);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -189,8 +189,8 @@ export async function activate(context: vscode.ExtensionContext) {
   void maybeMoveChatToRightSidebarOnStartup();
 
   // Create Agent Manager panel provider
-  agentManagerProvider = new AgentManagerPanelProvider(context, context.extensionUri, openCodeManager);
-  sessionEditorProvider = new SessionEditorPanelProvider(context, context.extensionUri, openCodeManager);
+  agentManagerProvider = new AgentManagerPanelProvider(context, context.extensionUri, serverManager);
+  sessionEditorProvider = new SessionEditorPanelProvider(context, context.extensionUri, serverManager);
 
   context.subscriptions.push(
     vscode.commands.registerCommand('ompchamber.internal.settingsSynced', (settings: unknown) => {
@@ -275,12 +275,12 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         // Prefer the full in-app reload flow (overlay + managed restart via the
         // bridge + config/data refresh) driven by the webview — same as after an
-        // OpenCode update. Fall back to a bare manager restart when no webview is
+        // OMP update. Fall back to a bare manager restart when no webview is
         // open to drive it.
-        if (chatViewProvider?.reloadOpenCode()) {
+        if (chatViewProvider?.reloadServer()) {
           return;
         }
-        await openCodeManager?.restart();
+        await serverManager?.restart();
         vscode.window.showInformationMessage(t('OMPChamber: API connection restarted'));
       } catch (e) {
         vscode.window.showErrorMessage(t('OMPChamber: Failed to restart API - {0}', String(e)));
@@ -490,8 +490,8 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      if (openCodeManager) {
-        const result = await openCodeManager.setWorkingDirectory(folderPath);
+      if (serverManager) {
+        const result = await serverManager.setWorkingDirectory(folderPath);
         if (!result.success) {
           vscode.window.showErrorMessage(`OMPChamber: ${result.error}`);
           return;
@@ -523,7 +523,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('ompchamber.showOpenCodeStatus', async () => {
+    vscode.commands.registerCommand('ompchamber.showOmpStatus', async () => {
       const config = vscode.workspace.getConfiguration('ompchamber');
       const configuredApiUrl = (config.get<string>('apiUrl') || '').trim();
 
@@ -531,9 +531,9 @@ export async function activate(context: vscode.ExtensionContext) {
       const workspaceFolders = (vscode.workspace.workspaceFolders || []).map((folder) => folder.uri.fsPath);
       const primaryWorkspace = workspaceFolders[0] || '';
 
-      const debug = openCodeManager?.getDebugInfo();
-      const resolvedApiUrl = openCodeManager?.getApiUrl();
-      const workingDirectory = openCodeManager?.getWorkingDirectory() ?? '';
+      const debug = serverManager?.getDebugInfo();
+      const resolvedApiUrl = serverManager?.getApiUrl();
+      const workingDirectory = serverManager?.getWorkingDirectory() ?? '';
       const workingDirectoryMatchesWorkspace = Boolean(primaryWorkspace && workingDirectory === primaryWorkspace);
       let resolvedApiPath = '';
       if (resolvedApiUrl) {
@@ -548,11 +548,11 @@ export async function activate(context: vscode.ExtensionContext) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
         const startedAt = Date.now();
-        const openCodeAuthHeaders = openCodeManager?.getOpenCodeAuthHeaders() || {};
+        const serverAuthHeaders = serverManager?.getServerAuthHeaders() || {};
         try {
           const resp = await fetch(input, {
             method: 'GET',
-            headers: { Accept: 'application/json', ...openCodeAuthHeaders },
+            headers: { Accept: 'application/json', ...serverAuthHeaders },
             signal: controller.signal,
           });
           const elapsedMs = Date.now() - startedAt;
@@ -634,38 +634,37 @@ export async function activate(context: vscode.ExtensionContext) {
       const lines = [
         `Time: ${new Date().toISOString()}`,
         `OMPChamber version: ${extensionVersion || '(unknown)'}`,
-        `OpenCode Version: ${debug?.version ?? '(unknown)'}`,
+        `Server version: ${debug?.version ?? '(unknown)'}`,
         `VS Code version: ${vscode.version}`,
         `Platform: ${process.platform} ${process.arch}`,
         `Workspace folders: ${workspaceFolders.length}${workspaceFolders.length ? ` (${workspaceFolders.join(', ')})` : ''}`,
-        `Status: ${openCodeManager?.getStatus() ?? 'unknown'}`,
+        `Status: ${serverManager?.getStatus() ?? 'unknown'}`,
         `Working directory: ${workingDirectory}`,
         `Working dir matches workspace: ${workingDirectoryMatchesWorkspace ? 'yes' : 'no'}`,
         `API URL (configured): ${configuredApiUrl || '(none)'}`,
-        `OpenCode binary (configured): ${(vscode.workspace.getConfiguration('ompchamber').get<string>('opencodeBinary') || '').trim() || '(none)'}`,
-        `API URL (resolved): ${openCodeManager?.getApiUrl() ?? '(none)'}`,
+        `API URL (resolved): ${serverManager?.getApiUrl() ?? '(none)'}`,
         `API URL path: ${resolvedApiPath || '(none)'}`,
         debug
-          ? `OpenCode server URL: ${debug.serverUrl ?? '(none)'}`
-          : `OpenCode server URL: (unknown)`,
+          ? `Server URL: ${debug.serverUrl ?? '(none)'}`
+          : `Server URL: (unknown)`,
         debug
-          ? `OpenCode mode: ${debug.mode} (starts=${debug.startCount}, restarts=${debug.restartCount})`
-          : `OpenCode mode: (unknown)`,
+          ? `Server mode: ${debug.mode} (starts=${debug.startCount}, restarts=${debug.restartCount})`
+          : `Server mode: (unknown)`,
         debug
-          ? `Secure OpenCode connection: ${debug.secureConnection ? 'true' : 'false'}`
-          : `Secure OpenCode connection: (unknown)`,
+          ? `Secure server connection: ${debug.secureConnection ? 'true' : 'false'}`
+          : `Secure server connection: (unknown)`,
         debug
-          ? `OpenCode auth source: ${debug.authSource ?? '(none)'}`
-          : `OpenCode auth source: (unknown)`,
+          ? `Server auth source: ${debug.authSource ?? '(none)'}`
+          : `Server auth source: (unknown)`,
         debug
-          ? `OpenCode CLI path: ${debug.cliPath || '(not found)'}`
-          : `OpenCode CLI path: (unknown)`,
+          ? `Server CLI path: ${debug.cliPath || '(not found)'}`
+          : `Server CLI path: (unknown)`,
         debug
-          ? `OpenCode detected port: ${debug.detectedPort ?? '(none)'}`
-          : `OpenCode detected port: (unknown)`,
+          ? `Server detected port: ${debug.detectedPort ?? '(none)'}`
+          : `Server detected port: (unknown)`,
         debug
-          ? `OpenCode API prefix: ${debug.apiPrefixDetected ? (debug.apiPrefix || '(root)') : '(unknown)'}`
-          : `OpenCode API prefix: (unknown)`,
+          ? `Server API prefix: ${debug.apiPrefixDetected ? (debug.apiPrefix || '(root)') : '(unknown)'}`
+          : `Server API prefix: (unknown)`,
         debug
           ? `Last start: ${formatIso(debug.lastStartAt)}`
           : `Last start: (unknown)`,
@@ -688,7 +687,7 @@ export async function activate(context: vscode.ExtensionContext) {
         probes.length ? '' : '',
         ...(probes.length
           ? [
-              'OpenCode API probes:',
+              'Server API probes:',
               ...probes.map((probe) => {
                 if (!probe.result) return `- ${probe.label}: (no url)`;
                 const { ok, status, elapsedMs, summary } = probe.result;
@@ -732,31 +731,31 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Subscribe to status changes - this broadcasts to webview
   context.subscriptions.push(
-    openCodeManager.onStatusChange((status, error) => {
+    serverManager.onStatusChange((status, error) => {
       chatViewProvider?.updateConnectionStatus(status, error);
       agentManagerProvider?.updateConnectionStatus(status, error);
       sessionEditorProvider?.updateConnectionStatus(status, error);
 
       // Start/stop global event watcher based on connection status
       // Mirrors web server and desktop behavior
-      if (status === 'connected' && chatViewProvider && openCodeManager) {
+      if (status === 'connected' && chatViewProvider && serverManager) {
         setChatViewProvider(chatViewProvider);
-        void startGlobalEventWatcher(openCodeManager, chatViewProvider);
+        void startGlobalEventWatcher(serverManager, chatViewProvider);
       } else if (status === 'disconnected' || status === 'error') {
         stopGlobalEventWatcher();
       }
     })
   );
 
-  // Start OpenCode API without blocking activation.
+  // Start the OMPChamber server API without blocking activation.
   // Blocking here delays webview resolution and causes a blank panel until startup completes.
-  void openCodeManager.start();
+  void serverManager.start();
 }
 
 export async function deactivate() {
   stopGlobalEventWatcher();
-  await openCodeManager?.stop();
-  openCodeManager = undefined;
+  await serverManager?.stop();
+  serverManager = undefined;
   chatViewProvider = undefined;
   agentManagerProvider = undefined;
   sessionEditorProvider = undefined;

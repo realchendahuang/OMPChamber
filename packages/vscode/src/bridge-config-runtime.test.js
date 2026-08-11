@@ -13,7 +13,7 @@ mock.module('vscode', () => ({
 const { handleConfigBridgeMessage } = await import('./bridge-config-runtime.ts');
 
 const tempRoots = [];
-const originalOpencodeConfig = process.env.OPENCODE_CONFIG;
+const originalConfigEnv = process.env.OPENCODE_CONFIG;
 
 const createCtx = (workingDirectory, restartImpl = async () => undefined) => {
   const restart = mock(restartImpl);
@@ -33,15 +33,15 @@ const deps = {
   saveMagicPromptOverride: async () => ({ version: 1, overrides: {} }),
   resetMagicPromptOverride: async () => ({ version: 1, overrides: {} }),
   resetAllMagicPromptOverrides: async () => ({ version: 1, overrides: {} }),
-  fetchOpenCodeSkillsFromApi: async () => null,
+  fetchSkillsFromApi: async () => null,
   clientReloadDelayMs: 800,
 };
 
 afterEach(() => {
-  if (originalOpencodeConfig === undefined) {
+  if (originalConfigEnv === undefined) {
     delete process.env.OPENCODE_CONFIG;
   } else {
-    process.env.OPENCODE_CONFIG = originalOpencodeConfig;
+    process.env.OPENCODE_CONFIG = originalConfigEnv;
   }
 
   for (const root of tempRoots.splice(0)) {
@@ -52,7 +52,7 @@ afterEach(() => {
 const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
 describe('VS Code config bridge plugin parity', () => {
-  test('explicit config reload restarts OpenCode', async () => {
+  test('explicit config reload restarts the server', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ompchamber-vscode-reload-'));
     tempRoots.push(root);
     const ctx = createCtx(root);

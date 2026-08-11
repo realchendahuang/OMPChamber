@@ -1,9 +1,9 @@
 import type { ToolsAPI } from '@ompchamber/ui/lib/api/types';
-import { opencodeClient } from '@ompchamber/ui/lib/opencode/client';
+import { agentClient } from '@ompchamber/ui/lib/agent/client';
 
 export const createVSCodeToolsAPI = (): ToolsAPI => ({
   async getAvailableTools(): Promise<string[]> {
-    const data = await opencodeClient.listToolIds();
+    const data = await agentClient.listToolIds();
     if (!Array.isArray(data)) {
       throw new Error('Tools API returned invalid data format');
     }

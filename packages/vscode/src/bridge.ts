@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { type OpenCodeManager } from './opencode';
+import { type OmpServerManager } from './serverProcess';
 import { handleStandardGitBridgeMessage } from './bridge-git-runtime';
 import { handleSpecialGitBridgeMessage } from './bridge-git-special-runtime';
 import { handleFsBridgeMessage } from './bridge-fs-runtime';
@@ -8,7 +8,7 @@ import { handleSystemBridgeMessage } from './bridge-system-runtime';
 import { handleProxyBridgeMessage } from './bridge-proxy-runtime';
 import { handlePermissionAutoAcceptBridgeMessage } from './bridge-permission-auto-accept-runtime';
 import {
-  fetchOpenCodeSkillsFromApi,
+  fetchSkillsFromApi,
   persistSettings,
   readSettings,
   readMagicPromptOverrides,
@@ -51,7 +51,7 @@ export interface BridgeResponse {
 }
 
 export interface BridgeContext {
-  manager?: OpenCodeManager;
+  manager?: OmpServerManager;
   context?: vscode.ExtensionContext;
 }
 
@@ -115,7 +115,7 @@ export async function handleBridgeMessage(message: BridgeRequest, ctx?: BridgeCo
         saveMagicPromptOverride,
         resetMagicPromptOverride,
         resetAllMagicPromptOverrides,
-        fetchOpenCodeSkillsFromApi,
+        fetchSkillsFromApi,
         clientReloadDelayMs: CLIENT_RELOAD_DELAY_MS,
       },
     );

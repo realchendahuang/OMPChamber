@@ -1,8 +1,8 @@
-import type { OpenCodeManager } from './opencode';
-import { waitForApiUrl } from './opencode-ready';
+import type { OmpServerManager } from './serverProcess';
+import { waitForApiUrl } from './server-ready';
 
 type OpenSseProxyOptions = {
-  manager: OpenCodeManager;
+  manager: OmpServerManager;
   path: string;
   headers?: Record<string, string>;
   signal: AbortSignal;
@@ -55,7 +55,7 @@ const normalizeSsePath = (path: string): { pathname: '/api/event' | '/api/global
   };
 };
 
-const resolveDefaultDirectory = (manager: OpenCodeManager): string => {
+const resolveDefaultDirectory = (manager: OmpServerManager): string => {
   return manager.getWorkingDirectory() || 'global';
 };
 
@@ -71,12 +71,12 @@ const createSseUrl = (baseUrl: string, pathname: '/api/event' | '/api/global/eve
   return url;
 };
 
-const createSseHeaders = (manager: OpenCodeManager, headers?: Record<string, string>): Record<string, string> => ({
+const createSseHeaders = (manager: OmpServerManager, headers?: Record<string, string>): Record<string, string> => ({
   Accept: 'text/event-stream',
   'Cache-Control': 'no-cache',
   Connection: 'keep-alive',
   ...(headers || {}),
-  ...manager.getOpenCodeAuthHeaders(),
+  ...manager.getServerAuthHeaders(),
 });
 
 const createSseResponseHeaders = (response: Response): Record<string, string> => ({
@@ -85,14 +85,14 @@ const createSseResponseHeaders = (response: Response): Record<string, string> =>
 });
 
 const fetchSseResponse = async (
-  manager: OpenCodeManager,
+  manager: OmpServerManager,
   path: string,
   headers: Record<string, string> | undefined,
   signal: AbortSignal,
 ): Promise<Response> => {
   const baseUrl = await waitForApiUrl(manager);
   if (!baseUrl) {
-    throw new Error('OpenCode API URL not available');
+    throw new Error('Server API URL not available');
   }
 
   const { pathname, searchParams, directory } = normalizeSsePath(path);
@@ -107,13 +107,13 @@ const fetchSseResponse = async (
 
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
-    const error = new Error(`OpenCode SSE request failed (${response.status})`);
+    const error = new Error(`Server SSE request failed (${response.status})`);
     (error as Error & { status?: number }).status = response.status;
     throw error;
   }
 
   if (!response.body) {
-    throw new Error('OpenCode SSE response missing body');
+    throw new Error('Server SSE response missing body');
   }
 
   return response;
@@ -130,7 +130,7 @@ const pipeSseResponse = async (
   stallTimeoutMs?: number,
 ): Promise<void> => {
   if (!response.body) {
-    throw new Error('OpenCode SSE response missing body');
+    throw new Error('Server SSE response missing body');
   }
 
   const reader = response.body.getReader();

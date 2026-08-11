@@ -28,7 +28,7 @@ mock.module('vscode', () => ({
   Range,
 }));
 
-mock.module('./opencodeAuth', () => ({
+mock.module('./ompAuth', () => ({
   getProviderAuth: mock(),
   removeProviderAuth: mock(),
 }));

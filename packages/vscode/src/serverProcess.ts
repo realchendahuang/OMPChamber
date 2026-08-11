@@ -8,7 +8,7 @@ import { spawnSync } from 'child_process';
 import { spawn } from 'child_process';
 import { normalizeWindowsDriveLetter } from './pathUtils';
 import { resolveWorkingDirectoryChange } from './workingDirectoryChange';
-import { registerManagedProcess, unregisterManagedProcess, reapOrphanedProcesses } from './opencodeProcessRegistry';
+import { registerManagedProcess, unregisterManagedProcess, reapOrphanedProcesses } from './serverProcessRegistry';
 import { applyProviderEnvAliases } from './provider-env-aliases';
 
 const t = vscode.l10n.t;
@@ -16,7 +16,7 @@ const t = vscode.l10n.t;
 const READY_CHECK_TIMEOUT_MS = 30000;
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
-type OpenCodeDebugInfo = {
+type OmpServerDebugInfo = {
   mode: 'managed' | 'external';
   status: ConnectionStatus;
   lastError?: string;
@@ -46,21 +46,21 @@ type SetWorkingDirectoryResult =
   | { success: true; path: string }
   | { success: false; error: string };
 
-export interface OpenCodeManager {
+export interface OmpServerManager {
   start(workdir?: string): Promise<void>;
   stop(): Promise<void>;
   restart(): Promise<void>;
   setWorkingDirectory(path: string): Promise<SetWorkingDirectoryResult>;
   getStatus(): ConnectionStatus;
   getApiUrl(): string | null;
-  getOpenCodeAuthHeaders(): Record<string, string>;
+  getServerAuthHeaders(): Record<string, string>;
   getWorkingDirectory(): string;
   isCliAvailable(): boolean;
-  getDebugInfo(): OpenCodeDebugInfo;
+  getDebugInfo(): OmpServerDebugInfo;
   onStatusChange(callback: (status: ConnectionStatus, error?: string) => void): vscode.Disposable;
 }
 
-function buildOpenCodeAuthHeader(password: string): string {
+function buildServerAuthHeader(password: string): string {
   const username = process.env.OPENCODE_SERVER_USERNAME?.trim() || 'opencode';
   return `Basic ${Buffer.from(`${username}:${password}`, 'utf8').toString('base64')}`;
 }
@@ -313,7 +313,7 @@ async function waitForReady(
   return { ok: false, elapsedMs: Date.now() - start, attempts, version: null };
 }
 
-async function spawnManagedOpenCodeServer(
+async function spawnManagedOmpServer(
   workingDirectory: string,
   port: number,
   timeoutMs: number
@@ -414,7 +414,7 @@ async function spawnManagedOpenCodeServer(
   };
 }
 
-async function allocateManagedOpenCodePort(): Promise<number> {
+async function allocateManagedServerPort(): Promise<number> {
   return await new Promise((resolve, reject) => {
     const server = net.createServer();
 
@@ -430,7 +430,7 @@ async function allocateManagedOpenCodePort(): Promise<number> {
           resolve(port);
           return;
         }
-        reject(new Error('Failed to allocate OpenCode port'));
+        reject(new Error('Failed to allocate server port'));
       });
     });
 
@@ -438,7 +438,7 @@ async function allocateManagedOpenCodePort(): Promise<number> {
   });
 }
 
-export function createOpenCodeManager(context: vscode.ExtensionContext): OpenCodeManager {
+export function createOmpServerManager(context: vscode.ExtensionContext): OmpServerManager {
   let server: { url: string; close: () => void } | null = null;
   let reapedOrphansOnce = false;
   let managedApiUrlOverride: string | null = null;
@@ -513,7 +513,7 @@ export function createOpenCodeManager(context: vscode.ExtensionContext): OpenCod
     return null;
   };
 
-  const getOpenCodeAuthHeaders = (): Record<string, string> => {
+  const getServerAuthHeaders = (): Record<string, string> => {
     // The managed OMPChamber server runs without a password (its ui-auth is
     // disabled by default), so managed starts send no auth header. When the
     // user points at an external OpenCode server via ompchamber.apiUrl, the
@@ -522,7 +522,7 @@ export function createOpenCodeManager(context: vscode.ExtensionContext): OpenCod
     if (!password) {
       return {};
     }
-    return { Authorization: buildOpenCodeAuthHeader(password) };
+    return { Authorization: buildServerAuthHeader(password) };
   };
 
   async function startInternal(
@@ -553,16 +553,16 @@ export function createOpenCodeManager(context: vscode.ExtensionContext): OpenCod
       return;
     }
 
-    // Before spawning our own server, reap any OpenCode process WE spawned in a
+    // Before spawning our own server, reap any server process WE spawned in a
     // prior run that was orphaned by a crash/host-kill. Verified + scoped to our
     // own pids, so it never touches a live instance's or the user's own server.
     if (!reapedOrphansOnce) {
       reapedOrphansOnce = true;
       try {
         const { reaped } = await reapOrphanedProcesses({ log: (msg) => console.log(msg) });
-        if (reaped > 0) console.log(`[opencode] startup reaped ${reaped} orphaned process(es)`);
+        if (reaped > 0) console.log(`[server] startup reaped ${reaped} orphaned process(es)`);
       } catch (error) {
-        console.warn('[opencode] orphan reap failed:', error instanceof Error ? error.message : error);
+        console.warn('[server] orphan reap failed:', error instanceof Error ? error.message : error);
       }
     }
 
@@ -588,8 +588,8 @@ export function createOpenCodeManager(context: vscode.ExtensionContext): OpenCod
       try {
         fs.mkdirSync(serverCwd, { recursive: true });
         process.chdir(serverCwd);
-        const port = await allocateManagedOpenCodePort();
-        server = await spawnManagedOpenCodeServer(serverCwd, port, READY_CHECK_TIMEOUT_MS);
+        const port = await allocateManagedServerPort();
+        server = await spawnManagedOmpServer(serverCwd, port, READY_CHECK_TIMEOUT_MS);
       } finally {
         try {
           process.chdir(originalCwd);
@@ -600,7 +600,7 @@ export function createOpenCodeManager(context: vscode.ExtensionContext): OpenCod
 
       if (server && server.url) {
         // Validate readiness for the current workspace context.
-        const ready = await waitForReady(server.url, READY_CHECK_TIMEOUT_MS, getOpenCodeAuthHeaders());
+        const ready = await waitForReady(server.url, READY_CHECK_TIMEOUT_MS, getServerAuthHeaders());
         lastReadyElapsedMs = ready.elapsedMs;
         lastReadyAttempts = ready.attempts;
         if (ready.ok) {
@@ -769,11 +769,11 @@ export function createOpenCodeManager(context: vscode.ExtensionContext): OpenCod
     setWorkingDirectory,
     getStatus: () => status,
     getApiUrl,
-    getOpenCodeAuthHeaders,
+    getServerAuthHeaders,
     getWorkingDirectory: () => workingDirectory,
     isCliAvailable: () => !cliMissing,
     getDebugInfo: () => {
-      const secureConnection = Boolean(getOpenCodeAuthHeaders().Authorization);
+      const secureConnection = Boolean(getServerAuthHeaders().Authorization);
       return {
         mode: useConfiguredUrl && configuredApiUrl ? 'external' : 'managed',
         status,

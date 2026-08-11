@@ -13,10 +13,9 @@
   "OMPChamber [Improve Code]: No active editor": "OMPChamber [Improve Code]: No active editor",
   "OMPChamber [Improve Code]: No text selected": "OMPChamber [Improve Code]: No text selected",
   "Improve the following Code:": "Improve the following Code:",
-  "OpenCode CLI not found. Install it and ensure it's in PATH.": "OpenCode CLI not found. Install it and ensure it's in PATH.",
-  "OpenCode CLI not found. Please install it and ensure it's in PATH.": "OpenCode CLI not found. Please install it and ensure it's in PATH.",
+  "OMPChamber server failed to start. Check the extension installation and try again.": "OMPChamber server failed to start. Check the extension installation and try again.",
   "More Info": "More Info",
-  "Failed to start OpenCode: {0}": "Failed to start OpenCode: {0}",
+  "Failed to start OMPChamber server: {0}": "Failed to start OMPChamber server: {0}",
   "New Session": "New Session",
   "Session": "Session",
   "Agent Manager": "Agent Manager"

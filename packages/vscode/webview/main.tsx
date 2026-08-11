@@ -3,7 +3,7 @@ import { onCommand, onThemeChange, proxyApiRequest, proxySessionMessageRequest, 
 import { vscodeStreamPerfCount, vscodeStreamPerfMeasure, vscodeStreamPerfObserve } from './api/streamPerf';
 import { extractBodyBase64, extractBodyText, extractJsonBody, hasInitBody } from './requestBodyTransport';
 import type { RuntimeAPIs } from '@ompchamber/ui/lib/api/types';
-import { opencodeClient } from '@ompchamber/ui/lib/opencode/client';
+import { agentClient } from '@ompchamber/ui/lib/agent/client';
 import { sanitizeHeadersForBrowser } from '@ompchamber/ui/lib/runtime-fetch';
 import {
   buildVSCodeThemeFromPalette,
@@ -978,7 +978,7 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
 
   if (pathname === '/api/opencode/version' && method === 'GET') {
     try {
-      const data = await sendBridgeMessage('api:opencode/version');
+      const data = await sendBridgeMessage('api:server/version');
       return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -995,13 +995,13 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
   }
 
   if (pathname === '/api/opencode/upgrade-status' && method === 'GET') {
-    const data = await sendBridgeMessage('api:opencode/upgrade-status');
+    const data = await sendBridgeMessage('api:server/upgrade-status');
     return jsonResponse(data);
   }
 
   if (pathname === '/api/opencode/upgrade' && method === 'POST') {
     const body = await extractJsonBody(input, init, method);
-    const result = await sendBridgeMessage<{ status: number; body: unknown }>('api:opencode/upgrade', body);
+    const result = await sendBridgeMessage<{ status: number; body: unknown }>('api:server/upgrade', body);
     return jsonResponse(result.body, result.status);
   }
 
@@ -1051,7 +1051,7 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
 
   if (pathname.startsWith('/api/opencode/directory')) {
     const body = await extractJsonBody(input, init, method);
-    const result = await sendBridgeMessage('api:opencode/directory', { path: body.path });
+    const result = await sendBridgeMessage('api:server/directory', { path: body.path });
     return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 
@@ -1459,12 +1459,12 @@ onCommand('showSettings', () => {
   window.dispatchEvent(new CustomEvent('ompchamber:navigate', { detail: { view: 'settings' } }));
 });
 
-// Run the same full OpenCode reload flow the app uses after an update: shows the
-// reload overlay, restarts the managed OpenCode (via the bridge's /api/config/reload),
+// Run the same full server reload flow the app uses after an update: shows the
+// reload overlay, restarts the managed server (via the bridge's /api/config/reload),
 // and refreshes config/data. Triggered by the "Restart API Connection" command.
-onCommand('reloadOpenCode', () => {
-  void import('@ompchamber/ui/stores/useAgentsStore').then(({ reloadOpenCodeConfiguration }) => {
-    void reloadOpenCodeConfiguration().catch(() => undefined);
+onCommand('reloadServer', () => {
+  void import('@ompchamber/ui/stores/useAgentsStore').then(({ reloadOmpConfiguration }) => {
+    void reloadOmpConfiguration().catch(() => undefined);
   });
 });
 
@@ -1642,7 +1642,7 @@ const fetchLastAssistantMessageText = async (sessionId: string, messageId?: stri
   if (!sessionId) return '';
 
   try {
-    const messages = await opencodeClient.getSessionMessages(sessionId, 5);
+    const messages = await agentClient.getSessionMessages(sessionId, 5);
     if (!Array.isArray(messages)) return '';
 
     let target = messageId
@@ -1765,7 +1765,7 @@ window.addEventListener('ompchamber:vscode-notification-event', (event) => {
     const isError = type === 'session.error' || finish === 'error';
 
     if (isCompletion) {
-      const session = await opencodeClient.getSession(sessionId, getNotificationDirectory(record)).catch(() => undefined);
+      const session = await agentClient.getSession(sessionId, getNotificationDirectory(record)).catch(() => undefined);
       if (!session) return;
       const isSubtask = Boolean(session?.parentID);
       if (isSubtask ? !settings.notifyOnSubtasks : !settings.notifyOnCompletion) return;

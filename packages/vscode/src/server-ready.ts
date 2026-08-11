@@ -1,9 +1,9 @@
-import type { ConnectionStatus, OpenCodeManager } from './opencode';
+import type { ConnectionStatus, OmpServerManager } from './serverProcess';
 
 const API_URL_WAIT_TIMEOUT_MS = 30000;
 
 export async function waitForApiUrl(
-  manager: OpenCodeManager | undefined,
+  manager: OmpServerManager | undefined,
   timeoutMs = API_URL_WAIT_TIMEOUT_MS,
 ): Promise<string | null> {
   if (!manager) {

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { handleBridgeMessage, type BridgeRequest, type BridgeResponse } from './bridge';
 import { getThemeKindName } from './theme';
-import type { OpenCodeManager, ConnectionStatus } from './opencode';
+import type { OmpServerManager, ConnectionStatus } from './serverProcess';
 import { getWebviewShikiThemes } from './shikiThemes';
 import { getWebviewHtml } from './webviewHtml';
 import { openSseProxy } from './sseProxy';
@@ -26,7 +26,7 @@ export class AgentManagerPanelProvider {
   constructor(
     private readonly _context: vscode.ExtensionContext,
     private readonly _extensionUri: vscode.Uri,
-    private readonly _openCodeManager?: OpenCodeManager
+    private readonly _serverManager?: OmpServerManager
   ) {
     this._webviewDevServerUrl = resolveWebviewDevServerUrl(this._context);
   }
@@ -79,7 +79,7 @@ export class AgentManagerPanelProvider {
     // Handle messages
     this._panel.webview.onDidReceiveMessage(async (message: BridgeRequest) => {
       if (message.type === 'restartApi') {
-        await this._openCodeManager?.restart();
+        await this._serverManager?.restart();
         return;
       }
 
@@ -96,7 +96,7 @@ export class AgentManagerPanelProvider {
       }
 
       const response = await handleBridgeMessage(message, {
-        manager: this._openCodeManager,
+        manager: this._serverManager,
         context: this._context,
       });
       this._panel?.webview.postMessage(response);
@@ -188,7 +188,7 @@ export class AgentManagerPanelProvider {
     const { path, headers, streamId: requestedStreamId } = (payload || {}) as { path?: string; headers?: Record<string, string>; streamId?: string };
     const normalizedPath = typeof path === 'string' && path.trim().length > 0 ? path.trim() : '/event';
 
-    if (!this._openCodeManager) {
+    if (!this._serverManager) {
       return {
         id,
         type,
@@ -205,7 +205,7 @@ export class AgentManagerPanelProvider {
 
     try {
       const start = await openSseProxy({
-        manager: this._openCodeManager,
+        manager: this._serverManager,
         path: normalizedPath,
         headers: this._buildSseHeaders(headers),
         signal: controller.signal,
@@ -268,7 +268,7 @@ export class AgentManagerPanelProvider {
       vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || ''
     );
     const workspaceFolders = resolveWorkspaceFolders(vscode.workspace.workspaceFolders ?? []);
-    const cliAvailable = this._openCodeManager?.isCliAvailable() ?? false;
+    const cliAvailable = this._serverManager?.isCliAvailable() ?? false;
 
     return getWebviewHtml({
       webview,

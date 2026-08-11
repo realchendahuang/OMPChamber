@@ -4,16 +4,16 @@ type UpgradeCapability = {
   reason: 'external' | 'unavailable' | 'windows-arm64-workaround' | null;
 };
 
-export type OpenCodeUpgradeManager = {
+export type OmpUpgradeManager = {
   getApiUrl(): string | null;
-  getOpenCodeAuthHeaders(): Record<string, string>;
+  getServerAuthHeaders(): Record<string, string>;
   getDebugInfo(): { mode: 'managed' | 'external' };
   restart(): Promise<void>;
 };
 
 type UpgradeResult = { status: number; body: Record<string, unknown> };
 
-let openCodeUpgradePromise: Promise<UpgradeResult> | null = null;
+let ompUpgradePromise: Promise<UpgradeResult> | null = null;
 
 // TEMPORARY WORKAROUND — Windows ARM64: native opencode.exe fails with a Bun
 // FFI/TinyCC dlopen error (https://github.com/anomalyco/opencode/issues/19130).
@@ -44,7 +44,7 @@ const compareVersions = (left: unknown, right: unknown): number => {
   return a.prerelease === b.prerelease ? 0 : (a.prerelease ? -1 : 1);
 };
 
-const getCapability = (manager?: OpenCodeUpgradeManager): UpgradeCapability => {
+const getCapability = (manager?: OmpUpgradeManager): UpgradeCapability => {
   if (isWindowsArm64()) return { supported: false, manager: 'ompchamber', reason: 'windows-arm64-workaround' };
   if (!manager) return { supported: false, manager: null, reason: 'unavailable' };
   if (manager.getDebugInfo().mode !== 'managed') return { supported: false, manager: 'external', reason: 'external' };
@@ -52,7 +52,7 @@ const getCapability = (manager?: OpenCodeUpgradeManager): UpgradeCapability => {
   return { supported: true, manager: 'opencode', reason: null };
 };
 
-const getApiUrl = (manager?: OpenCodeUpgradeManager): string | null => {
+const getApiUrl = (manager?: OmpUpgradeManager): string | null => {
   const apiUrl = manager?.getApiUrl();
   return apiUrl ? `${apiUrl.replace(/\/+$/, '')}/` : null;
 };
@@ -77,18 +77,18 @@ const fetchLatestVersion = async (): Promise<string> => {
   return versions.sort((left, right) => compareVersions(right, left))[0];
 };
 
-export const getOpenCodeUpgradeStatus = async (manager?: OpenCodeUpgradeManager): Promise<Record<string, unknown>> => {
+export const getOmpUpgradeStatus = async (manager?: OmpUpgradeManager): Promise<Record<string, unknown>> => {
   const upgrade = getCapability(manager);
   const apiUrl = getApiUrl(manager);
   if (!upgrade.supported || !apiUrl || !manager) return { available: false, currentVersion: null, latestVersion: null, upgrade };
   try {
     const [healthResponse, latestVersion] = await Promise.all([
-      fetch(new URL('api/global/health', apiUrl).toString(), { method: 'GET', headers: { Accept: 'application/json', ...manager.getOpenCodeAuthHeaders() } }),
+      fetch(new URL('api/global/health', apiUrl).toString(), { method: 'GET', headers: { Accept: 'application/json', ...manager.getServerAuthHeaders() } }),
       fetchLatestVersion(),
     ]);
     const health = await healthResponse.json().catch(() => null) as { version?: unknown; error?: unknown } | null;
     if (!healthResponse.ok) {
-      const error = typeof health?.error === 'string' ? health.error : healthResponse.statusText || 'Failed to read OpenCode version';
+      const error = typeof health?.error === 'string' ? health.error : healthResponse.statusText || 'Failed to read OMP version';
       return { available: null, error, upgrade };
     }
     const currentVersion = typeof health?.version === 'string' && health.version.trim() ? health.version.trim().replace(/^v/, '') : null;
@@ -98,39 +98,39 @@ export const getOpenCodeUpgradeStatus = async (manager?: OpenCodeUpgradeManager)
   }
 };
 
-export const upgradeManagedOpenCode = async (manager: OpenCodeUpgradeManager | undefined, target?: unknown): Promise<UpgradeResult> => {
+export const upgradeManagedOmp = async (manager: OmpUpgradeManager | undefined, target?: unknown): Promise<UpgradeResult> => {
   const upgrade = getCapability(manager);
   const apiUrl = getApiUrl(manager);
   if (!upgrade.supported || !apiUrl || !manager) {
     return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_UNSUPPORTED', error: 'This OpenCode runtime cannot be upgraded by OMPChamber.' } };
   }
-  if (openCodeUpgradePromise) {
-    return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_IN_PROGRESS', error: 'An OpenCode upgrade is already in progress.' } };
+  if (ompUpgradePromise) {
+    return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_IN_PROGRESS', error: 'An OMP upgrade is already in progress.' } };
   }
   const targetVersion = typeof target === 'string' ? target.trim() : '';
   const operation = (async (): Promise<UpgradeResult> => {
     try {
       const response = await fetch(new URL('api/global/upgrade', apiUrl).toString(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...manager.getOpenCodeAuthHeaders() },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...manager.getServerAuthHeaders() },
         body: JSON.stringify(targetVersion ? { target: targetVersion } : {}),
       });
       const payload = await response.json().catch(() => null) as { error?: unknown } | null;
-      if (!response.ok) return { status: response.status, body: { success: false, error: typeof payload?.error === 'string' ? payload.error : response.statusText || 'Failed to upgrade OpenCode' } };
+      if (!response.ok) return { status: response.status, body: { success: false, error: typeof payload?.error === 'string' ? payload.error : response.statusText || 'Failed to upgrade OMP' } };
       try {
         await manager.restart();
       } catch (error) {
-        return { status: 500, body: { success: false, upgraded: true, error: error instanceof Error ? `OpenCode upgraded, but restart failed: ${error.message}` : 'OpenCode upgraded, but restart failed' } };
+        return { status: 500, body: { success: false, upgraded: true, error: error instanceof Error ? `OMP upgraded, but restart failed: ${error.message}` : 'OMP upgraded, but restart failed' } };
       }
       return { status: 200, body: { ...(payload && typeof payload === 'object' ? payload : { success: true }), restarted: true } };
     } catch (error) {
-      return { status: 500, body: { success: false, error: error instanceof Error ? error.message : 'Failed to upgrade OpenCode' } };
+      return { status: 500, body: { success: false, error: error instanceof Error ? error.message : 'Failed to upgrade OMP' } };
     }
   })();
-  openCodeUpgradePromise = operation;
+  ompUpgradePromise = operation;
   try {
     return await operation;
   } finally {
-    if (openCodeUpgradePromise === operation) openCodeUpgradePromise = null;
+    if (ompUpgradePromise === operation) ompUpgradePromise = null;
   }
 };

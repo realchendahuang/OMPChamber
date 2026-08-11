@@ -66,8 +66,8 @@ describe('bridge git special runtime', () => {
       },
     }, {
       manager: {
-        getApiUrl: () => 'http://opencode.test',
-        getOpenCodeAuthHeaders: () => ({ Authorization: 'Bearer test' }),
+        getApiUrl: () => 'http://omp.test',
+        getServerAuthHeaders: () => ({ Authorization: 'Bearer test' }),
       },
     }, createDeps());
 
@@ -79,11 +79,11 @@ describe('bridge git special runtime', () => {
     });
 
     const calls = rawFetch.mock.calls.map(([url, init]) => ({ url: String(url), method: init?.method || 'GET' }));
-    expect(calls).toContainEqual({ url: 'http://opencode.test/api/model', method: 'GET' });
-    expect(calls).toContainEqual({ url: 'http://opencode.test/api/session?directory=%2Frepo', method: 'POST' });
-    expect(calls).toContainEqual({ url: 'http://opencode.test/api/session/ses_1/prompt_async?directory=%2Frepo', method: 'POST' });
-    expect(calls).toContainEqual({ url: 'http://opencode.test/api/session/ses_1/message?limit=10&directory=%2Frepo', method: 'GET' });
-    expect(calls).toContainEqual({ url: 'http://opencode.test/api/session/ses_1?directory=%2Frepo', method: 'DELETE' });
+    expect(calls).toContainEqual({ url: 'http://omp.test/api/model', method: 'GET' });
+    expect(calls).toContainEqual({ url: 'http://omp.test/api/session?directory=%2Frepo', method: 'POST' });
+    expect(calls).toContainEqual({ url: 'http://omp.test/api/session/ses_1/prompt_async?directory=%2Frepo', method: 'POST' });
+    expect(calls).toContainEqual({ url: 'http://omp.test/api/session/ses_1/message?limit=10&directory=%2Frepo', method: 'GET' });
+    expect(calls).toContainEqual({ url: 'http://omp.test/api/session/ses_1?directory=%2Frepo', method: 'DELETE' });
   });
 
   it('falls back to the zen model when the requested model is not in the catalog', async () => {
@@ -124,8 +124,8 @@ describe('bridge git special runtime', () => {
       },
     }, {
       manager: {
-        getApiUrl: () => 'http://opencode.test',
-        getOpenCodeAuthHeaders: () => ({}),
+        getApiUrl: () => 'http://omp.test',
+        getServerAuthHeaders: () => ({}),
       },
     }, createDeps());
 

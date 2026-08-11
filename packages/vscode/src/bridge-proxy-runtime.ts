@@ -1,5 +1,5 @@
 import type { BridgeContext, BridgeResponse } from './bridge';
-import { waitForApiUrl } from './opencode-ready';
+import { waitForApiUrl } from './server-ready';
 
 type BridgeMessageInput = {
   id: string;
@@ -111,7 +111,7 @@ const performApiProxyFetch = async (
       status: 502,
       headers: { 'content-type': 'application/json' },
       bodyText: JSON.stringify({
-        error: error instanceof Error ? error.message : 'Failed to reach OpenCode API',
+        error: error instanceof Error ? error.message : 'Failed to reach server API',
       }),
     };
   }
@@ -171,7 +171,7 @@ export async function handleProxyBridgeMessage(
       const targetUrl = new URL(normalizedPath.replace(/^\/+/, ''), base).toString();
       const requestHeaders: Record<string, string> = {
         ...deps.sanitizeForwardHeaders(headers),
-        ...ctx?.manager?.getOpenCodeAuthHeaders(),
+        ...ctx?.manager?.getServerAuthHeaders(),
       };
 
       const requestBody =
@@ -248,7 +248,7 @@ export async function handleProxyBridgeMessage(
       const targetUrl = new URL(normalizedPath.replace(/^\/+/, ''), base).toString();
       const requestHeaders: Record<string, string> = {
         ...deps.sanitizeForwardHeaders(headers),
-        ...ctx?.manager?.getOpenCodeAuthHeaders(),
+        ...ctx?.manager?.getServerAuthHeaders(),
       };
       const timeoutSignal = AbortSignal.timeout(45000);
       const abortController = new AbortController();
@@ -290,7 +290,7 @@ export async function handleProxyBridgeMessage(
           ((error as Error & { name?: string }).name === 'TimeoutError' ||
             (error as Error & { name?: string }).name === 'AbortError');
         const body = JSON.stringify({
-          error: isTimeout ? 'OpenCode message forward timed out' : error instanceof Error ? error.message : 'OpenCode message forward failed',
+          error: isTimeout ? 'Server message forward timed out' : error instanceof Error ? error.message : 'Server message forward failed',
         });
         const data: ApiProxyResponsePayload = {
           status: isTimeout ? 504 : 503,

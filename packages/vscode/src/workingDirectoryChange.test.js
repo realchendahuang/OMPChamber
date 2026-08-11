@@ -9,7 +9,7 @@ describe('resolveWorkingDirectoryChange', () => {
     });
   });
 
-  test('updates the directory without requiring an OpenCode server restart', () => {
+  test('updates the directory without requiring an OMP server restart', () => {
     expect(resolveWorkingDirectoryChange('/work/alpha', '/work/bravo')).toEqual({
       changed: true,
       path: '/work/bravo',

@@ -51,7 +51,7 @@ import {
   deleteMcpConfig,
   expandSnippets,
   type SnippetScope,
-} from './opencodeConfig';
+} from './ompConfig';
 import {
   getSkillsCatalog,
   scanSkillsRepository as scanSkillsRepositoryFromGit,
@@ -74,7 +74,7 @@ type ConfigRuntimeDeps = {
   saveMagicPromptOverride: (id: string, text: string) => Promise<{ version: number; overrides: Record<string, string> }>;
   resetMagicPromptOverride: (id: string) => Promise<{ version: number; overrides: Record<string, string> }>;
   resetAllMagicPromptOverrides: () => Promise<{ version: number; overrides: Record<string, string> }>;
-  fetchOpenCodeSkillsFromApi: (ctx: BridgeContext | undefined, workingDirectory?: string) => Promise<DiscoveredSkill[] | null>;
+  fetchSkillsFromApi: (ctx: BridgeContext | undefined, workingDirectory?: string) => Promise<DiscoveredSkill[] | null>;
   clientReloadDelayMs: number;
 };
 
@@ -123,7 +123,7 @@ const resolveDiscoveredSkills = async (
   ctx: BridgeContext | undefined,
   workingDirectory?: string,
 ): Promise<DiscoveredSkill[]> => mergeDiscoveredSkills(
-  (await deps.fetchOpenCodeSkillsFromApi(ctx, workingDirectory)) || [],
+  (await deps.fetchSkillsFromApi(ctx, workingDirectory)) || [],
   discoverSkills(workingDirectory),
 );
 
@@ -137,10 +137,9 @@ export async function handleConfigBridgeMessage(
   switch (type) {
     case 'api:config/opencode-resolution:get': {
       const debugInfo = ctx?.manager?.getDebugInfo();
-      const configuredFromWorkspace = vscode.workspace.getConfiguration('ompchamber').get<string>('opencodeBinary');
-      const configured = typeof configuredFromWorkspace === 'string' && configuredFromWorkspace.trim().length > 0
-        ? configuredFromWorkspace.trim()
-        : null;
+      // The dedicated binary-override setting was removed: the extension always
+      // spawns its bundled server, so there is no configurable binary anymore.
+      const configured: string | null = null;
       const resolved = debugInfo?.cliPath ?? null;
       const source = (() => {
         if (!resolved) return null;

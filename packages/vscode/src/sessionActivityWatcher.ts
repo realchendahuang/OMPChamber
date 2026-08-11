@@ -1,4 +1,4 @@
-import type { OpenCodeManager } from './opencode';
+import type { OmpServerManager } from './serverProcess';
 
 // Session activity tracking (mirrors web server and desktop behavior)
 type ActivityPhase = 'idle' | 'busy' | 'cooldown';
@@ -38,7 +38,7 @@ const unwrapGlobalEventPayload = (eventData: unknown): Record<string, unknown> |
   return eventData as Record<string, unknown>;
 };
 
-const reconcileSessionActivityFromStatus = async (manager: OpenCodeManager): Promise<void> => {
+const reconcileSessionActivityFromStatus = async (manager: OmpServerManager): Promise<void> => {
   const baseUrl = manager.getApiUrl();
   if (!baseUrl) {
     return;
@@ -46,7 +46,7 @@ const reconcileSessionActivityFromStatus = async (manager: OpenCodeManager): Pro
 
   const url = new URL('/api/session/status', baseUrl);
   const response = await fetch(url.toString(), {
-    headers: manager.getOpenCodeAuthHeaders(),
+    headers: manager.getServerAuthHeaders(),
   });
 
   if (!response.ok) {
@@ -159,7 +159,7 @@ const deriveSessionActivity = (payload: Record<string, unknown>): SessionActivit
   return null;
 };
 
-const waitForOpenCodePort = async (manager: OpenCodeManager, timeoutMs = 30000): Promise<number | null> => {
+const waitForServerPort = async (manager: OmpServerManager, timeoutMs = 30000): Promise<number | null> => {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     const apiUrl = manager.getApiUrl();
@@ -179,7 +179,7 @@ const waitForOpenCodePort = async (manager: OpenCodeManager, timeoutMs = 30000):
 };
 
 export const startGlobalEventWatcher = async (
-  manager: OpenCodeManager,
+  manager: OmpServerManager,
   provider: { postMessage: (message: unknown) => void }
 ): Promise<void> => {
   if (globalEventWatcherAbortController) {
@@ -190,12 +190,12 @@ export const startGlobalEventWatcher = async (
   clearGlobalEventWatcherRetry();
   chatViewProvider = provider;
 
-  const port = await waitForOpenCodePort(manager);
+  const port = await waitForServerPort(manager);
   if (startToken !== globalEventWatcherStartToken) {
     return;
   }
   if (!port) {
-    console.warn('[VSCode:Activity] OpenCode port unavailable; will retry');
+    console.warn('[VSCode:Activity] Server port unavailable; will retry');
     globalEventWatcherRetryTimer = setTimeout(() => {
       globalEventWatcherRetryTimer = null;
       if (startToken === globalEventWatcherStartToken) {
@@ -217,7 +217,7 @@ export const startGlobalEventWatcher = async (
       try {
         const baseUrl = manager.getApiUrl();
         if (!baseUrl) {
-          throw new Error('OpenCode API URL not available');
+          throw new Error('Server API URL not available');
         }
 
         try {
@@ -238,7 +238,7 @@ export const startGlobalEventWatcher = async (
           headers: {
             Accept: 'text/event-stream',
             'Cache-Control': 'no-cache',
-            ...manager.getOpenCodeAuthHeaders(),
+            ...manager.getServerAuthHeaders(),
           },
           signal,
         });

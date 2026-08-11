@@ -79,9 +79,9 @@
         "title": "%command.restartApi.title%"
       },
       {
-        "command": "ompchamber.showOpenCodeStatus",
+        "command": "ompchamber.showOmpStatus",
         "category": "OMPChamber",
-        "title": "%command.showOpenCodeStatus.title%"
+        "title": "%command.showOmpStatus.title%"
       },
       {
         "command": "ompchamber.openAgentManager",
@@ -210,11 +210,6 @@
           "type": "string",
           "default": "",
           "description": "%configuration.apiUrl.description%"
-        },
-        "ompchamber.opencodeBinary": {
-          "type": "string",
-          "default": "",
-          "description": "%configuration.opencodeBinary.description%"
         }
       }
     }

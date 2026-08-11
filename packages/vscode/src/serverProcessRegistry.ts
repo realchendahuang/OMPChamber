@@ -1,10 +1,8 @@
-// Managed OpenCode process registry + orphan reaper — VS Code parity copy.
+// Managed server process registry + orphan reaper.
 //
-// The VS Code extension does NOT bundle the web package, so it cannot import
-// the web runtime's registry module. This is a parity implementation that
-// reads/writes the SAME on-disk registry directory and uses the SAME algorithm,
-// so a process spawned by any runtime (web, desktop, VS Code) can be reaped by
-// any other.
+// The VS Code extension spawns the bundled OMPChamber server (dist/server.cjs)
+// directly and records each child here so a future run can reap it if the
+// extension host crashes before teardown.
 //
 // Storage is ONE FILE PER SPAWNED PROCESS (`<childPid>.json`) in a registry
 // directory — never a single shared JSON file — because multiple runtimes and
@@ -12,10 +10,10 @@
 // read-modify-write race. Per-process files mean each instance only ever writes
 // or deletes its OWN file.
 //
-// See packages/web/server/lib/opencode/managed-process-registry.js for the full
-// rationale and safety model. In short: we only ever kill pids THIS product
-// recorded, re-verified as a live `opencode serve`, and only when their spawner
-// is provably gone (reparented to pid 1, or recorded owner pid dead).
+// Safety model: we only ever kill pids THIS product recorded, re-verified as a
+// live OMPChamber server bundle (or a legacy `opencode serve` process from the
+// pre-OMP era), and only when their spawner is provably gone (reparented to
+// pid 1, or recorded owner pid dead).
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -195,10 +193,12 @@ const processEntry = async (
 
   if (process.platform === 'win32') {
     const image = readWindowsImageName(entry.pid);
-    const looksLikeOpencode = typeof image === 'string' && image.toLowerCase().includes('opencode');
-    if (looksLikeOpencode && ownerGone) {
+    // Image names containing `opencode` come from the legacy pre-OMP CLI era;
+    // current children are `node .../server.cjs`.
+    const isLegacyImage = typeof image === 'string' && image.toLowerCase().includes('opencode');
+    if (isLegacyImage && ownerGone) {
       await killOrphan(entry.pid);
-      log?.(`[opencode] reaped orphaned process pid ${entry.pid} (owner ${entry.ownerPid} gone)`);
+      log?.(`[server] reaped orphaned process pid ${entry.pid} (owner ${entry.ownerPid} gone)`);
       return true;
     }
     return false;
@@ -211,7 +211,7 @@ const processEntry = async (
   if (!orphaned) return false;
 
   await killOrphan(entry.pid);
-  log?.(`[opencode] reaped orphaned process pid ${entry.pid} (reparented/owner gone)`);
+  log?.(`[server] reaped orphaned process pid ${entry.pid} (reparented/owner gone)`);
   return true;
 };
 
@@ -230,7 +230,7 @@ export const reapOrphanedProcesses = async (
       if (wasReaped) reaped += 1;
       drop = wasReaped || !isPidAlive(entry.pid);
     } catch (error) {
-      log?.(`[opencode] reap check failed for pid ${entry.pid}: ${error instanceof Error ? error.message : error}`);
+      log?.(`[server] reap check failed for pid ${entry.pid}: ${error instanceof Error ? error.message : error}`);
     }
     if (drop) {
       try { fs.rmSync(filePath, { force: true }); } catch { /* ignore */ }

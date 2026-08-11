@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
 import { getThemeKindName } from './theme';
-import type { ConnectionStatus } from './opencode';
+import type { ConnectionStatus } from './serverProcess';
 import type { WorkspaceFolderCandidate } from './workspaceResolver';
 
 type PanelType = 'chat' | 'agentManager';
@@ -114,7 +114,7 @@ export function getWebviewHtml(options: WebviewHtmlOptions): string {
       opacity: 0;
       pointer-events: none;
     }
-    /* Glow pulse on the OpenCode mark on the cube's top face — signals loading without text. */
+    /* Glow pulse on the OMPChamber mark on the cube's top face — signals loading without text. */
     @keyframes oc-logo-glow {
       0%, 100% { filter: drop-shadow(0 0 0 transparent); }
       50% { filter: drop-shadow(0 0 4px var(--vscode-foreground)); }
@@ -165,7 +165,7 @@ export function getWebviewHtml(options: WebviewHtmlOptions): string {
       <!-- Top face (no fill, stroke only) -->
       <path class="logo-stroke" d="M50 2 L8.432 26 L50 50 L91.568 26 Z" fill="none" stroke-width="2" stroke-linejoin="round"/>
       
-      <!-- OpenCode logo on top face -->
+      <!-- OMPChamber logo on top face -->
       <g class="logo-inner" transform="matrix(0.866, 0.5, -0.866, 0.5, 50, 26) scale(0.75)">
         <path class="logo-fill-solid" fill-rule="evenodd" clip-rule="evenodd" d="M-16 -20 L16 -20 L16 20 L-16 20 Z M-8 -12 L-8 12 L8 12 L8 -12 Z"/>
         <path class="logo-fill-dim" d="M-8 -4 L8 -4 L8 12 L-8 12 Z"/>
@@ -173,7 +173,7 @@ export function getWebviewHtml(options: WebviewHtmlOptions): string {
     </svg>
     <!-- Status text stays empty while things are fine; populated only on error. -->
     <div class="status-text" id="loading-status"></div>
-    ${!cliAvailable ? `<div class="error-text" id="cli-missing-text">OpenCode CLI not found. Please install it first.</div>` : ''}
+    ${!cliAvailable ? `<div class="error-text" id="cli-missing-text">OMPChamber server failed to start. Check the extension installation.</div>` : ''}
   </div>
   
   <div id="root"></div>
@@ -210,22 +210,22 @@ export function getWebviewHtml(options: WebviewHtmlOptions): string {
 
       return locale === 'fr'
         ? {
-            startingApi: 'Démarrage de l’API OpenCode…',
+            startingApi: 'Démarrage du serveur OMPChamber…',
             initializing: 'Initialisation…',
             connecting: 'Connexion…',
             connected: 'Connecté !',
             connectionError: 'Erreur de connexion',
             reconnecting: 'Reconnexion…',
-            cliNotFound: 'L’interface en ligne de commande OpenCode est introuvable. Veuillez l’installer d’abord.',
+            cliNotFound: 'Le serveur OMPChamber n’a pas démarré. Vérifiez l’installation de l’extension.',
           }
         : {
-            startingApi: 'Starting OpenCode API…',
+            startingApi: 'Starting OMPChamber server…',
             initializing: 'Initializing…',
             connecting: 'Connecting…',
             connected: 'Connected!',
             connectionError: 'Connection error',
             reconnecting: 'Reconnecting…',
-            cliNotFound: 'OpenCode CLI not found. Please install it first.',
+            cliNotFound: 'OMPChamber server failed to start. Check the extension installation.',
           };
     }
 

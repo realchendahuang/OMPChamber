@@ -4,10 +4,10 @@ import {
   BUILT_IN_SKILL_LOCATION,
   getSkillSources,
   mergeDiscoveredSkills,
-} from './opencodeConfig';
+} from './ompConfig';
 
 describe('VS Code skill discovery parity', () => {
-  test('merges OpenCode API skills with locally discovered fallback skills', () => {
+  test('merges server API skills with locally discovered fallback skills', () => {
     const merged = mergeDiscoveredSkills(
       [
         { name: 'built-in', path: BUILT_IN_SKILL_LOCATION, scope: 'user', source: 'opencode' },

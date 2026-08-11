@@ -341,7 +341,7 @@ export async function handleSpecialGitBridgeMessage(
       try {
         const apiUrl = ctx?.manager?.getApiUrl();
         if (!apiUrl) {
-          return { id, type, success: false, error: 'OpenCode API unavailable' };
+          return { id, type, success: false, error: 'Server API unavailable' };
         }
 
         const settings = deps.readSettings(ctx) as Record<string, unknown>;
@@ -349,7 +349,7 @@ export async function handleSpecialGitBridgeMessage(
           { providerId, modelId, zenModel: payloadZenModel },
           settings,
           apiUrl,
-          ctx?.manager?.getOpenCodeAuthHeaders()
+          ctx?.manager?.getServerAuthHeaders()
         );
         const raw = await generateBridgeTextWithSessionFlow({
           apiUrl,
@@ -357,7 +357,7 @@ export async function handleSpecialGitBridgeMessage(
           prompt,
           providerID,
           modelID,
-          authHeaders: ctx?.manager?.getOpenCodeAuthHeaders(),
+          authHeaders: ctx?.manager?.getServerAuthHeaders(),
         });
         if (!raw) {
           return { id, type, success: false, error: 'No PR description returned by generator' };

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { BUILT_IN_SKILL_LOCATION, type DiscoveredSkill, type SkillScope, type SkillSource } from './opencodeConfig';
+import { BUILT_IN_SKILL_LOCATION, type DiscoveredSkill, type SkillScope, type SkillSource } from './ompConfig';
 import type { BridgeContext } from './bridge';
 
 const SETTINGS_KEY = 'ompchamber.settings';
@@ -90,7 +90,7 @@ const inferSkillScopeAndSourceFromLocation = (location: string, workingDirectory
   return { scope: 'user', source };
 };
 
-export const fetchOpenCodeSkillsFromApi = async (
+export const fetchSkillsFromApi = async (
   ctx: BridgeContext | undefined,
   workingDirectory?: string,
 ): Promise<DiscoveredSkill[] | null> => {
@@ -110,7 +110,7 @@ export const fetchOpenCodeSkillsFromApi = async (
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        ...(ctx?.manager?.getOpenCodeAuthHeaders() || {}),
+        ...(ctx?.manager?.getServerAuthHeaders() || {}),
       },
       signal: AbortSignal.timeout(8_000),
     });

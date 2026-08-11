@@ -827,13 +827,13 @@ const isExactPluginSemver = (version: string): boolean => /^\d+\.\d+\.\d+([-+][\
 const getActiveCustomConfigPath = (): string | null =>
   process.env.OPENCODE_CONFIG ? path.resolve(process.env.OPENCODE_CONFIG) : null;
 
-const getActiveOpencodeConfigDir = (): string => {
+const getActiveConfigDir = (): string => {
   const customConfigPath = getActiveCustomConfigPath();
   return customConfigPath ? path.dirname(customConfigPath) : OPENCODE_CONFIG_DIR;
 };
 
 const getActiveUserConfigPaths = (): string[] => {
-  const configDir = getActiveOpencodeConfigDir();
+  const configDir = getActiveConfigDir();
   return [
     path.join(configDir, 'config.json'),
     path.join(configDir, 'opencode.json'),
@@ -980,7 +980,7 @@ const getPluginDir = (scope: PluginScope, workingDirectory?: string | null): str
     if (!workingDirectory) throw codedError('Project plugin scope requires working directory', 'INVALID_SCOPE');
     return path.join(workingDirectory, '.opencode', 'plugins');
   }
-  return path.join(getActiveOpencodeConfigDir(), 'plugins');
+  return path.join(getActiveConfigDir(), 'plugins');
 };
 
 const getPluginFileTarget = (id: string, workingDirectory?: string): { scope: PluginScope; fileName: string; filePath: string } => {
@@ -2644,7 +2644,7 @@ export const discoverSkills = (workingDirectory?: string): DiscoveredSkill[] => 
 
   // 3) Config directories: {skill,skills}/**/SKILL.md
   const configDirectories = resolveSkillSearchDirectories(workingDirectory);
-  const homeOpencodeDir = path.resolve(path.join(os.homedir(), '.opencode'));
+  const homeConfigDir = path.resolve(path.join(os.homedir(), '.opencode'));
   const customConfigDir = process.env.OPENCODE_CONFIG_DIR
     ? path.resolve(process.env.OPENCODE_CONFIG_DIR)
     : null;
@@ -2653,7 +2653,7 @@ export const discoverSkills = (workingDirectory?: string): DiscoveredSkill[] => 
       const root = path.join(dir, subDir);
       for (const skillMdPath of walkSkillMdFiles(root)) {
         const isUserConfigDir = dir === OPENCODE_CONFIG_DIR
-          || dir === homeOpencodeDir
+          || dir === homeConfigDir
           || (customConfigDir && dir === customConfigDir);
         const scope = isUserConfigDir ? SKILL_SCOPE.USER : SKILL_SCOPE.PROJECT;
         addSkillFromMdFile(skills, skillMdPath, scope, 'opencode');

@@ -7,7 +7,7 @@ const createManager = () => ({
   getStatus: () => 'connected',
   getApiUrl: () => 'http://127.0.0.1:4096/',
   getWorkingDirectory: () => '/repo',
-  getOpenCodeAuthHeaders: () => ({ Authorization: 'Bearer test-token' }),
+  getServerAuthHeaders: () => ({ Authorization: 'Bearer test-token' }),
   onStatusChange: () => ({ dispose() {} }),
 });
 

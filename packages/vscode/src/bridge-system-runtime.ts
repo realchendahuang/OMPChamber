@@ -3,13 +3,13 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { randomUUID } from 'crypto';
-import { removeProviderConfig, getProviderSources, upsertProviderConfig } from './opencodeConfig';
-import { getProviderAuth, removeProviderAuth } from './opencodeAuth';
+import { removeProviderConfig, getProviderSources, upsertProviderConfig } from './ompConfig';
+import { getProviderAuth, removeProviderAuth } from './ompAuth';
 import { fetchQuotaForProvider, listConfiguredQuotaProviders } from './quotaProviders';
 import { fetchOpenCodeGoUsage } from './opencodeGoQuota';
 import { credentialStatus, deleteCredential, importCursorCredential, normalizeCredential, readCredential, validateCredential, writeCredential, type ManagedProvider } from './quotaCredentials';
 import { getSessionActivitySnapshot } from './sessionActivityWatcher';
-import { getOpenCodeUpgradeStatus, upgradeManagedOpenCode } from './opencode-upgrade-runtime';
+import { getOmpUpgradeStatus, upgradeManagedOmp } from './omp-upgrade-runtime';
 import { buildDeferredRestartResponse } from './config-mutation-response';
 import type { BridgeContext, BridgeResponse } from './bridge';
 
@@ -223,7 +223,7 @@ export async function handleSystemBridgeMessage(
   const { id, type, payload } = message;
 
   switch (type) {
-    case 'api:opencode/directory': {
+    case 'api:server/directory': {
       const target = (payload as { path?: string })?.path;
       if (!target) {
         return { id, type, success: false, error: 'Path is required' };
@@ -233,7 +233,7 @@ export async function handleSystemBridgeMessage(
       const resolvedPath = deps.resolveUserPath(target, baseDirectory);
       const result = await ctx?.manager?.setWorkingDirectory(resolvedPath);
       if (!result) {
-        return { id, type, success: false, error: 'OpenCode manager unavailable' };
+        return { id, type, success: false, error: 'Server manager unavailable' };
       }
       return { id, type, success: true, data: result };
     }
@@ -248,20 +248,20 @@ export async function handleSystemBridgeMessage(
       }
     }
 
-    case 'api:opencode/version': {
+    case 'api:server/version': {
       try {
         const apiUrl = ctx?.manager?.getApiUrl();
         if (!apiUrl) {
-          return { id, type, success: true, data: { version: null, error: 'OpenCode manager unavailable' } };
+          return { id, type, success: true, data: { version: null, error: 'Server manager unavailable' } };
         }
         const base = `${apiUrl.replace(/\/+$/, '')}/`;
         const response = await fetch(new URL('api/global/health', base).toString(), {
           method: 'GET',
-          headers: { Accept: 'application/json', ...ctx?.manager?.getOpenCodeAuthHeaders() },
+          headers: { Accept: 'application/json', ...ctx?.manager?.getServerAuthHeaders() },
         });
         const health = await response.json().catch(() => null) as { version?: unknown; error?: unknown } | null;
         if (!response.ok) {
-          const message = typeof health?.error === 'string' ? health.error : response.statusText || 'Failed to read OpenCode version';
+          const message = typeof health?.error === 'string' ? health.error : response.statusText || 'Failed to read server version';
           return { id, type, success: true, data: { version: null, error: message } };
         }
         const version = typeof health?.version === 'string' && health.version.trim().length > 0
@@ -274,13 +274,13 @@ export async function handleSystemBridgeMessage(
       }
     }
 
-    case 'api:opencode/upgrade-status': {
-      return { id, type, success: true, data: await getOpenCodeUpgradeStatus(ctx?.manager) };
+    case 'api:server/upgrade-status': {
+      return { id, type, success: true, data: await getOmpUpgradeStatus(ctx?.manager) };
     }
 
-    case 'api:opencode/upgrade': {
+    case 'api:server/upgrade': {
       const target = (payload as { target?: unknown } | undefined)?.target;
-      return { id, type, success: true, data: await upgradeManagedOpenCode(ctx?.manager, target) };
+      return { id, type, success: true, data: await upgradeManagedOmp(ctx?.manager, target) };
     }
 
     case 'api:session-activity:get': {

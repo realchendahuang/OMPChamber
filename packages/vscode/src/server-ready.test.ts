@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { ConnectionStatus, OpenCodeManager } from './opencode';
-import { waitForApiUrl } from './opencode-ready';
+import type { ConnectionStatus, OmpServerManager } from './serverProcess';
+import { waitForApiUrl } from './server-ready';
 
 type Listener = (status: ConnectionStatus, error?: string) => void;
 
@@ -18,7 +18,7 @@ const createManager = (initial: { status: ConnectionStatus; url: string | null }
       cb(status);
       return { dispose: () => listeners.delete(cb) };
     },
-  } as unknown as OpenCodeManager;
+  } as unknown as OmpServerManager;
 
   const transition = (next: ConnectionStatus, nextUrl: string | null) => {
     status = next;

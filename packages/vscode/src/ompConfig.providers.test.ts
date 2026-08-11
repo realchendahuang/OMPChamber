@@ -9,7 +9,7 @@ import {
   removeProviderConfig,
   upsertProviderConfig,
   validateCustomProviderConfig,
-} from './opencodeConfig';
+} from './ompConfig';
 
 let projectDir: string;
 

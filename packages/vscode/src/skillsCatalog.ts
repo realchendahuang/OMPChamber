@@ -5,7 +5,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import yaml from 'yaml';
 
-import { discoverSkills } from './opencodeConfig';
+import { discoverSkills } from './ompConfig';
 
 const execFileAsync = promisify(execFile);
 

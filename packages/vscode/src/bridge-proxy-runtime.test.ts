@@ -21,7 +21,7 @@ const ctx = {
   manager: {
     getStatus: () => 'connected',
     getApiUrl: () => 'http://127.0.0.1:3902',
-    getOpenCodeAuthHeaders: () => ({}),
+    getServerAuthHeaders: () => ({}),
     onStatusChange: (cb: (status: string) => void) => {
       cb('connected');
       return { dispose: () => {} };

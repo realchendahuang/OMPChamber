@@ -1,16 +1,16 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { OpenCodeManager } from './opencode';
+import type { OmpServerManager } from './serverProcess';
 import { openSseProxy } from './sseProxy';
 
-const createManager = (): OpenCodeManager => ({
+const createManager = (): OmpServerManager => ({
   start: async () => {},
   stop: async () => {},
   restart: async () => {},
   setWorkingDirectory: async (path) => ({ success: true, path }),
   getStatus: () => 'connected',
   getApiUrl: () => 'http://127.0.0.1:3902',
-  getOpenCodeAuthHeaders: () => ({}),
+  getServerAuthHeaders: () => ({}),
   getWorkingDirectory: () => '/workspace',
   isCliAvailable: () => true,
   getDebugInfo: () => ({

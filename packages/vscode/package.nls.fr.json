@@ -1,10 +1,10 @@
 {
-  "extension.description": "Assistant de codage IA propulsé par OpenCode",
+  "extension.description": "Assistant de codage IA propulsé par OMP",
   "views.chat.name": "Chat",
   "command.openSidebar.title": "Ouvrir la barre latérale",
   "command.focusChat.title": "Mettre le chat au premier plan",
   "command.restartApi.title": "Redémarrer la connexion API",
-  "command.showOpenCodeStatus.title": "Afficher l’état de OpenCode",
+  "command.showOmpStatus.title": "Afficher l’état d’OMP",
   "command.openAgentManager.title": "Ouvrir le gestionnaire d’agents",
   "command.openActiveSessionInEditor.title": "Ouvrir la session active dans l’éditeur",
   "command.openNewSessionInEditor.title": "Ouvrir une nouvelle session dans l’éditeur",
@@ -15,6 +15,5 @@
   "command.newSession.title": "Nouvelle session",
   "command.showSettings.title": "Paramètres",
   "command.attachExplorerToChat.title": "Joindre au chat OMPChamber",
-  "configuration.apiUrl.description": "URL d’un serveur API OpenCode externe. Laissez vide pour démarrer automatiquement une instance locale.",
-  "configuration.opencodeBinary.description": "Chemin absolu facultatif vers le binaire CLI opencode. Utile si la recherche PATH échoue. Nécessite de recharger la fenêtre ou de redémarrer l’API pour être pris en compte."
+  "configuration.apiUrl.description": "URL d’un serveur OMPChamber externe. Laissez vide pour démarrer automatiquement une instance locale."
 }

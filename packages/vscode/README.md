@@ -33,7 +33,7 @@ Plus everything from the shared OMPChamber UI: branchable timeline, smart tool U
 | `OMPChamber: Open Session in Editor` | Open current or new session in an editor tab |
 | `OMPChamber: Settings` | Open extension settings |
 | `OMPChamber: Restart API Connection` | Restart the OMPChamber server process |
-| `OMPChamber: Show OpenCode Status` | Debug info for development or bug reports |
+| `OMPChamber: Show OMP Status` | Debug info for development or bug reports |
 
 ### Right-click menu
 
