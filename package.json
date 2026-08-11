@@ -71,7 +71,7 @@
     "vscode:package": "bun run --cwd packages/vscode package",
     "vscode:type-check": "bun run --cwd packages/vscode type-check",
     "docs:validate": "node scripts/docs/validate-docs.mjs",
-    "dead-code": "bunx knip@5.80.0 --no-exit-code --include files,exports,nsExports,types,nsTypes,enumMembers,duplicates",
+    "dead-code": "bunx knip@5.81.0 --no-exit-code --include files,exports,nsExports,types,nsTypes,enumMembers,duplicates",
     "doctor": "node scripts/react-doctor.mjs",
     "profile:browser": "node scripts/profile-browser.mjs",
     "icons:sprite": "node scripts/generate-file-type-sprite.mjs",

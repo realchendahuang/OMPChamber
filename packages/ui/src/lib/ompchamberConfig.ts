@@ -14,7 +14,6 @@ import { runtimeFetch } from './runtime-fetch';
 
 type ProjectRef = { id: string; path: string };
 
-const CONFIG_FILENAME = 'ompchamber.json';
 // LEGACY_PROJECT_CONFIG: legacy per-project config root inside repo,
 // read from the original OpenChamber layout so upgrades carry settings over.
 const LEGACY_CONFIG_DIR = '.openchamber';

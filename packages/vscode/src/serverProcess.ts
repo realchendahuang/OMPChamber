@@ -442,8 +442,8 @@ export function createOmpServerManager(context: vscode.ExtensionContext): OmpSer
   let server: { url: string; close: () => void } | null = null;
   let reapedOrphansOnce = false;
   let managedApiUrlOverride: string | null = null;
-  let managedPassword: string | null = null;
-  let managedPasswordSource: 'user-env' | 'generated' | 'rotated' | null = null;
+  const managedPassword: string | null = null;
+  const managedPasswordSource: 'user-env' | 'generated' | 'rotated' | null = null;
   const userProvidedEnvPassword = (() => {
     const normalized = (process.env.OPENCODE_SERVER_PASSWORD || '').trim();
     return normalized.length > 0 ? normalized : null;
