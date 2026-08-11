@@ -106,7 +106,7 @@ OMPCHAMBER_TARGET_ARCH=arm64 bun run electron:build
 bun run --cwd packages/electron verify:linux-appimage
 ```
 
-The final AppImage verifier checks desktop identity and the architecture of Electron, the bundled OpenCode CLI, and packaged native modules.
+The final AppImage verifier checks desktop identity and the architecture of Electron, the bundled OMP CLI, and packaged native modules.
 
 ## Before Submitting
 
