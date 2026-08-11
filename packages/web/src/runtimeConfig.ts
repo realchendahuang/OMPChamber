@@ -4,7 +4,7 @@ import { initializeRuntimeEndpoint, switchRuntimeEndpoint } from '@ompchamber/ui
 import { restoreDesktopRelayRuntime } from '@ompchamber/ui/lib/desktopRelayRestore';
 import { configureRuntimeUrlResolver } from '@ompchamber/ui/lib/runtime-url';
 import type { EmbeddedSessionRuntimeBootstrap } from '@ompchamber/ui/components/layout/contextPanelEmbeddedChat';
-import { opencodeClient } from '@ompchamber/ui/lib/opencode/client';
+import { agentClient } from '@ompchamber/ui/lib/agent/client';
 import { createWebAPIs } from './api';
 
 const sameOrigin = (left: string, right: string): boolean => {
@@ -67,7 +67,7 @@ export const createConfiguredWebAPIs = (bootstrap?: EmbeddedSessionRuntimeBootst
   }
   // createWebAPIs imports UI stores, which instantiate the SDK singleton before
   // an embedded frame's asynchronous parent bootstrap is available.
-  opencodeClient.reconnectToRuntimeBaseUrl();
+  agentClient.reconnectToRuntimeBaseUrl();
   void refreshRuntimeUrlAuthToken(apiBaseUrl || undefined).catch(() => {});
   if (localOrigin && !sameOrigin(apiBaseUrl, localOrigin) && Object.keys(getRuntimeExtraHeadersSync()).length > 0) {
     void refreshLocalRuntimeUrlAuthToken(localOrigin).catch(() => {});
@@ -88,7 +88,7 @@ export const createConfiguredWebAPIs = (bootstrap?: EmbeddedSessionRuntimeBootst
       ]).then(() => {
         // Relay-capable windows may select a reachable direct leg before React
         // subscribes to runtime-change events, so bind the SDK explicitly.
-        opencodeClient.reconnectToRuntimeBaseUrl();
+        agentClient.reconnectToRuntimeBaseUrl();
       });
   return createWebAPIs({ urls });
 };

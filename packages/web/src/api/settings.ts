@@ -46,11 +46,11 @@ export const createWebSettingsAPI = (): SettingsAPI => ({
     return payload;
   },
 
-  async restartOpenCode(): Promise<{ restarted: boolean }> {
+  async restartOmp(): Promise<{ restarted: boolean }> {
     const response = await runtimeFetch(RELOAD_ENDPOINT, { method: 'POST' });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(error.error || 'Failed to restart OpenCode');
+      throw new Error(error.error || 'Failed to restart OMP');
     }
     return { restarted: true };
   },

@@ -17,13 +17,13 @@ vi.mock('@ompchamber/ui/lib/runtime-switch', () => ({
 }));
 vi.mock('@ompchamber/ui/lib/desktopRelayRestore', () => ({ restoreDesktopRelayRuntime: vi.fn(() => Promise.resolve()) }));
 vi.mock('@ompchamber/ui/lib/runtime-url', () => ({ configureRuntimeUrlResolver: vi.fn(() => ({})) }));
-vi.mock('@ompchamber/ui/lib/opencode/client', () => ({ opencodeClient: { reconnectToRuntimeBaseUrl: vi.fn() } }));
+vi.mock('@ompchamber/ui/lib/agent/client', () => ({ agentClient: { reconnectToRuntimeBaseUrl: vi.fn() } }));
 vi.mock('./api', () => ({ createWebAPIs: vi.fn() }));
 
 import { setRuntimeBearerToken, setRuntimeExtraHeaders } from '@ompchamber/ui/lib/runtime-auth';
 import { initializeRuntimeEndpoint, switchRuntimeEndpoint } from '@ompchamber/ui/lib/runtime-switch';
 import { restoreDesktopRelayRuntime } from '@ompchamber/ui/lib/desktopRelayRestore';
-import { opencodeClient } from '@ompchamber/ui/lib/opencode/client';
+import { agentClient } from '@ompchamber/ui/lib/agent/client';
 import { createConfiguredWebAPIs, readRuntimeBootstrapConfig } from './runtimeConfig';
 
 const originalWindow = globalThis.window;
@@ -113,7 +113,7 @@ describe('createConfiguredWebAPIs', () => {
     expect(setRuntimeBearerToken).toHaveBeenCalledWith(bootstrap.clientToken);
     expect(setRuntimeExtraHeaders).toHaveBeenCalledWith(bootstrap.runtimeHeaders);
     expect(restoreDesktopRelayRuntime).toHaveBeenCalledWith(bootstrap.relayHostId);
-    expect(opencodeClient.reconnectToRuntimeBaseUrl).toHaveBeenCalled();
+    expect(agentClient.reconnectToRuntimeBaseUrl).toHaveBeenCalled();
   });
 
   test('activates an embedded relay without relying on Electron preload IPC', () => {
@@ -140,6 +140,6 @@ describe('createConfiguredWebAPIs', () => {
       relay,
     });
     expect(restoreDesktopRelayRuntime).not.toHaveBeenCalled();
-    expect(opencodeClient.reconnectToRuntimeBaseUrl).toHaveBeenCalled();
+    expect(agentClient.reconnectToRuntimeBaseUrl).toHaveBeenCalled();
   });
 });
