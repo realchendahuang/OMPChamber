@@ -47,25 +47,17 @@ Fuerza el gestor de paquetes usado para actualizar cuando la detección automát
 
 ## Servidor OMP
 
-### `OPENCODE_HOST`
-
-Conecta OMPChamber a un servidor OMPChamber existente. Debe ser un origin `http` o `https` con puerto explícito y sin ruta, query ni hash. `OPENCODE_HOST` tiene prioridad sobre `OPENCODE_PORT`.
-
 ### `OPENCODE_PORT`
 
-Define el puerto del servidor OMP. Con OMP gestionado pide ese puerto; con `OPENCODE_SKIP_START=true` conecta a un servidor externo en ese puerto.
+Define el puerto del servidor OMP. Con OMP gestionado pide ese puerto.
 
-### `OPENCODE_SKIP_START`
+### `OMP_BINARY`
 
-Evita que OMPChamber arranque su propio servidor OMP cuando vale `true`.
-
-### `OMPCHAMBER_OPENCODE_HOSTNAME`
-
-Hostname para el servidor OMP gestionado por OMPChamber. Por defecto es `127.0.0.1`.
+Ruta al ejecutable `omp` que debe usar OMPChamber.
 
 ### `OPENCODE_BINARY`
 
-Ruta al ejecutable `omp` que debe usar OMPChamber.
+Alias obsoleto de `OMP_BINARY`, aún se admite como fallback.
 
 ### `OPENCODE_CONFIG`
 

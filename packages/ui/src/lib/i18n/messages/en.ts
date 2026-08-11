@@ -2728,7 +2728,7 @@ export const dict = {
   'onboarding.localSetup.windows.hintInstallInWsl': 'On Windows, install and run OMP natively.',
   'onboarding.localSetup.windows.hintDetectionFailed': 'If detection fails, set a native path such as omp.cmd or omp.exe.',
   'onboarding.localSetup.hint.ensurePath': 'Already installed? Make sure OMP is in your PATH.',
-  'onboarding.localSetup.hint.setEnv': 'Or set OPENCODE_BINARY environment variable.',
+  'onboarding.localSetup.hint.setEnv': 'Or set the OMP_BINARY environment variable (OPENCODE_BINARY still works as a deprecated fallback).',
   'onboarding.localSetup.hint.missingRuntime': 'If you see "env: node: No such file or directory" or "env: bun: No such file or directory", install that runtime or ensure it is on PATH.',
   'onboarding.remoteConnection.title': 'Connect to Remote Server',
   'onboarding.remoteConnection.titleRecovery': 'Connect to a Different Server',

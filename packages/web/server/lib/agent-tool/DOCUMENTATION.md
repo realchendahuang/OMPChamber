@@ -6,7 +6,7 @@ This module exposes OMPChamber orchestration to agents as one typed OpenCode
 custom tool named `ompchamber`. It is injected only when OMPChamber launches
 and owns the OpenCode process, and only while the persisted
 `agentControlToolEnabled` setting is not `false` (default on; toggled in
-Settings → General → OpenCode CLI and applied on the next managed OpenCode
+Settings → General → OMP CLI and applied on the next managed OpenCode
 restart).
 
 ## Runtime flow
@@ -83,8 +83,6 @@ error state.
 ## Runtime parity
 
 - Web and Desktop managed OpenCode: injected automatically.
-- External OpenCode selected with `OPENCODE_HOST` or skip-start: not injected,
-  because OMPChamber does not control that process environment.
 - VS Code: not injected; the extension owns a separate OpenCode lifecycle.
 - Hosted and Capacitor mobile clients use the server's managed OpenCode tool
   when connected to such a server; no tool runs in the client runtime.

@@ -14,14 +14,6 @@ OMPChamber は読み込まれるのに "OMP is restarting" から進まない、
 - `ompchamber restart` で再起動します
 - `ompchamber logs` で起動詳細を確認します
 
-## 自分のサーバーへ接続している
-
-既存サーバーを使うよう OMPChamber を設定した場合は、[OMPChamber サーバー](/omp-server/) の設定を再確認してください。
-
-- `OPENCODE_HOST` はポートを含み、パスを含まない必要があります。例: `http://localhost:4096`
-- `OPENCODE_SKIP_START=true` を設定し、OMPChamber が自分のサーバーも起動しないようにします
-- アドレスが無効な場合、OMPChamber はそれを無視して自分のサーバーを起動します。ログの `[config]` 警告を探してください
-
 ## まだ失敗する場合
 
 - Node.js がバージョン `20` 以上であることを確認します

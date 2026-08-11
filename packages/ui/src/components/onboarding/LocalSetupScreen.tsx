@@ -9,8 +9,8 @@ import { restartDesktopApp } from '@/lib/desktop';
 import { useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';
 
-const INSTALL_COMMAND = 'curl -fsSL https://opencode.ai/install | bash';
-const DOCS_URL = 'https://opencode.ai/docs';
+const INSTALL_COMMAND = 'npm install -g @oh-my-pi/pi-coding-agent';
+const DOCS_URL = 'https://omp.sh';
 
 type OnboardingPlatform = 'macos' | 'linux' | 'windows' | 'unknown';
 
@@ -29,11 +29,9 @@ function BashCommand({ onCopy, copyTitle }: { onCopy: () => void; copyTitle: str
   return (
     <div className="flex items-center justify-center gap-3">
       <code>
-        <span style={{ color: 'var(--syntax-keyword)' }}>curl</span>
-        <span className="text-muted-foreground"> -fsSL </span>
-        <span style={{ color: 'var(--syntax-string)' }}>https://opencode.ai/install</span>
-        <span className="text-muted-foreground"> | </span>
-        <span style={{ color: 'var(--syntax-keyword)' }}>bash</span>
+        <span style={{ color: 'var(--syntax-keyword)' }}>npm</span>
+        <span className="text-muted-foreground"> install -g </span>
+        <span style={{ color: 'var(--syntax-string)' }}>@oh-my-pi/pi-coding-agent</span>
       </code>
       <button
         onClick={onCopy}
@@ -131,7 +129,7 @@ export function LocalSetupScreen({
       const response = await runtimeFetch('/health');
       if (!response.ok) return false;
       const data = await response.json();
-      return data.openCodeRunning === true || data.isOpenCodeReady === true;
+      return data.ompRunning === true || data.isOmpReady === true;
     } catch {
       return false;
     }

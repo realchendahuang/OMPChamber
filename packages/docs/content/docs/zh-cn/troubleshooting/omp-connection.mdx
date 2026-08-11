@@ -14,14 +14,6 @@ description: 修复 OMPChamber 无法连接到它的 OMPChamber 服务器的问�
 - 用 `ompchamber restart` 重启它
 - 用 `ompchamber logs` 查看启动详情
 
-## 你正在连接自己的服务器
-
-如果你设置了 OMPChamber 使用现有的服务器，请对照 [OMPChamber Server](/zh-cn/omp-server/) 仔细检查配置：
-
-- `OPENCODE_HOST` 必须包含端口，且不带路径 — 例如 `http://localhost:4096`
-- 设置 `OPENCODE_SKIP_START=true`，这样 OMPChamber 就不会同时启动自己的服务器
-- 如果地址无效，OMPChamber 会忽略它并改为启动自己的服务器 — 请在日志中查找 `[config]` 警告
-
 ## 仍然失败
 
 - 确认 Node.js 是 `20` 或更新版本

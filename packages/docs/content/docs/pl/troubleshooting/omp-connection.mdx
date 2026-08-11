@@ -14,14 +14,6 @@ Jeśli OMPChamber się ładuje, ale nigdy nie przechodzi poza „OMP uruchamia s
 - zrestartuj go za pomocą `ompchamber restart`
 - zobacz szczegóły startu za pomocą `ompchamber logs`
 
-## Łączysz się z własnym serwerem
-
-Jeśli ustawiłeś OMPChamber tak, aby używał istniejącego serwera, sprawdź ponownie konfigurację z [OMPChamber Server](/pl/omp-server/):
-
-- `OPENCODE_HOST` musi zawierać port, bez ścieżki — na przykład `http://localhost:4096`
-- ustaw `OPENCODE_SKIP_START=true`, aby OMPChamber nie uruchamiał też własnego
-- jeśli adres jest nieprawidłowy, OMPChamber go ignoruje i uruchamia własny serwer — poszukaj ostrzeżenia `[config]` w logach
-
 ## Nadal nie działa
 
 - potwierdź, że Node.js jest w wersji `20` lub nowszej

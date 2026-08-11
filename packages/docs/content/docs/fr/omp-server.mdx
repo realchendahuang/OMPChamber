@@ -5,33 +5,17 @@ description: Connectez OMPChamber à un serveur OMPChamber local ou distant.
 
 # Serveur OMPChamber
 
-OMPChamber fonctionne par-dessus un serveur OMPChamber. Par défaut, il en démarre un pour vous, donc vous n’avez rien à faire. Vous n’avez besoin de cette page que si vous voulez pointer OMPChamber vers un serveur que vous exécutez déjà, ou gérer celui qu’il démarre.
+OMPChamber fonctionne par-dessus un serveur OMPChamber. Par défaut, il en démarre un pour vous, donc vous n’avez rien à faire. Vous n’avez besoin de cette page que si vous voulez gérer le serveur qu’il démarre.
 
 ## Comment OMPChamber trouve un serveur
 
 Au démarrage, OMPChamber cherche un serveur dans cet ordre :
 
 1. réutiliser un serveur qu’il a déjà démarré
-2. se connecter à un serveur externe si vous le lui avez indiqué (voir ci-dessous)
-3. détecter automatiquement un serveur sur le port par défaut (`4096`)
-4. sinon, démarrer et gérer son propre serveur
+2. détecter automatiquement un serveur sur le port par défaut (`4096`)
+3. sinon, démarrer et gérer son propre serveur
 
-Si rien n’est configuré, l’étape 4 se fait automatiquement et vous pouvez commencer.
-
-## Se connecter à un serveur que vous exécutez déjà
-
-Définissez ces variables avant de lancer OMPChamber :
-
-```bash
-OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
-```
-
-- `OPENCODE_HOST` — l’adresse complète de votre serveur OMPChamber, port inclus (par exemple `http://localhost:4096`). Elle ne doit pas se terminer par un chemin.
-- `OPENCODE_SKIP_START=true` — indique à OMPChamber de ne pas démarrer son propre serveur.
-
-Si vous voulez seulement changer le port, définissez `OPENCODE_PORT` au lieu de `OPENCODE_HOST`.
-
-Si `OPENCODE_HOST` n’a pas de port ou contient un chemin, OMPChamber l’ignore et revient au démarrage de son propre serveur. Surveillez les logs de démarrage pour un avertissement `[config]` si une connexion attendue ne se fait pas.
+Si rien n’est configuré, l’étape 3 se fait automatiquement et vous pouvez commencer.
 
 ## Gérer le serveur depuis la CLI
 

@@ -5,33 +5,17 @@ description: 将 OMPChamber 连接到本地或远程的 OMPChamber 服务器。
 
 # OMPChamber Server
 
-OMPChamber 运行在 OMPChamber 服务器之上。默认情况下，它会为你启动一个，所以你无需做任何事。只有当你想让 OMPChamber 指向一个你已经运行的服务器，或者管理它所启动的服务器时，才需要本页内容。
+OMPChamber 运行在 OMPChamber 服务器之上。默认情况下，它会为你启动一个，所以你无需做任何事。只有当你想管理它所启动的服务器时，才需要本页内容。
 
 ## OMPChamber 如何查找服务器
 
 OMPChamber 启动时，会按以下顺序查找服务器：
 
 1. 复用它已经启动的服务器
-2. 如果你指定了外部服务器，则连接到它（见下文）
-3. 在默认端口（`4096`）上自动检测服务器
-4. 否则，启动并管理它自己的服务器
+2. 在默认端口（`4096`）上自动检测服务器
+3. 否则，启动并管理它自己的服务器
 
-如果没有进行任何配置，第 4 步会自动发生，你就可以开始运行了。
-
-## 连接到你已经运行的服务器
-
-在启动 OMPChamber 之前设置这些变量：
-
-```bash
-OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
-```
-
-- `OPENCODE_HOST` — 你的 OMPChamber 服务器的完整地址，包括端口（类似 `http://localhost:4096` 这样的值）。末尾不能带路径。
-- `OPENCODE_SKIP_START=true` — 告诉 OMPChamber 不要启动它自己的服务器。
-
-如果你只需要更改端口，请设置 `OPENCODE_PORT` 而不是 `OPENCODE_HOST`。
-
-如果 `OPENCODE_HOST` 缺少端口或带有路径，OMPChamber 会忽略它并回退到启动自己的服务器。如果你期望的连接没有发生，请留意启动日志中的 `[config]` 警告。
+如果没有进行任何配置，第 3 步会自动发生，你就可以开始运行了。
 
 ## 从 CLI 管理服务器
 

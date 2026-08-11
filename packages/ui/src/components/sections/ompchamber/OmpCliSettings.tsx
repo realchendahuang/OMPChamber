@@ -117,7 +117,7 @@ export const OmpCliSettings: React.FC = () => {
             <>
               {t('settings.ompchamber.ompCli.tipPrefix')}
               {' '}
-              <span className="font-mono">OPENCODE_BINARY</span>
+              <span className="font-mono">OMP_BINARY</span>
               {' '}
               {t('settings.ompchamber.ompCli.tipMiddle')}
               {' '}

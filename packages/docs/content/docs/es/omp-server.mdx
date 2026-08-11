@@ -5,33 +5,17 @@ description: Conecta OMPChamber a un servidor de OMPChamber local o remoto.
 
 # OMPChamber Server
 
-OMPChamber se ejecuta sobre un servidor de OMPChamber. De forma predeterminada inicia uno por ti, así que no tienes que hacer nada. Solo necesitas esta página si quieres apuntar OMPChamber a un servidor que ya ejecutas, o gestionar el que él inicia.
+OMPChamber se ejecuta sobre un servidor de OMPChamber. De forma predeterminada inicia uno por ti, así que no tienes que hacer nada. Solo necesitas esta página si quieres gestionar el servidor que él inicia.
 
 ## Cómo encuentra OMPChamber un servidor
 
 Cuando OMPChamber arranca, busca un servidor en este orden:
 
 1. reutilizar un servidor que ya inició
-2. conectarse a uno externo si se lo indicaste (ver más abajo)
-3. detectar automáticamente un servidor en el puerto predeterminado (`4096`)
-4. de lo contrario, iniciar y gestionar el suyo propio
+2. detectar automáticamente un servidor en el puerto predeterminado (`4096`)
+3. de lo contrario, iniciar y gestionar el suyo propio
 
-Si no hay nada configurado, el paso 4 ocurre automáticamente y ya tienes todo en marcha.
-
-## Conéctate a un servidor que ya ejecutas
-
-Define esto antes de iniciar OMPChamber:
-
-```bash
-OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
-```
-
-- `OPENCODE_HOST` — la dirección completa de tu servidor de OMPChamber, incluido el puerto (un valor como `http://localhost:4096`). No debe tener una ruta al final.
-- `OPENCODE_SKIP_START=true` — le indica a OMPChamber que no inicie su propio servidor.
-
-Si solo necesitas cambiar el puerto, define `OPENCODE_PORT` en lugar de `OPENCODE_HOST`.
-
-Si a `OPENCODE_HOST` le falta el puerto o tiene una ruta, OMPChamber lo ignora y recurre a iniciar su propio servidor. Observa los registros de arranque por si aparece una advertencia `[config]` cuando una conexión que esperabas no ocurrió.
+Si no hay nada configurado, el paso 3 ocurre automáticamente y ya tienes todo en marcha.
 
 ## Gestiona el servidor desde la CLI
 

@@ -14,14 +14,6 @@ Si OMPChamber carga pero nunca pasa de "OMP is restarting", o el chat no respond
 - reinícialo con `ompchamber restart`
 - ve los detalles de arranque con `ompchamber logs`
 
-## Te conectas a tu propio servidor
-
-Si configuraste OMPChamber para usar un servidor existente, revisa de nuevo la configuración de [OMPChamber Server](/es/omp-server/):
-
-- `OPENCODE_HOST` debe incluir el puerto, sin ruta; por ejemplo `http://localhost:4096`
-- define `OPENCODE_SKIP_START=true` para que OMPChamber no inicie también el suyo
-- si la dirección es inválida, OMPChamber la ignora e inicia su propio servidor en su lugar; busca una advertencia `[config]` en los registros
-
 ## Sigue fallando
 
 - confirma que Node.js sea la versión `20` o más reciente

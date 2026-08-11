@@ -5,33 +5,17 @@ description: Verbinde OMPChamber mit einem lokalen oder entfernten OMPChamber-Se
 
 # OMPChamber-Server
 
-OMPChamber läuft auf einem OMPChamber-Server auf. Standardmäßig startet es einen für dich, sodass du nichts tun musst. Diese Seite brauchst du nur, wenn du OMPChamber auf einen Server zeigen lassen willst, den du bereits betreibst, oder den Server verwalten willst, den es startet.
+OMPChamber läuft auf einem OMPChamber-Server auf. Standardmäßig startet es einen für dich, sodass du nichts tun musst. Diese Seite brauchst du nur, wenn du den Server verwalten willst, den es startet.
 
 ## Wie OMPChamber einen Server findet
 
 Wenn OMPChamber startet, sucht es in dieser Reihenfolge nach einem Server:
 
 1. einen Server wiederverwenden, den es bereits gestartet hat
-2. zu einem externen verbinden, wenn du es so angegeben hast (siehe unten)
-3. einen Server am Standard-Port automatisch erkennen (`4096`)
-4. andernfalls den eigenen starten und verwalten
+2. einen Server am Standard-Port automatisch erkennen (`4096`)
+3. andernfalls den eigenen starten und verwalten
 
-Wenn nichts konfiguriert ist, geschieht Schritt 4 automatisch und du bist startklar.
-
-## Mit einem Server verbinden, den du bereits betreibst
-
-Setze diese Variablen, bevor du OMPChamber startest:
-
-```bash
-OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
-```
-
-- `OPENCODE_HOST` — die vollständige Adresse deines OMPChamber-Servers einschließlich des Ports (ein Wert wie `http://localhost:4096`). Sie darf am Ende keinen Pfad haben.
-- `OPENCODE_SKIP_START=true` — weist OMPChamber an, keinen eigenen Server zu starten.
-
-Wenn du nur den Port ändern musst, setze `OPENCODE_PORT` statt `OPENCODE_HOST`.
-
-Wenn `OPENCODE_HOST` keinen Port hat oder einen Pfad enthält, ignoriert OMPChamber ihn und fällt darauf zurück, den eigenen Server zu starten. Achte beim Start auf eine `[config]`-Warnung in den Logs, wenn eine erwartete Verbindung nicht zustande kam.
+Wenn nichts konfiguriert ist, geschieht Schritt 3 automatisch und du bist startklar.
 
 ## Den Server über das CLI verwalten
 

@@ -47,25 +47,17 @@ OMPChamber web 服务器监听的地址。使用 `0.0.0.0` 可允许其他机器
 
 ## OMP 服务器
 
-### `OPENCODE_HOST`
-
-将 OMPChamber 连接到已有的 OMPChamber server。值必须是带明确端口、没有 path、query 或 hash 的 `http` 或 `https` origin。`OPENCODE_HOST` 优先于 `OPENCODE_PORT`。
-
 ### `OPENCODE_PORT`
 
-设置 OMP server 端口。对于 managed OMP，它请求使用该端口；配合 `OPENCODE_SKIP_START=true` 时，它连接到该端口上的外部服务器。
+设置 OMP server 端口。对于 managed OMP，它请求使用该端口。
 
-### `OPENCODE_SKIP_START`
+### `OMP_BINARY`
 
-设置为 `true` 时阻止 OMPChamber 启动自己的 OMP server。
-
-### `OMPCHAMBER_OPENCODE_HOSTNAME`
-
-OMPChamber 管理的 OMP server 绑定 hostname。默认是 `127.0.0.1`。
+OMPChamber 应该运行的 `omp` executable 路径。
 
 ### `OPENCODE_BINARY`
 
-OMPChamber 应该运行的 `omp` executable 路径。
+`OMP_BINARY` 的 deprecated alias，仍然作为 fallback 被支持。
 
 ### `OPENCODE_CONFIG`
 

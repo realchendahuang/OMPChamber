@@ -5,33 +5,17 @@ description: Conecte o OMPChamber a um servidor OMPChamber local ou remoto.
 
 # OMPChamber Server
 
-O OMPChamber roda sobre um servidor OMPChamber. Por padrão, ele inicia um para você, então não precisa fazer nada. Você só precisa desta página se quiser apontar o OMPChamber para um servidor que já executa, ou gerenciar o que ele inicia.
+O OMPChamber roda sobre um servidor OMPChamber. Por padrão, ele inicia um para você, então não precisa fazer nada. Você só precisa desta página se quiser gerenciar o servidor que ele inicia.
 
 ## Como o OMPChamber encontra um servidor
 
 Quando o OMPChamber inicia, ele procura por um servidor nesta ordem:
 
 1. reutilizar um servidor que ele já iniciou
-2. conectar a um servidor externo, se você indicou (veja abaixo)
-3. detectar automaticamente um servidor na porta padrão (`4096`)
-4. caso contrário, iniciar e gerenciar o seu próprio
+2. detectar automaticamente um servidor na porta padrão (`4096`)
+3. caso contrário, iniciar e gerenciar o seu próprio
 
-Se nada estiver configurado, o passo 4 acontece automaticamente e você já está pronto para usar.
-
-## Conectar a um servidor que você já executa
-
-Defina estas variáveis antes de iniciar o OMPChamber:
-
-```bash
-OPENCODE_HOST=http://localhost:4096 OPENCODE_SKIP_START=true ompchamber
-```
-
-- `OPENCODE_HOST` — o endereço completo do seu servidor OMPChamber, incluindo a porta (um valor como `http://localhost:4096`). Ele não deve ter um caminho no final.
-- `OPENCODE_SKIP_START=true` — diz ao OMPChamber para não iniciar o próprio servidor.
-
-Se você só precisa mudar a porta, defina `OPENCODE_PORT` em vez de `OPENCODE_HOST`.
-
-Se faltar a porta em `OPENCODE_HOST` ou se ele tiver um caminho, o OMPChamber o ignora e volta a iniciar o próprio servidor. Fique de olho nos logs de inicialização para um aviso `[config]` caso uma conexão esperada não aconteça.
+Se nada estiver configurado, o passo 3 acontece automaticamente e você já está pronto para usar.
 
 ## Gerenciar o servidor pela CLI
 

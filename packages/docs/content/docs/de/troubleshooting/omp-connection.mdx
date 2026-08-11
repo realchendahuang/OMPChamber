@@ -14,14 +14,6 @@ Wenn OMPChamber lädt, aber nie über „OMP is restarting“ hinauskommt, oder 
 - starten Sie ihn mit `ompchamber restart` neu
 - sehen Sie sich mit `ompchamber logs` die Startdetails an
 
-## Sie verbinden sich mit Ihrem eigenen Server
-
-Wenn Sie OMPChamber so konfiguriert haben, dass es einen vorhandenen Server nutzt, prüfen Sie die Einrichtung aus [OMPChamber Server](/omp-server/) noch einmal:
-
-- `OPENCODE_HOST` muss den Port enthalten, aber keinen Pfad — zum Beispiel `http://localhost:4096`
-- setzen Sie `OPENCODE_SKIP_START=true`, damit OMPChamber nicht auch noch seinen eigenen Server startet
-- wenn die Adresse ungültig ist, ignoriert OMPChamber sie und startet stattdessen seinen eigenen Server — achten Sie in den Logs auf eine `[config]`-Warnung
-
 ## Es schlägt immer noch fehl
 
 - bestätigen Sie, dass Node.js Version `20` oder neuer ist

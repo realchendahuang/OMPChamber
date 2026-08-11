@@ -2694,7 +2694,7 @@ export const dict: Record<I18nKey, string> = {
   "onboarding.localSetup.windows.hintInstallInWsl": "No Windows, instale e execute o OMP nativamente.",
   "onboarding.localSetup.windows.hintDetectionFailed": "Se a detecção falhar, defina um caminho nativo, como omp.cmd ou omp.exe.",
   "onboarding.localSetup.hint.ensurePath": "Já está instalado? Confira se OMP está no seu PATH.",
-  "onboarding.localSetup.hint.setEnv": "Ou defina a variável de ambiente OPENCODE_BINARY.",
+  "onboarding.localSetup.hint.setEnv": "Ou defina a variável de ambiente OMP_BINARY (OPENCODE_BINARY ainda é aceita como fallback obsoleto).",
   "onboarding.localSetup.hint.missingRuntime": "Se você vir \"env: node: No such file or directory\" ou \"env: bun: No such file or directory\", instale esse runtime ou confira se ele está no PATH.",
   "onboarding.remoteConnection.title": "Conectar a servidor remoto",
   "onboarding.remoteConnection.titleRecovery": "Conectar a um servidor diferente",

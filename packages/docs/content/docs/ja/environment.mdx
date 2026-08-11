@@ -47,25 +47,17 @@ API レスポンス圧縮を制御します。`true` または `1` で強制的�
 
 ## OMP サーバー
 
-### `OPENCODE_HOST`
-
-OMPChamber を既存の OMPChamber サーバーに接続します。値は明示的なポートを含み、パス、クエリ、ハッシュを含まない `http` または `https` の origin である必要があります。`OPENCODE_HOST` は `OPENCODE_PORT` より優先されます。
-
 ### `OPENCODE_PORT`
 
-OMP サーバーのポートを設定します。管理対象 OMP では管理対象ポートの要求になり、`OPENCODE_SKIP_START=true` ではそのポートの外部サーバーに接続します。
+OMP サーバーのポートを設定します。管理対象 OMP では管理対象ポートの要求になります。
 
-### `OPENCODE_SKIP_START`
+### `OMP_BINARY`
 
-`true` に設定すると、OMPChamber が独自の OMP サーバーを起動しません。
-
-### `OMPCHAMBER_OPENCODE_HOSTNAME`
-
-OMPChamber が管理する OMP サーバーのバインドホスト名です。デフォルトは `127.0.0.1` です。
+OMPChamber が実行する `omp` 実行ファイルへのパスです。
 
 ### `OPENCODE_BINARY`
 
-OMPChamber が実行する `omp` 実行ファイルへのパスです。
+`OMP_BINARY` の非推奨エイリアスで、フォールバックとして引き続き有効です。
 
 ### `OPENCODE_CONFIG`
 

@@ -47,25 +47,17 @@ OMPChamber читає ці змінні під час запуску. Для sta
 
 ## Сервер OMP
 
-### `OPENCODE_HOST`
-
-Підключає OMPChamber до вже запущеного OMPChamber server. Значення має бути `http` або `https` origin з явним портом і без path, query або hash. `OPENCODE_HOST` має пріоритет над `OPENCODE_PORT`.
-
 ### `OPENCODE_PORT`
 
-Задає порт OMP server. Для managed OMP це бажаний порт; з `OPENCODE_SKIP_START=true` OMPChamber підключається до зовнішнього сервера на цьому порту.
+Задає порт OMP server. Для managed OMP це бажаний порт.
 
-### `OPENCODE_SKIP_START`
+### `OMP_BINARY`
 
-Не дає OMPChamber запускати власний OMP server, якщо встановлено `true`.
-
-### `OMPCHAMBER_OPENCODE_HOSTNAME`
-
-Hostname для OMP server, яким керує OMPChamber. Типово `127.0.0.1`.
+Шлях до executable `omp`, який має запускати OMPChamber.
 
 ### `OPENCODE_BINARY`
 
-Шлях до executable `omp`, який має запускати OMPChamber.
+Застарілий alias для `OMP_BINARY`; усе ще обробляється як fallback.
 
 ### `OPENCODE_CONFIG`
 

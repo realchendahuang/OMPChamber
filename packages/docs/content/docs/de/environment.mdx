@@ -47,25 +47,17 @@ Erzwingt den Paketmanager, den Update-Operationen verwenden, wenn die automatisc
 
 ## OMP-Server
 
-### `OPENCODE_HOST`
-
-Verbindet OMPChamber mit einem vorhandenen OMPChamber-Server. Der Wert muss ein `http`- oder `https`-Origin mit explizitem Port und ohne Pfad, Query oder Hash sein. `OPENCODE_HOST` hat Vorrang vor `OPENCODE_PORT`.
-
 ### `OPENCODE_PORT`
 
-Legt den Port des OMP-Servers fest. Bei verwaltetem OMP fordert dies den verwalteten Port an; mit `OPENCODE_SKIP_START=true` verbindet es sich mit einem externen Server auf diesem Port.
+Legt den Port des OMP-Servers fest. Bei verwaltetem OMP fordert dies den verwalteten Port an.
 
-### `OPENCODE_SKIP_START`
+### `OMP_BINARY`
 
-Verhindert, dass OMPChamber einen eigenen OMP-Server startet, wenn auf `true` gesetzt.
-
-### `OMPCHAMBER_OPENCODE_HOSTNAME`
-
-Bind-Hostname für den von OMPChamber verwalteten OMP-Server. Standard ist `127.0.0.1`.
+Pfad zur ausführbaren `omp`-Datei, die OMPChamber ausführen soll.
 
 ### `OPENCODE_BINARY`
 
-Pfad zur ausführbaren `omp`-Datei, die OMPChamber ausführen soll.
+Veralteter Alias für `OMP_BINARY`, wird weiterhin als Fallback berücksichtigt.
 
 ### `OPENCODE_CONFIG`
 

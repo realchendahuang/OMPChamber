@@ -2695,7 +2695,7 @@ export const dict: Record<I18nKey, string> = {
   'onboarding.localSetup.windows.hintInstallInWsl': '在 Windows 上，請原生安裝並執行 OMP。',
   'onboarding.localSetup.windows.hintDetectionFailed': '若偵測失敗，請設定原生路徑，例如 omp.cmd 或 omp.exe。',
   'onboarding.localSetup.hint.ensurePath': '已安裝？請確認 OMP 在你的 PATH 中。',
-  'onboarding.localSetup.hint.setEnv': '或設定 OPENCODE_BINARY 環境變數。',
+  'onboarding.localSetup.hint.setEnv': '或設定 OMP_BINARY 環境變數（OPENCODE_BINARY 仍可作為已棄用的備用選項）。',
   'onboarding.localSetup.hint.missingRuntime': '如果看到「env: node: No such file or directory」或「env: bun: No such file or directory」，請安裝對應執行環境或確保其在 PATH 中。',
   'onboarding.remoteConnection.title': '連接遠端伺服器',
   'onboarding.remoteConnection.titleRecovery': '連接到其他伺服器',

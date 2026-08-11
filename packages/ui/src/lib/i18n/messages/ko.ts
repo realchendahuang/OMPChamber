@@ -2728,7 +2728,7 @@ export const dict: Record<I18nKey, string> = {
   'onboarding.localSetup.windows.hintInstallInWsl': 'Windows에서는 OMP를 네이티브로 설치하고 실행하세요.',
   'onboarding.localSetup.windows.hintDetectionFailed': '감지에 실패하면 omp.cmd 또는 omp.exe 같은 네이티브 경로를 설정하세요.',
   'onboarding.localSetup.hint.ensurePath': '이미 설치되어 있나요? OMP가 PATH에 있는지 확인하세요.',
-  'onboarding.localSetup.hint.setEnv': '또는 `OPENCODE_BINARY` 환경 변수를 설정하세요.',
+  'onboarding.localSetup.hint.setEnv': '또는 `OMP_BINARY` 환경 변수를 설정하세요(`OPENCODE_BINARY`는 더 이상 권장되지 않는 폴백으로 계속 사용할 수 있습니다).',
   'onboarding.localSetup.hint.missingRuntime': '"env: node: No such file or directory" 또는 "env: bun: No such file or directory"가 보이면 해당 런타임을 설치하거나 PATH에 있는지 확인하세요.',
   'onboarding.remoteConnection.title': '리모트 서버 연결',
   'onboarding.remoteConnection.titleRecovery': '다른 서버에 연결',

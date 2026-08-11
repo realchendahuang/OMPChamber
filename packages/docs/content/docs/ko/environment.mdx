@@ -47,25 +47,17 @@ API 응답 압축을 제어합니다. `true` 또는 `1`은 켜고, `false` 또�
 
 ## OMP 서버
 
-### `OPENCODE_HOST`
-
-OMPChamber를 이미 실행 중인 OMPChamber server에 연결합니다. 값은 명시적 포트가 있고 path, query, hash가 없는 `http` 또는 `https` origin이어야 합니다. `OPENCODE_HOST`는 `OPENCODE_PORT`보다 우선합니다.
-
 ### `OPENCODE_PORT`
 
-OMP server 포트를 설정합니다. managed OMP에서는 이 포트를 요청하고, `OPENCODE_SKIP_START=true`와 함께 쓰면 해당 포트의 외부 서버에 연결합니다.
+OMP server 포트를 설정합니다. managed OMP에서는 이 포트를 요청합니다.
 
-### `OPENCODE_SKIP_START`
+### `OMP_BINARY`
 
-`true`이면 OMPChamber가 자체 OMP server를 시작하지 않습니다.
-
-### `OMPCHAMBER_OPENCODE_HOSTNAME`
-
-OMPChamber가 관리하는 OMP server의 bind hostname입니다. 기본값은 `127.0.0.1`입니다.
+OMPChamber가 실행할 `omp` executable 경로입니다.
 
 ### `OPENCODE_BINARY`
 
-OMPChamber가 실행할 `omp` executable 경로입니다.
+`OMP_BINARY`의 deprecated alias이며, fallback으로 계속 지원됩니다.
 
 ### `OPENCODE_CONFIG`
 

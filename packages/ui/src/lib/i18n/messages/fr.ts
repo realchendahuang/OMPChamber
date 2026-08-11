@@ -2485,7 +2485,7 @@ export const dict = {
   'onboarding.localSetup.windows.hintInstallInWsl': 'Sous Windows, installez et exécutez OMP dans WSL pour une meilleure compatibilité.',
   'onboarding.localSetup.windows.hintDetectionFailed': 'Si la détection échoue, définissez un chemin natif (omp.cmd/omp.exe), wsl.exe ou wsl:/usr/local/bin/omp.',
   'onboarding.localSetup.hint.ensurePath': 'Déjà installé ? Assurez-vous qu\'OMP est dans votre PATH.',
-  'onboarding.localSetup.hint.setEnv': 'Ou définissez la variable d\'environnement OPENCODE_BINARY.',
+  'onboarding.localSetup.hint.setEnv': 'Ou définissez la variable d\'environnement OMP_BINARY (OPENCODE_BINARY reste acceptée comme solution de secours obsolète).',
   'onboarding.localSetup.hint.missingRuntime': 'Si vous voyez « env: node : No such file or directory » ou « env: bun : No such file or directory », installez ce runtime ou assurez-vous qu\'il se trouve sur PATH.',
   'onboarding.remoteConnection.title': 'Se connecter au serveur distant',
   'onboarding.remoteConnection.titleRecovery': 'Connectez-vous à un autre serveur',

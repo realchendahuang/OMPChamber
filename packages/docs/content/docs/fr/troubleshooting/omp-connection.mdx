@@ -14,14 +14,6 @@ Si OMPChamber se charge mais reste bloqué sur « OMP redémarre », ou si le ch
 - redémarrez-le avec `ompchamber restart`
 - consultez les détails de démarrage avec `ompchamber logs`
 
-## Vous vous connectez à votre propre serveur
-
-Si vous avez configuré OMPChamber pour utiliser un serveur existant, revérifiez la configuration depuis [Serveur OMPChamber](/omp-server/) :
-
-- `OPENCODE_HOST` doit inclure le port, sans chemin — par exemple `http://localhost:4096`
-- définissez `OPENCODE_SKIP_START=true` pour qu’OMPChamber ne démarre pas aussi le sien
-- si l’adresse est invalide, OMPChamber l’ignore et démarre son propre serveur à la place — cherchez un avertissement `[config]` dans les logs
-
 ## Toujours en échec
 
 - confirmez que Node.js est en version `20` ou plus récente
