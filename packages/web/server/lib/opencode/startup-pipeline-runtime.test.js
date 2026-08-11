@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createStartupPipelineRuntime } from './startup-pipeline-runtime.js';
 
 describe('startup pipeline runtime', () => {
-  it('publishes the listening port before bootstrapping managed OpenCode', async () => {
+  it('publishes the listening port before bootstrapping the agent engine', async () => {
     const order = [];
     const runtime = createStartupPipelineRuntime({
       createTerminalRuntime: () => ({}),
@@ -27,14 +27,13 @@ describe('startup pipeline runtime', () => {
       tunnelRuntimeContext: {
         setActivePort: (port) => order.push(`port:${port}`),
       },
-      scheduleOpenCodeApiDetection: () => order.push('detect'),
-      bootstrapOpenCodeAtStartup: () => order.push('bootstrap'),
+      bootstrapAgentEngineAtStartup: () => order.push('bootstrap'),
       process: {},
       crypto: {},
       server: {},
       attachSignals: false,
     });
 
-    expect(order).toEqual(['listen', 'port:3901', 'detect', 'bootstrap']);
+    expect(order).toEqual(['listen', 'port:3901', 'bootstrap']);
   });
 });
