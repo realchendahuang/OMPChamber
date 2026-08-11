@@ -3,7 +3,7 @@ const AGENT_LINK_PREFIX = '#ompchamber-agent:';
 
 export const buildAgentMentionUrl = (name: string): string => {
     const encoded = encodeURIComponent(name);
-    return `https://opencode.ai/docs/agents/#${encoded}`;
+    return `https://omp.sh/docs/agents/#${encoded}`;
 };
 
 export const buildSkillHref = (name: string): string => `${SKILL_LINK_PREFIX}${encodeURIComponent(name)}`;
