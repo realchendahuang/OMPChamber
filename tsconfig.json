@@ -3,7 +3,8 @@
   "references": [
     { "path": "./packages/ui/tsconfig.json" },
     { "path": "./packages/web/tsconfig.json" },
-    { "path": "./packages/electron/tsconfig.json" }
+    { "path": "./packages/electron/tsconfig.json" },
+    { "path": "./packages/agent-protocol/tsconfig.json" }
   ],
   "compilerOptions": {
     "baseUrl": ".",
@@ -13,8 +14,10 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "paths": {
-      "@openchamber/ui/*": ["./packages/ui/src/*"],
-      "@openchamber/web/*": ["./packages/web/src/*"]
+      "@ompchamber/ui/*": ["./packages/ui/src/*"],
+      "@ompchamber/web/*": ["./packages/web/src/*"],
+      "@ompchamber/agent-protocol": ["./packages/agent-protocol/src/index.ts"],
+      "@ompchamber/agent-protocol/*": ["./packages/agent-protocol/src/*"]
     }
   }
 }
