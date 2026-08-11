@@ -1,4 +1,3 @@
-import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import { DateTime } from 'luxon';
 import parser from 'cron-parser';
 import { expandSnippets } from '../ompchamber/snippets.js';
@@ -245,6 +244,42 @@ export const formatScheduledSessionTitle = (task, nowMs = Date.now()) => {
   return `${trimmedName}${suffix}`;
 };
 
+// OMP-engine session creation through the adapter's OpenCode-shaped surface
+// (POST /api/session). The adapter returns a session object with an `id`.
+const defaultCreateSession = async ({ baseUrl, authHeaders, directory, title }) => {
+  const url = new URL(`${baseUrl}/session`);
+  url.searchParams.set('directory', directory);
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      ...authHeaders,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({ title }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`session create failed (${response.status})${body ? `: ${body}` : ''}`);
+  }
+  const session = await response.json().catch(() => null);
+  const sessionID = session?.id;
+  if (!sessionID) {
+    throw new Error('failed to create session');
+  }
+  return sessionID;
+};
+
+// OMP has no command surface; the adapter degrades /api/command to an empty
+// list, so scheduled slash-command prompts resolve to no command and run as
+// plain prompts (same behavior as the OpenCode-shaped empty fallback).
+const defaultListCommands = async () => [];
+
+// OMP has no session command RPC; the adapter answers /session/:id/command
+// with 501. Scheduled slash-command prompts therefore run through the plain
+// prompt path instead of failing the run.
+const defaultRunSessionCommand = async () => {};
+
 export const createScheduledTasksRuntime = (deps) => {
   const {
     projectConfigRuntime,
@@ -254,6 +289,9 @@ export const createScheduledTasksRuntime = (deps) => {
     waitForOpenCodeReady,
     emitTaskRunEvent,
     setSessionAutoAccept,
+    createSession = defaultCreateSession,
+    listCommands = defaultListCommands,
+    runSessionCommand = defaultRunSessionCommand,
     logger = console,
     maxGlobalConcurrency = DEFAULT_GLOBAL_CONCURRENCY,
     maxProjectConcurrency = DEFAULT_PROJECT_CONCURRENCY,
@@ -483,7 +521,7 @@ export const createScheduledTasksRuntime = (deps) => {
     }
   };
 
-  const resolveScheduledCommand = async ({ client, projectPath, task }) => {
+  const resolveScheduledCommand = async ({ listCommands, projectPath, task }) => {
     const parsed = parseScheduledCommandPrompt(task?.execution?.prompt);
     if (!parsed) {
       return null;
@@ -491,8 +529,7 @@ export const createScheduledTasksRuntime = (deps) => {
 
     let commands = [];
     try {
-      const response = await client.command.list({ directory: projectPath });
-      commands = Array.isArray(response?.data) ? response.data : [];
+      commands = await listCommands({ directory: projectPath });
     } catch {
       return null;
     }
@@ -501,17 +538,16 @@ export const createScheduledTasksRuntime = (deps) => {
     return command ? { ...parsed, template: command.template } : null;
   };
 
-  const runScheduledCommand = async ({ client, projectPath, sessionID, task, command }) => {
-    await client.session.command({
+  const runScheduledCommand = async ({ projectPath, sessionID, task, command }) => {
+    await runSessionCommand({
+      projectPath,
       sessionID,
-      directory: projectPath,
       command: command.command,
       arguments: command.arguments,
-      ...(task.execution.agent ? { agent: task.execution.agent } : {}),
+      agent: task.execution.agent,
       model: `${task.execution.providerID}/${task.execution.modelID}`,
-      ...(task.execution.variant ? { variant: task.execution.variant } : {}),
+      variant: task.execution.variant,
     });
-
   };
 
   const runTaskWithWatchdog = async (projectID, task, reason) => {
@@ -528,19 +564,13 @@ export const createScheduledTasksRuntime = (deps) => {
 
     const baseUrl = buildOpenCodeUrl('/', '').replace(/\/$/, '');
     const authHeaders = getOpenCodeAuthHeaders();
-    const client = createOpencodeClient({
-      baseUrl,
-      headers: authHeaders,
-    });
 
-    const sessionResponse = await client.session.create({
+    const sessionID = await createSession({
+      baseUrl,
+      authHeaders,
       directory: projectPath,
       title,
     });
-    const sessionID = sessionResponse?.data?.id;
-    if (!sessionID) {
-      throw new Error('failed to create session');
-    }
 
     try {
       emitTaskRunEvent?.({
@@ -564,7 +594,7 @@ export const createScheduledTasksRuntime = (deps) => {
       }
     }
 
-    const scheduledCommand = await resolveScheduledCommand({ client, projectPath, task });
+    const scheduledCommand = await resolveScheduledCommand({ listCommands, projectPath, task });
 
     if (task.execution.goalEnabled) {
       const commandObjective = scheduledCommand
@@ -584,7 +614,7 @@ export const createScheduledTasksRuntime = (deps) => {
     }
 
     if (scheduledCommand) {
-      await runScheduledCommand({ client, projectPath, sessionID, task, command: scheduledCommand });
+      await runScheduledCommand({ projectPath, sessionID, task, command: scheduledCommand });
     } else {
       await runPromptAsync({
         baseUrl,

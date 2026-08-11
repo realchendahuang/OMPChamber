@@ -206,3 +206,230 @@ Run daily.
     }
   });
 });
+
+describe('scheduled-tasks runtime OMP execution path', () => {
+  const createTempProject = async () => {
+    const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'oc-runtime-omp-'));
+    const repoPath = path.join(tempRoot, 'repo');
+    await mkdir(path.join(repoPath, '.agents', 'loops'), { recursive: true });
+    return {
+      tempRoot,
+      repoPath,
+      cleanup: async () => {
+        await rm(tempRoot, { recursive: true, force: true });
+      },
+    };
+  };
+
+  const createProjectConfig = async (tempRoot) => createProjectConfigRuntime({
+    fsPromises: await import('fs/promises'),
+    path,
+    projectsDirPath: path.join(tempRoot, 'config'),
+    createTaskID: () => 'task-fixed-id',
+  });
+
+  const createRuntimeDeps = (overrides = {}) => ({
+    buildOpenCodeUrl: () => 'http://localhost',
+    getOpenCodeAuthHeaders: () => ({}),
+    waitForOpenCodeReady: async () => {},
+    ...overrides,
+  });
+
+  const createEnabledTask = async (projectConfigRuntime, overrides = {}) => {
+    const task = await projectConfigRuntime.upsertScheduledTask('proj', {
+      name: 'daily',
+      schedule: { kind: 'daily', times: ['09:00'], timezone: 'UTC' },
+      enabled: true,
+      execution: {
+        providerID: 'openai',
+        modelID: 'gpt-5',
+        prompt: 'Run daily.',
+      },
+      ...overrides,
+    });
+    return task.task;
+  };
+
+  it('creates the session and prompts through the OMP adapter with plain fetch', async () => {
+    const { tempRoot, repoPath, cleanup } = await createTempProject();
+    const originalFetch = globalThis.fetch;
+    try {
+      const projectConfigRuntime = await createProjectConfig(tempRoot);
+      const task = await createEnabledTask(projectConfigRuntime);
+      const fetchMock = vi.fn(async (url, options) => {
+        if (options?.method === 'POST' && String(url).includes('/session?directory=')) {
+          return { ok: true, status: 200, json: async () => ({ id: 'sess-1' }), text: async () => '' };
+        }
+        if (String(url).includes('/session/sess-1/prompt_async')) {
+          return { ok: true, status: 200, json: async () => ({ ok: true }), text: async () => '' };
+        }
+        return { ok: false, status: 404, json: async () => ({}), text: async () => 'not found' };
+      });
+      globalThis.fetch = fetchMock;
+
+      const runtime = createScheduledTasksRuntime({
+        ...createRuntimeDeps(),
+        projectConfigRuntime,
+        listProjects: async () => [{ id: 'proj', path: repoPath }],
+      });
+      await runtime.syncProject('proj');
+
+      const result = await runtime.runNow('proj', task.id);
+
+      expect(result.ok).toBe(true);
+      expect(result.sessionID).toBe('sess-1');
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const [createCall, promptCall] = fetchMock.mock.calls;
+      expect(String(createCall[0])).toBe('http://localhost/session?directory=' + encodeURIComponent(repoPath));
+      expect(JSON.parse(createCall[1].body)).toEqual({ title: expect.stringContaining('daily') });
+      expect(String(promptCall[0])).toBe('http://localhost/session/sess-1/prompt_async?directory=' + encodeURIComponent(repoPath));
+      const promptBody = JSON.parse(promptCall[1].body);
+      expect(promptBody.model).toEqual({ providerID: 'openai', modelID: 'gpt-5' });
+      expect(promptBody.parts[0].text).toBe('Run daily.');
+    } finally {
+      globalThis.fetch = originalFetch;
+      await cleanup();
+    }
+  });
+
+  it('prefers an injected createSession over the default fetch path', async () => {
+    const { tempRoot, repoPath, cleanup } = await createTempProject();
+    const originalFetch = globalThis.fetch;
+    try {
+      const projectConfigRuntime = await createProjectConfig(tempRoot);
+      const task = await createEnabledTask(projectConfigRuntime);
+      const createSession = vi.fn(async () => 'injected-session');
+      const fetchMock = vi.fn(async (url) => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ ok: true }),
+        text: async () => '',
+      }));
+      globalThis.fetch = fetchMock;
+
+      const runtime = createScheduledTasksRuntime({
+        ...createRuntimeDeps(),
+        projectConfigRuntime,
+        listProjects: async () => [{ id: 'proj', path: repoPath }],
+        createSession,
+      });
+      await runtime.syncProject('proj');
+
+      const result = await runtime.runNow('proj', task.id);
+
+      expect(result.ok).toBe(true);
+      expect(result.sessionID).toBe('injected-session');
+      expect(createSession).toHaveBeenCalledWith({
+        baseUrl: 'http://localhost',
+        authHeaders: {},
+        directory: repoPath,
+        title: expect.stringContaining('daily'),
+      });
+      // Only the prompt_async call goes through fetch.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(String(fetchMock.mock.calls[0][0])).toContain('/session/injected-session/prompt_async');
+    } finally {
+      globalThis.fetch = originalFetch;
+      await cleanup();
+    }
+  });
+
+  it('runs a slash-command prompt as a plain prompt when no command matches', async () => {
+    const { tempRoot, repoPath, cleanup } = await createTempProject();
+    const originalFetch = globalThis.fetch;
+    try {
+      const projectConfigRuntime = await createProjectConfig(tempRoot);
+      const task = await createEnabledTask(projectConfigRuntime, {
+        execution: {
+          providerID: 'openai',
+          modelID: 'gpt-5',
+          prompt: '/review src/components',
+        },
+      });
+      const listCommands = vi.fn(async () => []);
+      const runSessionCommand = vi.fn(async () => {});
+      const fetchMock = vi.fn(async (url, options) => {
+        if (options?.method === 'POST' && String(url).includes('/session?directory=')) {
+          return { ok: true, status: 200, json: async () => ({ id: 'sess-1' }), text: async () => '' };
+        }
+        if (String(url).includes('/prompt_async')) {
+          return { ok: true, status: 200, json: async () => ({ ok: true }), text: async () => '' };
+        }
+        return { ok: false, status: 404, json: async () => ({}), text: async () => 'not found' };
+      });
+      globalThis.fetch = fetchMock;
+
+      const runtime = createScheduledTasksRuntime({
+        ...createRuntimeDeps(),
+        projectConfigRuntime,
+        listProjects: async () => [{ id: 'proj', path: repoPath }],
+        listCommands,
+        runSessionCommand,
+      });
+      await runtime.syncProject('proj');
+
+      const result = await runtime.runNow('proj', task.id);
+
+      expect(result.ok).toBe(true);
+      expect(listCommands).toHaveBeenCalledWith({ directory: repoPath });
+      expect(runSessionCommand).not.toHaveBeenCalled();
+      const promptCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/prompt_async'));
+      expect(promptCall).toBeTruthy();
+      expect(JSON.parse(promptCall[1].body).parts[0].text).toBe('/review src/components');
+    } finally {
+      globalThis.fetch = originalFetch;
+      await cleanup();
+    }
+  });
+
+  it('dispatches a matched slash command through runSessionCommand', async () => {
+    const { tempRoot, repoPath, cleanup } = await createTempProject();
+    const originalFetch = globalThis.fetch;
+    try {
+      const projectConfigRuntime = await createProjectConfig(tempRoot);
+      const task = await createEnabledTask(projectConfigRuntime, {
+        execution: {
+          providerID: 'openai',
+          modelID: 'gpt-5',
+          prompt: '/review src/components',
+        },
+      });
+      const listCommands = vi.fn(async () => [{ name: 'review', template: 'Review $ARGUMENTS' }]);
+      const runSessionCommand = vi.fn(async () => {});
+      const fetchMock = vi.fn(async (url, options) => {
+        if (options?.method === 'POST' && String(url).includes('/session?directory=')) {
+          return { ok: true, status: 200, json: async () => ({ id: 'sess-1' }), text: async () => '' };
+        }
+        return { ok: false, status: 404, json: async () => ({}), text: async () => 'not found' };
+      });
+      globalThis.fetch = fetchMock;
+
+      const runtime = createScheduledTasksRuntime({
+        ...createRuntimeDeps(),
+        projectConfigRuntime,
+        listProjects: async () => [{ id: 'proj', path: repoPath }],
+        listCommands,
+        runSessionCommand,
+      });
+      await runtime.syncProject('proj');
+
+      const result = await runtime.runNow('proj', task.id);
+
+      expect(result.ok).toBe(true);
+      expect(runSessionCommand).toHaveBeenCalledWith({
+        projectPath: repoPath,
+        sessionID: 'sess-1',
+        command: 'review',
+        arguments: 'src/components',
+        agent: undefined,
+        model: 'openai/gpt-5',
+        variant: undefined,
+      });
+      // No prompt_async call when a command matched.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      await cleanup();
+    }
+  });
+});
