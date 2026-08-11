@@ -24,7 +24,7 @@ describe('VS Code OpenCode upgrades', () => {
     const { manager } = createManager();
     globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {
       const url = String(input);
-      if (url.endsWith('/global/health')) return new Response(JSON.stringify({ version: '1.18.8' }));
+      if (url.endsWith('/api/global/health')) return new Response(JSON.stringify({ version: '1.18.8' }));
       if (url.includes('registry.npmjs.org')) return new Response(JSON.stringify({ version: '1.18.9' }));
       return new Response(JSON.stringify({ tag_name: 'v1.18.9' }));
     }) as typeof fetch;
@@ -60,7 +60,7 @@ describe('VS Code OpenCode upgrades', () => {
     const { manager, getRestartCount } = createManager();
     let request: RequestInit | undefined;
     globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
-      assert.equal(String(input), 'http://127.0.0.1:4096/global/upgrade');
+      assert.equal(String(input), 'http://127.0.0.1:4096/api/global/upgrade');
       request = init;
       return new Response(JSON.stringify({ success: true, version: '1.18.9' }));
     }) as typeof fetch;

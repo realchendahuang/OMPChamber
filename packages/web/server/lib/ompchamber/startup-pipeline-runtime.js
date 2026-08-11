@@ -6,6 +6,7 @@ export const createStartupPipelineRuntime = (dependencies) => {
     createDictationRuntime,
     createMessageStreamWsRuntime,
     createServerStartupRuntime,
+    registerGlobalEventSseRoute,
   } = dependencies;
 
   const run = async (options) => {
@@ -30,6 +31,7 @@ export const createStartupPipelineRuntime = (dependencies) => {
       messageStreamWsClients,
       triggerHealthCheck,
       upstreamStallTimeoutMs,
+      writeSseEvent,
       terminalHeartbeatIntervalMs,
       terminalRebindWindowMs,
       terminalMaxRebindsPerWindow,
@@ -98,6 +100,15 @@ export const createStartupPipelineRuntime = (dependencies) => {
       wsClients: messageStreamWsClients,
       triggerHealthCheck,
       upstreamStallTimeoutMs,
+    });
+
+    // Plain SSE GET projection of the same global event stream the WS bridge
+    // serves. Non-browser clients (VS Code webview SSE proxy, curl, mobile
+    // fallbacks) consume events here instead of the WebSocket transport.
+    registerGlobalEventSseRoute({
+      app,
+      globalEventHub,
+      writeSseEvent: options.writeSseEvent,
     });
 
     setupProxy(app);

@@ -44,9 +44,9 @@ const sleep = (ms: number, signal: AbortSignal) => new Promise<void>((resolve) =
 
 const getAbortReason = (signal: AbortSignal) => signal.reason ?? new DOMException('Aborted', 'AbortError');
 
-const normalizeSsePath = (path: string): { pathname: '/event' | '/global/event'; searchParams: URLSearchParams; directory: string | null } => {
+const normalizeSsePath = (path: string): { pathname: '/api/event' | '/api/global/event'; searchParams: URLSearchParams; directory: string | null } => {
   const parsed = new URL(path, 'https://ompchamber.invalid');
-  const pathname = parsed.pathname === '/global/event' ? '/global/event' : '/event';
+  const pathname = parsed.pathname === '/api/global/event' ? '/api/global/event' : '/api/event';
   const directory = parsed.searchParams.get('directory');
   return {
     pathname,
@@ -59,13 +59,13 @@ const resolveDefaultDirectory = (manager: OpenCodeManager): string => {
   return manager.getWorkingDirectory() || 'global';
 };
 
-const createSseUrl = (baseUrl: string, pathname: '/event' | '/global/event', searchParams: URLSearchParams, directory: string): URL => {
+const createSseUrl = (baseUrl: string, pathname: '/api/event' | '/api/global/event', searchParams: URLSearchParams, directory: string): URL => {
   const base = `${baseUrl.replace(/\/+$/, '')}/`;
   const url = new URL(pathname.replace(/^\/+/, ''), base);
   for (const [key, value] of searchParams) {
     url.searchParams.append(key, value);
   }
-  if (pathname === '/event' && !url.searchParams.has('directory')) {
+  if (pathname === '/api/event' && !url.searchParams.has('directory')) {
     url.searchParams.set('directory', directory);
   }
   return url;

@@ -132,6 +132,22 @@ export const domainEventToSseFrames = (event) => {
       }
       break;
     }
+    case 'subagent': {
+      // OMP subagent lifecycle/progress frames project onto a synthetic
+      // `ompchamber:subagent` event so the UI event stream carries live
+      // subagent state (the OpenCode ecosystem has no subagent event type).
+      // The snapshot keeps the domain shape the UI's subagent surfaces read.
+      const { subagent } = event;
+      if (!subagent || typeof subagent.id !== 'string' || !subagent.id) break;
+      frames.push({
+        type: 'ompchamber:subagent',
+        properties: {
+          sessionID: event.sessionId || '',
+          subagent,
+        },
+      });
+      break;
+    }
     case 'session-ended':
       break;
     default:

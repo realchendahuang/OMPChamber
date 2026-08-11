@@ -1,7 +1,5 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { createOpencodeClient } from '@opencode-ai/sdk/v2';
-import * as gitService from './gitService';
 import type { BridgeContext, BridgeResponse } from './bridge';
 
 type BridgeMessageInput = {
@@ -15,6 +13,8 @@ type ExecGitResult = { stdout: string; stderr: string; exitCode: number };
 type SpecialGitDeps = {
   readSettings: (ctx?: BridgeContext) => Record<string, unknown>;
   execGit: (args: string[], cwd: string) => Promise<ExecGitResult>;
+  getGitRangeFiles: (directory: string, base: string, head: string) => Promise<string[]>;
+  getGitRangeDiff: (directory: string, base: string, head: string, file: string, contextLines?: number) => Promise<{ diff?: string } | null>;
 };
 
 const BRIDGE_ZEN_DEFAULT_MODEL = 'gpt-5-nano';
@@ -29,47 +29,32 @@ const sleep = (ms: number) => new Promise<void>((resolve) => {
   setTimeout(resolve, ms);
 });
 
-type BridgeSdkResult<T> = {
-  data?: T;
-  error?: unknown;
-  response?: { status?: number };
-};
+const buildApiUrl = (apiUrl: string): string => `${apiUrl.replace(/\/+$/, '')}/api/`;
 
-const formatBridgeSdkError = (error: unknown): string => {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  if (error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string') {
-    return (error as { message: string }).message;
-  }
+const fetchJson = async (
+  url: string,
+  options: { method?: string; headers?: Record<string, string>; body?: string; signal?: AbortSignal } = {},
+): Promise<{ status: number; body: unknown }> => {
+  const response = await fetch(url, {
+    method: options.method || 'GET',
+    headers: { Accept: 'application/json', ...(options.headers || {}) },
+    body: options.body,
+    signal: options.signal,
+  });
+  let body: unknown = null;
   try {
-    return JSON.stringify(error);
+    body = await response.json();
   } catch {
-    return String(error);
+    body = null;
   }
+  return { status: response.status, body };
 };
 
-const unwrapBridgeSdkData = <T,>(result: BridgeSdkResult<T>, operation: string): T => {
-  if (result.error) {
-    const status = result.response?.status;
-    throw new Error(`${operation} failed${status ? ` (${status})` : ''}: ${formatBridgeSdkError(result.error)}`);
-  }
-  if (result.data === undefined || result.data === null) {
-    throw new Error(`${operation} failed: empty response`);
-  }
-  return result.data;
-};
-
-const assertBridgeSdkSuccess = (result: BridgeSdkResult<unknown>, operation: string): void => {
-  if (result.error) {
-    const status = result.response?.status;
-    throw new Error(`${operation} failed${status ? ` (${status})` : ''}: ${formatBridgeSdkError(result.error)}`);
+const assertOk = (result: { status: number; body: unknown }, operation: string): void => {
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(`${operation} failed (${result.status})`);
   }
 };
-
-const createBridgeGitClient = (apiUrl: string, authHeaders?: Record<string, string>) => createOpencodeClient({
-  baseUrl: apiUrl.replace(/\/+$/, ''),
-  headers: authHeaders || {},
-});
 
 const readStringField = (value: unknown, key: string): string => {
   if (!value || typeof value !== 'object') return '';
@@ -87,11 +72,12 @@ const fetchBridgeGitModelCatalog = async (
     return bridgeGitModelCatalogCache;
   }
 
-  const client = createBridgeGitClient(apiUrl, authHeaders);
-  const payload = unwrapBridgeSdkData(
-    await client.v2.model.list(undefined, { signal: AbortSignal.timeout(8_000) }),
-    'model.list'
-  );
+  const result = await fetchJson(`${buildApiUrl(apiUrl)}model`, {
+    headers: authHeaders || {},
+    signal: AbortSignal.timeout(8_000),
+  });
+  assertOk(result, 'model.list');
+  const payload = result.body;
   const refs = new Set<string>();
   if (Array.isArray(payload)) {
     for (const item of payload) {
@@ -187,53 +173,65 @@ const generateBridgeTextWithSessionFlow = async ({
   modelID: string;
   authHeaders?: Record<string, string>;
 }): Promise<string> => {
-  const client = createBridgeGitClient(apiUrl, authHeaders);
+  const base = buildApiUrl(apiUrl);
   const deadlineAt = Date.now() + BRIDGE_GIT_GENERATION_TIMEOUT_MS;
   const remainingMs = () => Math.max(1_000, deadlineAt - Date.now());
   let sessionId: string | null = null;
 
   try {
-    const session = unwrapBridgeSdkData(
-      await client.session.create({
-        ...(directory ? { directory } : {}),
-        title: 'Git Generation',
-      }, { signal: AbortSignal.timeout(remainingMs()) }),
-      'session.create'
-    );
-    const sessionObj = session && typeof session === 'object' ? session as Record<string, unknown> : null;
+    const createUrl = new URL('session', base);
+    if (directory) {
+      createUrl.searchParams.set('directory', directory);
+    }
+    const created = await fetchJson(createUrl.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(authHeaders || {}) },
+      body: JSON.stringify({ title: 'Git Generation' }),
+      signal: AbortSignal.timeout(remainingMs()),
+    });
+    assertOk(created, 'session.create');
+    const sessionObj = created.body && typeof created.body === 'object'
+      ? created.body as Record<string, unknown>
+      : null;
     const createdSessionId = sessionObj && typeof sessionObj.id === 'string' ? sessionObj.id : '';
     if (!createdSessionId) {
       throw new Error('Invalid session response');
     }
     sessionId = createdSessionId;
 
-    assertBridgeSdkSuccess(
-      await client.session.promptAsync({
-        sessionID: sessionId,
-        ...(directory ? { directory } : {}),
-        model: {
-          providerID,
-          modelID,
-        },
+    const promptUrl = new URL(`session/${encodeURIComponent(sessionId)}/prompt_async`, base);
+    if (directory) {
+      promptUrl.searchParams.set('directory', directory);
+    }
+    const prompted = await fetchJson(promptUrl.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(authHeaders || {}) },
+      body: JSON.stringify({
+        model: { providerID, modelID },
         parts: [{ type: 'text', text: prompt }],
-      }, { signal: AbortSignal.timeout(remainingMs()) }),
-      'session.promptAsync'
-    );
+      }),
+      signal: AbortSignal.timeout(remainingMs()),
+    });
+    assertOk(prompted, 'session.promptAsync');
 
     while (Date.now() < deadlineAt) {
       await sleep(BRIDGE_GIT_GENERATION_POLL_INTERVAL_MS);
 
-      const messagesResponse = await client.session.messages({
-        sessionID: sessionId,
-        ...(directory ? { directory } : {}),
-        limit: 10,
-      }, { signal: AbortSignal.timeout(remainingMs()) });
+      const messagesUrl = new URL(`session/${encodeURIComponent(sessionId)}/message`, base);
+      messagesUrl.searchParams.set('limit', '10');
+      if (directory) {
+        messagesUrl.searchParams.set('directory', directory);
+      }
+      const messagesResult = await fetchJson(messagesUrl.toString(), {
+        headers: authHeaders || {},
+        signal: AbortSignal.timeout(remainingMs()),
+      });
 
-      if (messagesResponse.error) {
+      if (messagesResult.status < 200 || messagesResult.status >= 300) {
         continue;
       }
 
-      const messages = messagesResponse.data;
+      const messages = messagesResult.body;
       if (!Array.isArray(messages)) {
         continue;
       }
@@ -259,7 +257,15 @@ const generateBridgeTextWithSessionFlow = async ({
   } finally {
     if (sessionId) {
       try {
-        await client.session.delete({ sessionID: sessionId }, { signal: AbortSignal.timeout(5_000) });
+        const deleteUrl = new URL(`session/${encodeURIComponent(sessionId)}`, base);
+        if (directory) {
+          deleteUrl.searchParams.set('directory', directory);
+        }
+        await fetchJson(deleteUrl.toString(), {
+          method: 'DELETE',
+          headers: authHeaders || {},
+          signal: AbortSignal.timeout(5_000),
+        });
       } catch {
         // ignore cleanup failures
       }
@@ -304,7 +310,7 @@ export async function handleSpecialGitBridgeMessage(
 
       let files: string[] = [];
       try {
-        const listed = await gitService.getGitRangeFiles(directory, base, head);
+        const listed = await deps.getGitRangeFiles(directory, base, head);
         files = Array.isArray(listed) ? listed : [];
       } catch {
         files = [];
@@ -317,7 +323,7 @@ export async function handleSpecialGitBridgeMessage(
       let diffSummaries = '';
       for (const file of files) {
         try {
-          const diff = await gitService.getGitRangeDiff(directory, base, head, file, 3);
+          const diff = await deps.getGitRangeDiff(directory, base, head, file, 3);
           const raw = typeof diff?.diff === 'string' ? diff.diff : '';
           if (!raw.trim()) continue;
           diffSummaries += `FILE: ${file}\n${raw}\n\n`;

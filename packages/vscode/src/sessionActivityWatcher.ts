@@ -1,4 +1,3 @@
-import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import type { OpenCodeManager } from './opencode';
 
 // Session activity tracking (mirrors web server and desktop behavior)
@@ -45,7 +44,7 @@ const reconcileSessionActivityFromStatus = async (manager: OpenCodeManager): Pro
     return;
   }
 
-  const url = new URL('/session/status', baseUrl);
+  const url = new URL('/api/session/status', baseUrl);
   const response = await fetch(url.toString(), {
     headers: manager.getOpenCodeAuthHeaders(),
   });
@@ -221,10 +220,6 @@ export const startGlobalEventWatcher = async (
           throw new Error('OpenCode API URL not available');
         }
 
-        const client = createOpencodeClient({
-          baseUrl,
-          headers: manager.getOpenCodeAuthHeaders(),
-        });
         try {
           await reconcileSessionActivityFromStatus(manager);
         } catch (error) {
@@ -233,24 +228,72 @@ export const startGlobalEventWatcher = async (
             error instanceof Error ? error.message : error,
           );
         }
-        const result = await client.global.event({
+
+        // Native SSE stream against the OMPChamber server's OpenCode-compatible
+        // global event endpoint (GET /api/global/event). The server heartbeats
+        // every 25s, so a stall here means the connection is dead.
+        const eventUrl = new URL('/api/global/event', baseUrl);
+        const response = await fetch(eventUrl.toString(), {
+          method: 'GET',
+          headers: {
+            Accept: 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            ...manager.getOpenCodeAuthHeaders(),
+          },
           signal,
-          sseMaxRetryAttempts: 0,
         });
+        if (!response.ok) {
+          throw new Error(`global event stream failed (${response.status})`);
+        }
+        if (!response.body) {
+          throw new Error('global event stream missing body');
+        }
 
         console.log('[VSCode:Activity] connected');
 
-        for await (const event of result.stream) {
-          const payload = unwrapGlobalEventPayload((event as { payload?: unknown }).payload ?? event);
-          if (payload) {
-            const activity = deriveSessionActivity(payload);
-            if (activity) {
-              setSessionActivityPhase(activity.sessionId, activity.phase);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        try {
+          while (!signal.aborted) {
+            const { done, value } = await reader.read();
+            if (done) {
+              break;
+            }
+            buffer += decoder.decode(value, { stream: true });
+            const events = buffer.split('\n\n');
+            buffer = events.pop() || '';
+            for (const block of events) {
+              const dataLine = block
+                .split('\n')
+                .find((line) => line.startsWith('data:'));
+              if (!dataLine) {
+                continue;
+              }
+              const raw = dataLine.slice(5).trim();
+              if (!raw) {
+                continue;
+              }
+              let eventData: unknown;
+              try {
+                eventData = JSON.parse(raw);
+              } catch {
+                continue;
+              }
+              const payload = unwrapGlobalEventPayload(eventData);
+              if (payload) {
+                const activity = deriveSessionActivity(payload);
+                if (activity) {
+                  setSessionActivityPhase(activity.sessionId, activity.phase);
+                }
+              }
             }
           }
-
-          if (signal.aborted) {
-            break;
+        } finally {
+          try {
+            reader.releaseLock();
+          } catch {
+            // ignore
           }
         }
       } catch (error) {

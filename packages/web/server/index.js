@@ -47,6 +47,7 @@ import {
   createGlobalUiEventBroadcaster,
   createGlobalMessageStreamHub,
   createMessageStreamWsRuntime,
+  registerGlobalEventSseRoute,
   DEFAULT_UPSTREAM_STALL_TIMEOUT_MS,
   UPSTREAM_STALL_TIMEOUT_CONCURRENT_MS,
 } from './lib/event-stream/index.js';
@@ -835,6 +836,7 @@ const startupPipelineRuntime = createStartupPipelineRuntime({
   createDictationRuntime,
   createMessageStreamWsRuntime,
   createServerStartupRuntime,
+  registerGlobalEventSseRoute,
 });
 
 // The OMP engine ships a fixed bundled version and owns configuration
@@ -1049,6 +1051,9 @@ const stampSessionId = (frame, sessionId) => {
   }
   if (frame?.properties?.question) {
     return { ...frame, properties: { ...frame.properties, question: { ...frame.properties.question, sessionID: sessionId }, sessionID: sessionId } };
+  }
+  if (frame?.properties?.subagent) {
+    return { ...frame, properties: { ...frame.properties, subagent: { ...frame.properties.subagent, sessionID: sessionId }, sessionID: sessionId } };
   }
   return frame;
 };
@@ -1509,7 +1514,7 @@ async function main(options = {}) {
     isUnsafeSkillRelativePath,
     buildOpenCodeUrl,
     getOpenCodeAuthHeaders,
-    getOpenCodePort: () => openCodePort,
+    getOpenCodePort: () => null,
     buildAugmentedPath,
     projectConfigRuntime,
     scheduledTasksRuntime,
@@ -1555,6 +1560,7 @@ async function main(options = {}) {
     processForwardedEventPayload,
     messageStreamWsClients: uiNotificationWsClients,
     upstreamStallTimeoutMs: getUpstreamStallTimeoutMs,
+    writeSseEvent,
     terminalHeartbeatIntervalMs: TERMINAL_INPUT_WS_HEARTBEAT_INTERVAL_MS,
     terminalRebindWindowMs: TERMINAL_INPUT_WS_REBIND_WINDOW_MS,
     terminalMaxRebindsPerWindow: TERMINAL_INPUT_WS_MAX_REBINDS_PER_WINDOW,

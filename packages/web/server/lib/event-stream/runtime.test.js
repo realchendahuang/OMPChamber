@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { describe, expect, it } from 'vitest';
 
-import { createGlobalUiEventBroadcaster, createMessageStreamWsRuntime } from './runtime.js';
+import { createGlobalUiEventBroadcaster, createMessageStreamWsRuntime, registerGlobalEventSseRoute } from './runtime.js';
 
 class FakeSocket extends EventEmitter {
   constructor() {
@@ -508,5 +508,131 @@ describe('message stream websocket runtime', () => {
 
     socket.close();
     await runtime.close();
+  });
+});
+
+describe('global event SSE route', () => {
+  const createHub = () => {
+    const subscribers = new Set();
+    const replay = [];
+    return {
+      subscribeEvent(subscriber) {
+        subscribers.add(subscriber);
+        return () => subscribers.delete(subscriber);
+      },
+      publishEvent({ payload, directory = 'global', eventId }) {
+        const entry = { payload, directory, eventId };
+        if (eventId) {
+          replay.push(entry);
+          if (replay.length > 10) replay.shift();
+        }
+        for (const subscriber of Array.from(subscribers)) {
+          subscriber(entry);
+        }
+      },
+      replayAfter(eventId) {
+        const index = replay.findIndex((entry) => entry.eventId === eventId);
+        return index === -1 ? [] : replay.slice(index + 1);
+      },
+    };
+  };
+
+  const createApp = () => {
+    const express = { routes: [] };
+    const app = {
+      get(path, handler) {
+        express.routes.push({ path, handler });
+      },
+    };
+    return { app, express };
+  };
+
+  const createRes = () => {
+    const chunks = [];
+    const headers = {};
+    return {
+      chunks,
+      headers,
+      setHeader(name, value) {
+        headers[name] = value;
+      },
+      flushHeaders() {},
+      write(chunk) {
+        chunks.push(chunk);
+      },
+    };
+  };
+
+  it('streams hub events as SSE frames with event ids', () => {
+    const hub = createHub();
+    const { app, express } = createApp();
+    const writeSseEvent = (res, payload) => {
+      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    };
+    registerGlobalEventSseRoute({ app, globalEventHub: hub, writeSseEvent });
+
+    expect(express.routes).toHaveLength(1);
+    expect(express.routes[0].path).toBe('/api/global/event');
+
+    const res = createRes();
+    const req = new EventEmitter();
+    req.headers = {};
+    express.routes[0].handler(req, res);
+
+    hub.publishEvent({
+      payload: { type: 'session.updated', properties: { id: 'ses_1' } },
+      directory: '/repo',
+      eventId: 'evt-1',
+    });
+
+    expect(res.chunks.join('')).toContain('id: evt-1\n');
+    expect(res.chunks.join('')).toContain('data: {"type":"session.updated","properties":{"id":"ses_1"},"directory":"/repo"}');
+    expect(res.headers['Content-Type']).toBe('text/event-stream; charset=utf-8');
+
+    req.emit('close');
+  });
+
+  it('replays buffered events after the requested Last-Event-ID', () => {
+    const hub = createHub();
+    const { app, express } = createApp();
+    const writeSseEvent = (res, payload) => {
+      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    };
+    registerGlobalEventSseRoute({ app, globalEventHub: hub, writeSseEvent });
+
+    hub.publishEvent({ payload: { type: 'session.updated', properties: { id: 'ses_1' } }, eventId: 'evt-1' });
+    hub.publishEvent({ payload: { type: 'session.updated', properties: { id: 'ses_2' } }, eventId: 'evt-2' });
+
+    const res = createRes();
+    const req = new EventEmitter();
+    req.headers = { 'last-event-id': 'evt-1' };
+    express.routes[0].handler(req, res);
+
+    const output = res.chunks.join('');
+    expect(output).toContain('id: evt-2\n');
+    expect(output).toContain('"id":"ses_2"');
+    expect(output).not.toContain('"id":"ses_1"');
+
+    req.emit('close');
+  });
+
+  it('emits heartbeats while the client stays connected', async () => {
+    const hub = createHub();
+    const { app, express } = createApp();
+    const writeSseEvent = (res, payload) => {
+      res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    };
+    registerGlobalEventSseRoute({ app, globalEventHub: hub, writeSseEvent, heartbeatIntervalMs: 5 });
+
+    const res = createRes();
+    const req = new EventEmitter();
+    req.headers = {};
+    express.routes[0].handler(req, res);
+
+    await new Promise((resolve) => setTimeout(resolve, 15));
+
+    expect(res.chunks.join('')).toContain('ompchamber:heartbeat');
+
+    req.emit('close');
   });
 });

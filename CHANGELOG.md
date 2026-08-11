@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- **VS Code extension runs the OMPChamber server natively.** The extension no
+  longer spawns the removed `opencode` CLI; it bundles the OMPChamber web
+  server (`dist/server.cjs`, esbuild bundle of `packages/web/server`) and
+  spawns it with `node` on a loopback port, then proxies the webview to it.
+  All extension-side API calls now target the `/api` surface: readiness
+  polling uses `/api/global/health`, the SSE event watcher reads
+  `/api/global/event`, and the git bridge (PR descriptions, conflict details)
+  creates sessions and prompts through the OMP adapter with plain `fetch`.
+  The `@opencode-ai/sdk` dependency is gone from the extension host and the
+  webview. Tests run with `bun test --isolate` (96 pass / 0 fail), which also
+  fixes the pre-existing cross-file `mock.module` pollution.
+- **Subagent events reach the UI.** The OMP event bridge now projects
+  `subagent_lifecycle` / `subagent_progress` / `subagent_event` frames as
+  `ompchamber:subagent` SSE events, and the sync layer consumes them into a
+  per-session subagent snapshot store. The work-status subagents section
+  renders live OMP subagent cards (label, status) merged with the
+  parent-session fallback used by the OpenCode ecosystem.
+- **SSE event endpoint for the web server.** `GET /api/global/event` streams
+  global hub events as SSE with `Last-Event-ID` replay and heartbeats, so
+  SSE-only consumers (VS Code extension, hosted mobile) can follow the event
+  stream without WebSocket support.
+- **`@opencode-ai/sdk` removed from the whole repository.** The last three
+  server modules (skill-routes / ompchamber-sessions / ompchamber-control)
+  now use plain `fetch` against the OMP adapter; the dependency was dropped
+  from root, web, and vscode workspaces and the lockfile.
 - **Scheduled Tasks run natively on the OMP engine.** The scheduled-tasks
   runtime no longer depends on `@opencode-ai/sdk`; it creates sessions and
   sends prompts through the OMP adapter's HTTP surface with plain `fetch`
@@ -11,8 +36,6 @@ All notable changes to this project will be documented in this file.
   creation, command listing, and command dispatch are now injectable hooks
   with OMP-aware defaults: OMP has no command surface, so slash-command
   prompts resolve to no command and run as plain prompts instead of failing.
-  The `packages/web` SDK dependency surface shrank from four modules to three
-  (skill-routes / ompchamber-sessions / ompchamber-control remain).
 
 ## [1.0.0] - 2026-08-11
 

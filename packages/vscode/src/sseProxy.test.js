@@ -48,7 +48,7 @@ describe('VS Code SSE proxy', () => {
     const controller = new AbortController();
     const proxy = await openSseProxy({
       manager: createManager(),
-      path: '/global/event',
+      path: '/api/global/event',
       headers: { 'Last-Event-ID': 'evt-0' },
       signal: controller.signal,
       onChunk: (chunk) => received.push(chunk),
@@ -56,7 +56,7 @@ describe('VS Code SSE proxy', () => {
 
     await proxy.run;
 
-    expect(fetchInput).toBe('http://127.0.0.1:4096/global/event');
+    expect(fetchInput).toBe('http://127.0.0.1:4096/api/global/event');
     expect(fetchInit.headers.Authorization).toBe('Bearer test-token');
     expect(fetchInit.headers['Last-Event-ID']).toBe('evt-0');
     expect(proxy.headers['content-type']).toContain('text/event-stream');
@@ -72,14 +72,14 @@ describe('VS Code SSE proxy', () => {
 
     const proxy = await openSseProxy({
       manager: createManager(),
-      path: '/event?foo=bar',
+      path: '/api/event?foo=bar',
       signal: new AbortController().signal,
       onChunk: () => {},
     });
     await proxy.run;
 
     const url = new URL(fetchInput);
-    expect(url.pathname).toBe('/event');
+    expect(url.pathname).toBe('/api/event');
     expect(url.searchParams.get('foo')).toBe('bar');
     expect(url.searchParams.get('directory')).toBe('/repo');
   });

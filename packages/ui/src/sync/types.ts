@@ -14,6 +14,7 @@ import type {
   QuestionRequest,
   Session,
   SessionStatus,
+  SubagentSnapshot,
   Todo,
   VcsInfo,
 } from "@ompchamber/agent-protocol/domain-types"
@@ -60,6 +61,7 @@ export type State = {
   todo: Record<string, Todo[]>
   permission: Record<string, PermissionRequest[]>
   question: Record<string, QuestionRequest[]>
+  subagent: Record<string, SubagentSnapshot[]>
   mcp: Record<string, McpStatus>
   lsp: LspStatus[]
   vcs: VcsInfo | undefined
@@ -147,6 +149,7 @@ export const INITIAL_STATE: State = {
   todo: {},
   permission: {},
   question: {},
+  subagent: {},
   mcp: {},
   lsp: [],
   vcs: undefined,

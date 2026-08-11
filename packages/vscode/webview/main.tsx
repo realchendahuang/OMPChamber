@@ -15,7 +15,7 @@ import { getBootstrapMessages, readStoredLocaleForBootstrap } from '@ompchamber/
 import type { VSCodeActiveEditorFile } from '@/sync/input-store';
 import { usePermissionStore } from '@ompchamber/ui/stores/permissionStore';
 import { processVSCodePermissionAutoAccept } from '@ompchamber/ui/sync/vscode-permission-auto-accept';
-import type { PermissionRequest } from '@opencode-ai/sdk/v2/client';
+import type { PermissionRequest } from '@ompchamber/agent-protocol/domain-types';
 
 type ConnectionStatus = 'connecting' | 'connected' | 'error' | 'disconnected';
 type PanelType = 'chat' | 'agentManager';
@@ -383,8 +383,9 @@ const handleLocalApiRequest = async (input: RequestInfo | URL, url: URL, init: R
     return unsupportedWebRouteResponse('Remote tunnel settings');
   }
 
+  // Scheduled tasks run natively on the OMPChamber server; forward to it.
   if (/^\/api\/projects\/[^/]+\/scheduled-tasks(?:\/[^/]+)?$/.test(normalizedPathname)) {
-    return unsupportedWebRouteResponse('Scheduled tasks');
+    return null;
   }
 
   if (normalizedPathname === '/api/sessions/snapshot' && method === 'GET') {
@@ -1178,7 +1179,10 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       return originalFetch(input as RequestInfo, init);
     }
 
-    const suffixPath = `${targetUrl.pathname.replace(/^\/api/, '')}${targetUrl.search}`;
+    // The OMPChamber server exposes its OpenCode-compatible API under /api, so
+    // the full path (including the /api prefix) is forwarded to the extension
+    // bridge, which resolves it against the server base URL.
+    const suffixPath = `${targetUrl.pathname}${targetUrl.search}`;
 
     const headersFromRequest = input instanceof Request ? headersToRecord(input.headers) : {};
     const headersFromInit = headersToRecord(init?.headers);

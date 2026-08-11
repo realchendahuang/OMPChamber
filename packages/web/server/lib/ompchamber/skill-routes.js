@@ -1,4 +1,3 @@
-import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import { buildDeferredRestartResponse } from './config-mutation-response.js';
 
 /**
@@ -13,18 +12,11 @@ const isEnvFlagEnabled = (value) => {
 
 export const registerSkillRoutes = (app, dependencies) => {
   const {
-    fs,
-    path,
-    os,
     resolveProjectDirectory,
     resolveOptionalProjectDirectory,
     readSettingsFromDisk,
     sanitizeSkillCatalogs,
     isUnsafeSkillRelativePath,
-    buildOpenCodeUrl,
-
-    getOpenCodeAuthHeaders,
-    getOpenCodePort,
     getSkillSources,
     discoverSkills,
     mergeDiscoveredSkills,
@@ -52,140 +44,11 @@ export const registerSkillRoutes = (app, dependencies) => {
     getProfile,
   } = dependencies;
 
-  const findWorktreeRootForSkills = (workingDirectory) => {
-    if (!workingDirectory) return null;
-    let current = path.resolve(workingDirectory);
-    while (true) {
-      if (fs.existsSync(path.join(current, '.git'))) {
-        return current;
-      }
-      const parent = path.dirname(current);
-      if (parent === current) {
-        return null;
-      }
-      current = parent;
-    }
-  };
-
-  const getSkillProjectAncestors = (workingDirectory) => {
-    if (!workingDirectory) return [];
-    const result = [];
-    let current = path.resolve(workingDirectory);
-    const stop = findWorktreeRootForSkills(workingDirectory) || current;
-    while (true) {
-      result.push(current);
-      if (current === stop) break;
-      const parent = path.dirname(current);
-      if (parent === current) break;
-      current = parent;
-    }
-    return result;
-  };
-
-  const isPathInside = (candidatePath, parentPath) => {
-    if (!candidatePath || !parentPath) return false;
-    const normalizedCandidate = path.resolve(candidatePath);
-    const normalizedParent = path.resolve(parentPath);
-    return normalizedCandidate === normalizedParent || normalizedCandidate.startsWith(`${normalizedParent}${path.sep}`);
-  };
-
-  const inferSkillScopeAndSourceFromPath = (skillPath, workingDirectory) => {
-    const resolvedPath = typeof skillPath === 'string' ? path.resolve(skillPath) : '';
-    const home = os.homedir();
-    const source = resolvedPath.includes(`${path.sep}.agents${path.sep}skills${path.sep}`)
-      ? 'agents'
-      : resolvedPath.includes(`${path.sep}.claude${path.sep}skills${path.sep}`)
-        ? 'claude'
-        : 'opencode';
-
-    const projectAncestors = getSkillProjectAncestors(workingDirectory);
-    const isProjectScoped = projectAncestors.some((ancestor) => {
-      const candidates = [
-        path.join(ancestor, '.opencode'),
-        path.join(ancestor, '.claude', 'skills'),
-        path.join(ancestor, '.agents', 'skills'),
-      ];
-      return candidates.some((candidate) => isPathInside(resolvedPath, candidate));
-    });
-
-    if (isProjectScoped) {
-      return { scope: SKILL_SCOPE.PROJECT, source };
-    }
-
-    const userRoots = [
-      path.join(home, '.config', 'opencode'),
-      path.join(home, '.opencode'),
-      path.join(home, '.claude', 'skills'),
-      path.join(home, '.agents', 'skills'),
-      process.env.OPENCODE_CONFIG_DIR ? path.resolve(process.env.OPENCODE_CONFIG_DIR) : null,
-    ].filter(Boolean);
-
-    if (userRoots.some((root) => isPathInside(resolvedPath, root))) {
-      return { scope: SKILL_SCOPE.USER, source };
-    }
-
-    return { scope: SKILL_SCOPE.USER, source };
-  };
-
-  const fetchOpenCodeDiscoveredSkills = async (workingDirectory) => {
-    if (!getOpenCodePort()) {
-      return [];
-    }
-
-    try {
-      const client = createOpencodeClient({
-        baseUrl: buildOpenCodeUrl('/', '').replace(/\/$/, ''),
-        directory: workingDirectory || undefined,
-        headers: getOpenCodeAuthHeaders(),
-        fetch: (request) => fetch(request, { signal: AbortSignal.timeout(8_000) }),
-      });
-
-      const response = await client.app.skills(
-        workingDirectory ? { directory: workingDirectory } : undefined,
-      );
-      const payload = response?.data;
-      if (!Array.isArray(payload)) {
-        return [];
-      }
-
-      return payload
-        .map((item) => {
-          const name = typeof item?.name === 'string' ? item.name.trim() : '';
-          const location = typeof item?.location === 'string' ? item.location : '';
-          const description = typeof item?.description === 'string' ? item.description : '';
-          const content = typeof item?.content === 'string' ? item.content : '';
-          if (!name || !location) {
-            return null;
-          }
-          if (location === '<built-in>') {
-            return {
-              name,
-              path: location,
-              scope: SKILL_SCOPE.USER,
-              source: 'opencode',
-              description,
-              content,
-            };
-          }
-          const inferred = inferSkillScopeAndSourceFromPath(location, workingDirectory);
-          const skill = {
-            name,
-            path: location,
-            scope: inferred.scope,
-            source: inferred.source,
-            description,
-          };
-          if (content) {
-            skill.content = content;
-          }
-          return skill;
-        })
-        .filter(Boolean);
-    } catch (error) {
-      console.error('Failed to list OpenCode skills:', error);
-      return [];
-    }
-  };
+  // OpenCode-shaped discovered skills come from the upstream OpenCode server.
+  // The OMP engine is the only engine (there is no OpenCode process), so this
+  // surface is intentionally empty: the UI renders the curated catalog and
+  // user/workspace skills without an upstream discovery merge.
+  const fetchOpenCodeDiscoveredSkills = async () => [];
 
   const listGitIdentitiesForResponse = () => {
     try {

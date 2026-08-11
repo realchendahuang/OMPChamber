@@ -780,6 +780,11 @@ const getSessionIdFromPayload = (event: Event): string | null => {
     return typeof id === "string" && id.length > 0 ? id : null
   }
 
+  if (event.type === "ompchamber:subagent") {
+    const sessionID = props.sessionID
+    return typeof sessionID === "string" && sessionID.length > 0 ? sessionID : null
+  }
+
   return null
 }
 

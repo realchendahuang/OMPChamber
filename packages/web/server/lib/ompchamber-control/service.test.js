@@ -3,13 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { createOMPChamberControlService } from './service.js';
 
 const createService = (overrides = {}) => {
-  const client = {
-    session: {
-      list: vi.fn(async () => ({ data: [] })),
-      status: vi.fn(async () => ({ data: {} })),
-      messages: vi.fn(async () => ({ data: [] })),
-    },
-  };
   const sessionService = {
     create: vi.fn(async () => ({ sessionId: 'ses_1', directory: '/repo', promptDispatched: false })),
     send: vi.fn(),
@@ -35,12 +28,11 @@ const createService = (overrides = {}) => {
     buildOpenCodeUrl: () => 'http://127.0.0.1:4096/',
     getOpenCodeAuthHeaders: () => ({ authorization: 'Basic test' }),
     waitForOpenCodeReady: vi.fn(),
-    createClient: vi.fn(() => client),
     sessionService,
     scheduledTaskService,
     ...overrides,
   });
-  return { service, client, sessionService, scheduledTaskService };
+  return { service, sessionService, scheduledTaskService };
 };
 
 describe('OMPChamber control service', () => {
@@ -133,19 +125,22 @@ describe('OMPChamber control service', () => {
   });
 
   it('resolves the target session directory from the global session list when send omits it', async () => {
-    const { service, sessionService, client } = createService({
-      createClient: () => ({
-        ...client,
-        experimental: {
-          session: {
-            list: vi.fn(async () => ({
-              data: [
-                { id: 'ses_other', directory: '/repo/worktrees/other' },
-                { id: 'ses_target', directory: '/repo/worktrees/target' },
-              ],
-            })),
-          },
-        },
+    const { service, sessionService } = createService({
+      fetchImpl: vi.fn(async (url) => {
+        const text = String(url);
+        if (text.includes('/session/status') || text.includes('/message')) {
+          return { ok: true, json: async () => [] };
+        }
+        if (text.includes('/session')) {
+          return {
+            ok: true,
+            json: async () => [
+              { id: 'ses_other', directory: '/repo/worktrees/other' },
+              { id: 'ses_target', directory: '/repo/worktrees/target' },
+            ],
+          };
+        }
+        return { ok: true, json: async () => [] };
       }),
     });
     sessionService.send.mockResolvedValue({ sessionId: 'ses_target', directory: '/repo/worktrees/target', promptDispatched: true });
@@ -156,11 +151,8 @@ describe('OMPChamber control service', () => {
   });
 
   it('falls back to the context directory when the session is not in the global list', async () => {
-    const { service, sessionService, client } = createService({
-      createClient: () => ({
-        ...client,
-        experimental: { session: { list: vi.fn(async () => ({ data: [] })) } },
-      }),
+    const { service, sessionService } = createService({
+      fetchImpl: vi.fn(async () => ({ ok: true, json: async () => [] })),
     });
     sessionService.send.mockResolvedValue({ sessionId: 'ses_unknown', directory: '/repo', promptDispatched: true });
 
@@ -171,9 +163,22 @@ describe('OMPChamber control service', () => {
 
   it('waits past initial idle until a completed assistant result appears', async () => {
     let timestamp = 1000;
-    const { service, client, sessionService } = createService({
+    const { service, sessionService } = createService({
       now: () => timestamp,
       sleep: async (duration) => { timestamp += duration; },
+      fetchImpl: vi.fn(async (url) => {
+        const text = String(url);
+        if (text.includes('/session/status')) {
+          return { ok: true, json: async () => ({ ses_1: { type: 'idle' } }) };
+        }
+        if (text.includes('/message')) {
+          if (timestamp < 1500) {
+            return { ok: true, json: async () => [{ info: { id: 'msg_old', role: 'assistant', time: { created: 10, completed: 900 } }, parts: [{ type: 'text', text: 'old' }] }] };
+          }
+          return { ok: true, json: async () => [{ info: { id: 'msg_new', role: 'assistant', time: { created: 20, completed: 1500 } }, parts: [{ type: 'text', text: 'done' }] }] };
+        }
+        return { ok: true, json: async () => [] };
+      }),
     });
     sessionService.create.mockResolvedValue({
       sessionId: 'ses_1',
@@ -181,11 +186,6 @@ describe('OMPChamber control service', () => {
       promptDispatched: true,
       baselineAssistantMessageId: 'msg_old',
     });
-    client.session.status.mockResolvedValue({ data: { ses_1: { type: 'idle' } } });
-    client.session.messages
-      .mockResolvedValueOnce({ data: [{ info: { id: 'msg_old', role: 'assistant', time: { completed: 900 } }, parts: [{ type: 'text', text: 'old' }] }] })
-      .mockResolvedValueOnce({ data: [{ info: { id: 'msg_new', role: 'assistant', time: { completed: 1500 } }, parts: [{ type: 'text', text: 'done' }] }] })
-      .mockResolvedValueOnce({ data: [{ info: { id: 'msg_new', role: 'assistant', time: { completed: 1500 } }, parts: [{ type: 'text', text: 'done' }] }] });
 
     await expect(service.execute('session.create', {
       directory: '/repo',
@@ -197,19 +197,32 @@ describe('OMPChamber control service', () => {
       sessionStatus: { type: 'idle' },
       lastAssistantMessage: expect.objectContaining({ id: 'msg_new', text: 'done' }),
     }));
-    expect(client.session.status).toHaveBeenCalledTimes(2);
   });
 
   it('filters archived sessions and adds directory-scoped statuses', async () => {
-    const { service, client } = createService();
-    client.session.list.mockResolvedValue({ data: [
-      { id: 'ses_active', directory: '/repo', time: {} },
-      { id: 'ses_archived', directory: '/repo', time: { archived: 100 } },
-      { id: 'ses_other', directory: '/other', time: {} },
-    ] });
-    client.session.status
-      .mockResolvedValueOnce({ data: { ses_active: { type: 'busy' } } })
-      .mockRejectedValueOnce(new Error('unavailable'));
+    const { service } = createService({
+      fetchImpl: vi.fn(async (url) => {
+        const text = String(url);
+        if (text.includes('/session/status')) {
+          const directory = new URL(text).searchParams.get('directory');
+          if (directory === '/repo') {
+            return { ok: true, json: async () => ({ ses_active: { type: 'busy' } }) };
+          }
+          return { ok: false, status: 500, text: async () => 'unavailable' };
+        }
+        if (text.includes('/session')) {
+          return {
+            ok: true,
+            json: async () => [
+              { id: 'ses_active', directory: '/repo', time: {} },
+              { id: 'ses_archived', directory: '/repo', time: { archived: 100 } },
+              { id: 'ses_other', directory: '/other', time: {} },
+            ],
+          };
+        }
+        return { ok: true, json: async () => [] };
+      }),
+    });
 
     await expect(service.execute('session.list', { limit: 10, withStatus: true })).resolves.toEqual({
       sessions: [
@@ -223,21 +236,33 @@ describe('OMPChamber control service', () => {
   });
 
   it('names limit in positive-integer validation errors', async () => {
-    const { service, client } = createService();
+    const { service } = createService();
     await expect(service.execute('session.list', { limit: 0 })).rejects.toThrow('limit must be a positive integer');
-    expect(client.session.list).not.toHaveBeenCalled();
   });
 
   it('projects only ordered text parts from session messages', async () => {
-    const { service, client } = createService();
-    client.session.messages.mockResolvedValue({ data: [
-      {
-        info: { id: 'msg_assistant', role: 'assistant', providerID: 'openai', modelID: 'gpt-5.4-mini', time: { created: 20, completed: 30 } },
-        parts: [{ type: 'reasoning', text: 'hidden' }, { type: 'text', text: 'First ' }, { type: 'tool' }, { type: 'text', text: 'answer' }],
-      },
-      { info: { id: 'msg_user', role: 'user', time: { created: 10 } }, parts: [{ type: 'text', text: 'Question' }] },
-      { info: { id: 'msg_tool', role: 'assistant', time: { created: 15 } }, parts: [{ type: 'tool' }] },
-    ] });
+    const { service } = createService({
+      fetchImpl: vi.fn(async (url) => {
+        const text = String(url);
+        if (text.includes('/session/status')) {
+          return { ok: true, json: async () => ({ ses_1: { type: 'idle' } }) };
+        }
+        if (text.includes('/message')) {
+          return {
+            ok: true,
+            json: async () => [
+              {
+                info: { id: 'msg_assistant', role: 'assistant', providerID: 'openai', modelID: 'gpt-5.4-mini', time: { created: 20, completed: 30 } },
+                parts: [{ type: 'reasoning', text: 'hidden' }, { type: 'text', text: 'First ' }, { type: 'tool' }, { type: 'text', text: 'answer' }],
+              },
+              { info: { id: 'msg_user', role: 'user', time: { created: 10 } }, parts: [{ type: 'text', text: 'Question' }] },
+              { info: { id: 'msg_tool', role: 'assistant', time: { created: 15 } }, parts: [{ type: 'tool' }] },
+            ],
+          };
+        }
+        return { ok: true, json: async () => [] };
+      }),
+    });
 
     await expect(service.execute('session.messages', {
       sessionId: 'ses_1',

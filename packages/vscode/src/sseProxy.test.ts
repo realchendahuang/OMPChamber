@@ -56,7 +56,7 @@ describe('VS Code SSE proxy', () => {
       const controller = new AbortController();
       const proxy = await openSseProxy({
         manager: createManager(),
-        path: '/global/event',
+        path: '/api/global/event',
         signal: controller.signal,
         stallTimeoutMs: 20,
         onChunk: () => assert.fail('quiet stream should not emit chunks'),
@@ -86,7 +86,7 @@ describe('VS Code SSE proxy', () => {
       const controller = new AbortController();
       const proxy = await openSseProxy({
         manager: createManager(),
-        path: '/global/event',
+        path: '/api/global/event',
         signal: controller.signal,
         stallTimeoutMs: 18,
         onChunk: (chunk) => chunks.push(chunk),

@@ -121,21 +121,9 @@ export interface ToolResultPart {
 // Subagents (OMP `task` tool → subagent)
 // ---------------------------------------------------------------------------
 
-export interface SubagentSnapshot {
-  id: string;
-  agent: string;
-  description?: string;
-  status: 'running' | 'completed' | 'failed' | 'waiting';
-  task?: string;
-  assignment?: string;
-  parentToolCallId?: string;
-  progress?: {
-    toolCalls?: number;
-    filesTouched?: string[];
-    elapsedMs?: number;
-    statusText?: string;
-  };
-}
+import type { SubagentSnapshot } from './domain-types.js';
+
+export type { SubagentSnapshot } from './domain-types.js';
 
 // ---------------------------------------------------------------------------
 // Ask / Question UI (OMP extension_ui_request → native Question UI)

@@ -255,7 +255,7 @@ export async function handleSystemBridgeMessage(
           return { id, type, success: true, data: { version: null, error: 'OpenCode manager unavailable' } };
         }
         const base = `${apiUrl.replace(/\/+$/, '')}/`;
-        const response = await fetch(new URL('global/health', base).toString(), {
+        const response = await fetch(new URL('api/global/health', base).toString(), {
           method: 'GET',
           headers: { Accept: 'application/json', ...ctx?.manager?.getOpenCodeAuthHeaders() },
         });

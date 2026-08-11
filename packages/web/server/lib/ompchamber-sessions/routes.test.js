@@ -14,33 +14,28 @@ const getWorktreeBootstrapStatusMock = vi.fn(async () => ({
   error: null,
   updatedAt: Date.now(),
 }));
-const sessionCreateMock = vi.fn(async () => ({ data: { id: 'ses_123' } }));
-const sessionForkMock = vi.fn(async () => ({ data: { id: 'ses_fork', title: 'Forked session' } }));
-const sessionMessagesMock = vi.fn(async () => ({ data: [] }));
-
 let existingSessionMessages = [];
 let dispatchedUserMessageSeq = 0;
 
 // The service confirms a prompt landed by watching for a new user message, so
-// the default mock behaves like OpenCode recording each dispatched prompt.
+// the default message-list mock behaves like the OMP adapter recording each
+// dispatched prompt.
 const setSessionMessages = (messages) => {
   existingSessionMessages = messages;
 };
 
-const recordedSessionMessages = async () => {
+const recordedSessionMessages = () => {
   dispatchedUserMessageSeq += 1;
-  return {
-    data: [
-      ...existingSessionMessages,
-      {
-        info: {
-          id: `msg_dispatched_${dispatchedUserMessageSeq}`,
-          role: 'user',
-          time: { created: 1000 + dispatchedUserMessageSeq },
-        },
+  return [
+    ...existingSessionMessages,
+    {
+      info: {
+        id: `msg_dispatched_${dispatchedUserMessageSeq}`,
+        role: 'user',
+        time: { created: 1000 + dispatchedUserMessageSeq },
       },
-    ],
-  };
+    },
+  ];
 };
 
 // Selection inputs are fetched whenever a request names a model, agent, or
@@ -64,26 +59,44 @@ const selectionInputResponse = (url) => {
   if (text.includes('/config')) return { ok: true, json: async () => ({}) };
   return null;
 };
-const sessionCommandMock = vi.fn(async () => ({ data: {} }));
-const commandListMock = vi.fn(async () => ({ data: [] }));
+
+// Shared fetch mock matching the OMP adapter surface: POST /session creates,
+// POST /session/:id/prompt_async dispatches, POST /session/:id/fork forks,
+// GET /session/:id/message lists messages, and selection inputs answer their
+// JSON shapes.
+const createFetchMock = (options = {}) => {
+  const {
+    sessionID = 'ses_123',
+    forkID = 'ses_fork',
+    messages = recordedSessionMessages,
+  } = options;
+  return vi.fn(async (url, requestOptions = {}) => {
+    const text = String(url);
+    const method = (requestOptions && requestOptions.method) || 'GET';
+    if (method === 'POST' && text.includes('/prompt_async')) {
+      return { ok: true, text: async () => '' };
+    }
+    if (method === 'GET' && /\/session\/[^/]+\/message/.test(text)) {
+      const list = await messages();
+      const records = Array.isArray(list) ? list : (Array.isArray(list?.data) ? list.data : []);
+      return { ok: true, json: async () => records };
+    }
+    if (method === 'POST' && /\/session\/[^/]+\/fork/.test(text)) {
+      return { ok: true, json: async () => ({ id: forkID, title: 'Forked session' }) };
+    }
+    if (method === 'POST' && text.includes('/session?directory')) {
+      return { ok: true, json: async () => ({ id: sessionID }) };
+    }
+    const selection = selectionInputResponse(url);
+    if (selection) return selection;
+    return { ok: true, json: async () => ({ id: sessionID }) };
+  });
+};
+
 globalThis.__ompchamberCreateWorktreeMock = createWorktreeMock;
 globalThis.__ompchamberGetWorktreeBootstrapStatusMock = getWorktreeBootstrapStatusMock;
 
 let registerOMPChamberSessionRoutes;
-
-vi.mock('@opencode-ai/sdk/v2', () => ({
-  createOpencodeClient: () => ({
-    session: {
-      create: sessionCreateMock,
-      fork: sessionForkMock,
-      messages: sessionMessagesMock,
-      command: sessionCommandMock,
-    },
-    command: {
-      list: commandListMock,
-    },
-  }),
-}));
 
 vi.mock('../git/index.js', () => ({
   createWorktree: (...args) => globalThis.__ompchamberCreateWorktreeMock(...args),
@@ -122,16 +135,8 @@ describe('ompchamber session routes', () => {
       error: null,
       updatedAt: Date.now(),
     }));
-    sessionCreateMock.mockClear();
-    sessionForkMock.mockClear();
     existingSessionMessages = [];
     dispatchedUserMessageSeq = 0;
-    sessionMessagesMock.mockReset();
-    sessionMessagesMock.mockImplementation(recordedSessionMessages);
-    sessionCommandMock.mockReset();
-    sessionCommandMock.mockResolvedValue({ data: {} });
-    commandListMock.mockReset();
-    commandListMock.mockResolvedValue({ data: [] });
   });
 
   it('creates a session for a directory', async () => {
@@ -155,7 +160,6 @@ describe('ompchamber session routes', () => {
           body: JSON.stringify({ directory: '/repo/app', title: 'Side task' }),
         }),
       );
-      expect(sessionCreateMock).not.toHaveBeenCalled();
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -208,6 +212,9 @@ describe('ompchamber session routes', () => {
       if (text.includes('/prompt_async')) {
         return { ok: true, text: async () => '' };
       }
+      if (/\/session\/[^/]+\/message/.test(text)) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
       if (text.includes('/config/providers')) {
         return { ok: true, json: async () => ({ providers: [{ id: 'openai', models: { 'gpt-5.5': { id: 'gpt-5.5' } } }] }) };
       }
@@ -255,6 +262,9 @@ describe('ompchamber session routes', () => {
       if (String(url).includes('/prompt_async')) {
         return { ok: true, text: async () => '' };
       }
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
       return { ok: true, json: async () => ({ id: 'ses_123' }) };
     });
     globalThis.fetch = fetchMock;
@@ -280,6 +290,9 @@ describe('ompchamber session routes', () => {
     const originalFetch = globalThis.fetch;
     const fetchMock = vi.fn(async (url) => {
       if (String(url).includes('/prompt_async')) return { ok: true, text: async () => '' };
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
       return { ok: true, json: async () => ({ id: 'ses_123' }) };
     });
     const createSessionGoal = vi.fn(async () => undefined);
@@ -348,6 +361,9 @@ describe('ompchamber session routes', () => {
       if (String(url).includes('/prompt_async')) {
         return { ok: true, text: async () => '' };
       }
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
       return { ok: true, json: async () => ({ id: 'ses_123' }) };
     });
     try {
@@ -392,6 +408,9 @@ describe('ompchamber session routes', () => {
     globalThis.fetch = vi.fn(async (url) => {
       if (String(url).includes('/prompt_async')) {
         return { ok: true, text: async () => '' };
+      }
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
       }
       return { ok: true, json: async () => ({ id: 'ses_123' }) };
     });
@@ -451,7 +470,12 @@ describe('ompchamber session routes', () => {
 
   it('sends a goal prompt to an existing session after creating goal metadata', async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = vi.fn(async (url) => selectionInputResponse(url) || { ok: true, text: async () => '' });
+    const fetchMock = vi.fn(async (url) => {
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
+      return selectionInputResponse(url) || { ok: true, text: async () => '' };
+    });
     const createSessionGoal = vi.fn(async () => undefined);
     globalThis.fetch = fetchMock;
     try {
@@ -491,16 +515,15 @@ describe('ompchamber session routes', () => {
     }
   });
 
-  it('uses the expanded slash-command template as the goal objective before command dispatch', async () => {
+  it('degrades a slash-command prompt to a plain prompt on the OMP engine', async () => {
     const originalFetch = globalThis.fetch;
     const createSessionGoal = vi.fn(async () => undefined);
-    commandListMock.mockResolvedValue({
-      data: [{
-        name: 'issue--to-pr',
-        template: 'Take $ARGUMENTS from issue through a verified pull request. Confirm the PR covers $ARGUMENTS.',
-      }],
+    globalThis.fetch = vi.fn(async (url) => {
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
+      return selectionInputResponse(url) || { ok: true, text: async () => '' };
     });
-    globalThis.fetch = vi.fn(async (url) => selectionInputResponse(url));
     try {
       const { app } = createApp({ createSessionGoal });
       const response = await request(app)
@@ -514,16 +537,16 @@ describe('ompchamber session routes', () => {
         })
         .expect(200);
 
+      // The OMP engine has no command surface: the slash-command text is sent
+      // verbatim as a plain prompt and the goal objective is the raw prompt.
       expect(createSessionGoal).toHaveBeenCalledWith(expect.objectContaining({
-        objective: 'Take LIN-123 from issue through a verified pull request. Confirm the PR covers LIN-123.',
+        objective: '/issue--to-pr LIN-123',
       }));
-      expect(sessionCommandMock).toHaveBeenCalledWith(expect.objectContaining({
-        command: 'issue--to-pr',
-        arguments: 'LIN-123',
-      }));
-      expect(createSessionGoal.mock.invocationCallOrder[0]).toBeLessThan(sessionCommandMock.mock.invocationCallOrder[0]);
-      expect(response.body).toMatchObject({ goalEnabled: true, dispatchedAsCommand: true });
-      expect(globalThis.fetch.mock.calls.some(([url]) => String(url).includes('/prompt_async'))).toBe(false);
+      expect(response.body).toMatchObject({ goalEnabled: true, dispatchedAsCommand: false });
+      const promptCall = globalThis.fetch.mock.calls.find(([url]) => String(url).includes('/prompt_async'));
+      expect(JSON.parse(promptCall?.[1]?.body)).toMatchObject({
+        parts: expect.arrayContaining([{ type: 'text', text: '/issue--to-pr LIN-123' }]),
+      });
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -531,7 +554,12 @@ describe('ompchamber session routes', () => {
 
   it('reuses the previous session selection when send omits model, agent, and variant', async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = vi.fn(async (url) => selectionInputResponse(url) || { ok: true, text: async () => '' });
+    const fetchMock = vi.fn(async (url) => {
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
+      return selectionInputResponse(url) || { ok: true, text: async () => '' };
+    });
     globalThis.fetch = fetchMock;
     try {
       setSessionMessages([
@@ -568,7 +596,8 @@ describe('ompchamber session routes', () => {
         variant: 'high',
       });
       // The default-selection inputs (config/providers/agents) must not be consulted.
-      expect(fetchMock.mock.calls.every(([url]) => String(url).includes('/prompt_async'))).toBe(true);
+      const nonPromptCalls = fetchMock.mock.calls.filter(([url]) => !String(url).includes('/prompt_async'));
+      expect(nonPromptCalls.every(([url]) => /\/session\/[^/]+\/message/.test(String(url)))).toBe(true);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -577,7 +606,15 @@ describe('ompchamber session routes', () => {
   it('forks from a message, dispatches the prompt, and emits the new session', async () => {
     const originalFetch = globalThis.fetch;
     const emitSessionCreatedEvent = vi.fn();
-    globalThis.fetch = vi.fn(async (url) => selectionInputResponse(url) || { ok: true, text: async () => '' });
+    globalThis.fetch = vi.fn(async (url) => {
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
+      if (/\/session\/[^/]+\/fork/.test(String(url))) {
+        return { ok: true, json: async () => ({ id: 'ses_fork', title: 'Forked session' }) };
+      }
+      return selectionInputResponse(url) || { ok: true, text: async () => '' };
+    });
     try {
       const { app } = createApp({ emitSessionCreatedEvent });
       const response = await request(app)
@@ -592,22 +629,16 @@ describe('ompchamber session routes', () => {
         })
         .expect(200);
 
-      expect(sessionForkMock).toHaveBeenCalledWith({
-        sessionID: 'ses_source',
-        directory: '/repo/app',
-        messageID: 'msg_branch_point',
-      });
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://opencode.test/session/ses_source/fork?directory=%2Frepo%2Fapp',
+        expect.objectContaining({ method: 'POST' }),
+      );
       expect(response.body).toMatchObject({
         action: 'fork',
         sourceSessionId: 'ses_source',
         sessionId: 'ses_fork',
         directory: '/repo/app',
         promptDispatched: true,
-      });
-      expect(sessionMessagesMock).toHaveBeenCalledWith({
-        sessionID: 'ses_fork',
-        directory: '/repo/app',
-        limit: 100,
       });
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'http://opencode.test/session/ses_fork/prompt_async?directory=%2Frepo%2Fapp',
@@ -639,7 +670,6 @@ describe('ompchamber session routes', () => {
         .send({ directory: '/repo/app' })
         .expect(400, { error: 'prompt is required' });
       expect(fetchMock).not.toHaveBeenCalled();
-      expect(sessionForkMock).not.toHaveBeenCalled();
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -647,7 +677,15 @@ describe('ompchamber session routes', () => {
 
   it('reports the forked session when prompt dispatch fails', async () => {
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = vi.fn(async (url) => selectionInputResponse(url) || { ok: false, status: 500, text: async () => 'dispatch failed' });
+    globalThis.fetch = vi.fn(async (url) => {
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
+      if (/\/session\/[^/]+\/fork/.test(String(url))) {
+        return { ok: true, json: async () => ({ id: 'ses_fork', title: 'Forked session' }) };
+      }
+      return selectionInputResponse(url) || { ok: false, status: 500, text: async () => 'dispatch failed' };
+    });
     try {
       const { app } = createApp();
       const response = await request(app)
@@ -677,6 +715,9 @@ describe('ompchamber session routes', () => {
     const fetchMock = vi.fn(async (url) => {
       const text = String(url);
       if (text.includes('/prompt_async')) return { ok: true, text: async () => '' };
+      if (/\/session\/[^/]+\/message/.test(text)) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
       if (text.includes('/config/providers')) {
         return {
           ok: true,
@@ -761,10 +802,12 @@ describe('ompchamber session routes', () => {
     const originalFetch = globalThis.fetch;
     const fetchMock = vi.fn(async (url) => {
       if (String(url).includes('/prompt_async')) return { ok: true, text: async () => '' };
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => [] };
+      }
       return selectionInputResponse(url) || { ok: true, json: async () => ({ id: 'ses_123' }) };
     });
     globalThis.fetch = fetchMock;
-    sessionMessagesMock.mockResolvedValue({ data: [] });
     try {
       const { app } = createApp();
       const response = await request(app)
@@ -780,15 +823,18 @@ describe('ompchamber session routes', () => {
     }
   }, 20_000);
 
-  it('does not retry a failed slash command as a normal prompt', async () => {
+  it('sends a slash-command prompt verbatim as a plain prompt on the OMP engine', async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = vi.fn(async (url) => selectionInputResponse(url));
-    commandListMock.mockResolvedValue({ data: [{ name: 'review' }] });
-    sessionCommandMock.mockRejectedValue(new Error('command response failed'));
+    const fetchMock = vi.fn(async (url) => {
+      if (/\/session\/[^/]+\/message/.test(String(url))) {
+        return { ok: true, json: async () => recordedSessionMessages() };
+      }
+      return selectionInputResponse(url) || { ok: true, text: async () => '' };
+    });
     globalThis.fetch = fetchMock;
     try {
       const { app } = createApp();
-      await request(app)
+      const response = await request(app)
         .post('/api/ompchamber/sessions/ses_source/send')
         .send({
           directory: '/repo/app',
@@ -797,10 +843,13 @@ describe('ompchamber session routes', () => {
           agent: 'build',
           variant: 'high',
         })
-        .expect(500);
+        .expect(200);
 
-      expect(sessionCommandMock).toHaveBeenCalledTimes(1);
-      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/prompt_async'))).toBe(false);
+      expect(response.body).toMatchObject({ promptDispatched: true, dispatchedAsCommand: false });
+      const promptCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/prompt_async'));
+      expect(JSON.parse(promptCall[1].body)).toMatchObject({
+        parts: [{ type: 'text', text: '/review fix this' }],
+      });
     } finally {
       globalThis.fetch = originalFetch;
     }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import type { Session } from "@ompchamber/agent-protocol/domain-types"
-import type { Event, Part, PermissionRequest, QuestionRequest, SessionStatus } from "@ompchamber/agent-protocol/domain-types"
+import type { Event, Part, PermissionRequest, QuestionRequest, SessionStatus, SubagentSnapshot } from "@ompchamber/agent-protocol/domain-types"
 import { applyDirectoryEvent } from "../event-reducer"
 import { INITIAL_STATE, type State } from "../types"
 
@@ -10,6 +10,7 @@ function state(overrides: Partial<State> = {}): State {
     message: {},
     part: {},
     session_status: {},
+    subagent: {},
     ...overrides,
   }
 }
@@ -279,5 +280,67 @@ describe("applyDirectoryEvent", () => {
 
     expect(draft.question.ses_1).not.toBe(afterReply)
     expect(draft.question.ses_1).toEqual([])
+  })
+
+  test("upserts ompchamber:subagent snapshots per session", () => {
+    const draft = state()
+    const first: SubagentSnapshot = {
+      id: "sub_1",
+      agent: "explore",
+      description: "Explore the codebase",
+      status: "running",
+    }
+
+    const result = applyDirectoryEvent(draft, {
+      type: "ompchamber:subagent",
+      properties: { sessionID: "ses_1", subagent: first },
+    } as Event)
+
+    expect(result).toBe(true)
+    expect(draft.subagent.ses_1).toEqual([first])
+
+    const updated: SubagentSnapshot = {
+      ...first,
+      status: "completed",
+      progress: { toolCalls: 3, elapsedMs: 1200 },
+    }
+    applyDirectoryEvent(draft, {
+      type: "ompchamber:subagent",
+      properties: { sessionID: "ses_1", subagent: updated },
+    } as Event)
+
+    expect(draft.subagent.ses_1).toEqual([updated])
+    expect(draft.subagent.ses_1.length).toBe(1)
+
+    applyDirectoryEvent(draft, {
+      type: "ompchamber:subagent",
+      properties: { sessionID: "ses_2", subagent: { id: "sub_2", agent: "oracle", status: "running" } },
+    } as Event)
+
+    expect(draft.subagent.ses_2.map((item) => item.id)).toEqual(["sub_2"])
+    expect(draft.subagent.ses_1.map((item) => item.id)).toEqual(["sub_1"])
+  })
+
+  test("ignores ompchamber:subagent events without a valid snapshot", () => {
+    const draft = state()
+    const result = applyDirectoryEvent(draft, {
+      type: "ompchamber:subagent",
+      properties: { sessionID: "ses_1", subagent: { id: "", agent: "explore" } },
+    } as Event)
+
+    expect(result).toBe(false)
+    expect(draft.subagent.ses_1).toEqual(undefined)
+  })
+
+  test("returns changed:false when the subagent snapshot is unchanged", () => {
+    const snapshot: SubagentSnapshot = { id: "sub_1", agent: "explore", status: "running" }
+    const draft = state({ subagent: { ses_1: [snapshot] } })
+
+    const result = applyDirectoryEvent(draft, {
+      type: "ompchamber:subagent",
+      properties: { sessionID: "ses_1", subagent: snapshot },
+    } as Event)
+
+    expect(result).toBe(false)
   })
 })

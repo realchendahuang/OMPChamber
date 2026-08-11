@@ -131,3 +131,36 @@ describe('ask projection', () => {
     expect(domainEventToSseFrames({ type: 'session-ended', sessionId: 's1' })).toEqual([]);
   });
 });
+
+describe('subagent projection', () => {
+  it('projects a subagent event onto ompchamber:subagent', () => {
+    const frames = domainEventToSseFrames({
+      type: 'subagent',
+      sessionId: 's1',
+      subagent: {
+        id: 'sub_1',
+        agent: 'explore',
+        description: 'Explore the codebase',
+        status: 'running',
+        progress: { toolCalls: 3, elapsedMs: 1200 },
+      },
+    });
+    expect(frames).toHaveLength(1);
+    expect(frames[0].type).toBe('ompchamber:subagent');
+    expect(frames[0].properties.sessionID).toBe('s1');
+    expect(frames[0].properties.subagent).toMatchObject({
+      id: 'sub_1',
+      agent: 'explore',
+      status: 'running',
+    });
+  });
+
+  it('drops subagent events without a valid id', () => {
+    expect(domainEventToSseFrames({
+      type: 'subagent',
+      sessionId: 's1',
+      subagent: { id: '', agent: 'explore', status: 'running' },
+    })).toEqual([]);
+    expect(domainEventToSseFrames({ type: 'subagent', sessionId: 's1', subagent: undefined })).toEqual([]);
+  });
+});

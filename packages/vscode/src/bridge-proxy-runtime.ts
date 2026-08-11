@@ -49,9 +49,9 @@ const collectProxyResponseHeaders = (headers: Headers, deps: Pick<ProxyRuntimeDe
 const isSseProxyPath = (requestPath: string): boolean => {
   try {
     const parsed = new URL(requestPath, 'https://ompchamber.invalid');
-    return parsed.pathname === '/event' || parsed.pathname === '/global/event';
+    return parsed.pathname === '/api/event' || parsed.pathname === '/api/global/event';
   } catch {
-    return requestPath === '/event' || requestPath === '/global/event';
+    return requestPath === '/api/event' || requestPath === '/api/global/event';
   }
 };
 
@@ -83,7 +83,7 @@ const proxyAbortControllers = new Map<string, AbortController>();
 // soon as the request settles, so this only ever shares overlapping in-flight
 // requests; it never serves a stale response.
 // ---------------------------------------------------------------------------
-const COALESCE_READ_PATH = /^\/(config|path|app\/agents|agent|project|command)(\b|\/|\?|$)/;
+const COALESCE_READ_PATH = /^\/api\/(config|path|app\/agents|agent|project|command)(\b|\/|\?|$)/;
 const READ_COALESCE = new Map<string, Promise<ApiProxyResponsePayload>>();
 
 const performApiProxyFetch = async (
@@ -165,6 +165,9 @@ export async function handleProxyBridgeMessage(
       }
 
       const base = `${apiUrl.replace(/\/+$/, '')}/`;
+      // The webview forwards the full /api-prefixed path; the OMPChamber server
+      // serves its OpenCode-compatible API under /api, so the path is resolved
+      // verbatim against the server base URL.
       const targetUrl = new URL(normalizedPath.replace(/^\/+/, ''), base).toString();
       const requestHeaders: Record<string, string> = {
         ...deps.sanitizeForwardHeaders(headers),
@@ -231,7 +234,7 @@ export async function handleProxyBridgeMessage(
             : `/${requestPath.trim()}`
           : '/';
 
-      if (!/^\/session\/[^/]+\/message(?:\?.*)?$/.test(normalizedPath)) {
+      if (!/^\/api\/session\/[^/]+\/message(?:\?.*)?$/.test(normalizedPath)) {
         const body = JSON.stringify({ error: 'Invalid session message proxy path' });
         const data: ApiProxyResponsePayload = {
           status: 400,

@@ -112,6 +112,26 @@ export type Todo = {
 };
 
 // ---------------------------------------------------------------------------
+// Subagents (OMP `task` tool → subagent)
+// ---------------------------------------------------------------------------
+
+export type SubagentSnapshot = {
+  id: string;
+  agent: string;
+  description?: string;
+  status: "running" | "completed" | "failed" | "waiting";
+  task?: string;
+  assignment?: string;
+  parentToolCallId?: string;
+  progress?: {
+    toolCalls?: number;
+    filesTouched?: string[];
+    elapsedMs?: number;
+    statusText?: string;
+  };
+};
+
+// ---------------------------------------------------------------------------
 // Messages and parts
 // ---------------------------------------------------------------------------
 

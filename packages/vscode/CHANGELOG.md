@@ -1,3 +1,14 @@
+## [Unreleased]
+
+- **Runs the OMPChamber server natively.** The extension no longer spawns the
+  `opencode` CLI; it bundles the OMPChamber web server (`dist/server.cjs`)
+  and starts it with `node` on a loopback port, proxying the webview to the
+  `/api` surface. Readiness polling, the SSE event watcher, and the git
+  bridge (PR descriptions, conflict details) all use the OMP adapter with
+  plain `fetch`; the `@opencode-ai/sdk` dependency is gone. Tests run with
+  `bun test --isolate` (96 pass / 0 fail), fixing the pre-existing
+  cross-file `mock.module` pollution.
+
 ## [1.18.2] - 2026-08-10
 
 - **Settings:** OpenCode configuration changes now accumulate behind a single Apply & Restart action instead of restarting OpenCode after every edit; the confirmation warns when active chats will be stopped (thanks to @makeittech).

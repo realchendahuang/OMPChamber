@@ -1,6 +1,8 @@
 export {
   createGlobalUiEventBroadcaster,
   createMessageStreamWsRuntime,
+  registerGlobalEventSseRoute,
+  GLOBAL_EVENT_SSE_PATH,
 } from './runtime.js';
 
 export {

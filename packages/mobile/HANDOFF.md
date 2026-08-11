@@ -161,8 +161,18 @@ non-fatal.
 
 ## The gap: CI / release automation (next work)
 
-The apps build and deploy locally; there is no CI/signing/publishing yet. To take them to
-TestFlight / Play internal testing:
+The apps build and deploy locally; CI workflows exist but need account secrets to
+publish. To take them to TestFlight / Play internal testing:
+
+### CI already in place
+
+- `.github/workflows/mobile-ci.yml` — Android debug APK + iOS simulator build
+  (manual `workflow_dispatch`).
+- `.github/workflows/mobile-release.yml` — TestFlight upload + signed AAB
+  (manual `workflow_dispatch` or `workflow_call`); requires the signing
+  secrets below.
+- `.github/workflows/vscode-extension.yml` — publishes the VS Code extension
+  on `v*` tags (VSCE_PAT / OVSX_PAT secrets).
 
 ### iOS
 

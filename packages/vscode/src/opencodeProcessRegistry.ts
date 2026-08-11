@@ -150,7 +150,12 @@ const readWindowsImageName = (pid: number): string | null => {
 const commandIdentifiesOurServer = (command: string, entry: ManagedProcessEntry): boolean => {
   if (typeof command !== 'string') return false;
   const lower = command.toLowerCase();
-  if (!lower.includes('opencode') || !lower.includes('serve')) return false;
+  // The extension spawns the bundled OMPChamber server (node dist/server.cjs
+  // --port N). Match on the server bundle path or the legacy `opencode serve`
+  // shape so orphaned children from either era are reaped.
+  const isOmpChamberServer = lower.includes('server.cjs') || lower.includes('server.js');
+  const isLegacyOpencodeServe = lower.includes('opencode') && lower.includes('serve');
+  if (!isOmpChamberServer && !isLegacyOpencodeServe) return false;
   if (Number.isInteger(entry.port) && !command.includes(String(entry.port))) return false;
   return true;
 };

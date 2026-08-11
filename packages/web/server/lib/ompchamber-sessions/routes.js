@@ -1,8 +1,6 @@
 import express from 'express';
-import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import { createWorktree, getWorktreeBootstrapStatus } from '../git/index.js';
 import { expandSnippets } from '../ompchamber/snippets.js';
-import { expandCommandGoalObjective, parseScheduledCommandPrompt } from '../scheduled-tasks/runtime.js';
 import { buildGoalIntroText, createSessionGoal } from '../session-goal/create.js';
 import { OMPChamberControlError, asControlError } from '../ompchamber-control/error.js';
 
@@ -220,27 +218,52 @@ const createSession = async ({ baseUrl, authHeaders, directory, title }) => {
   return sessionID;
 };
 
-const forkSession = async ({ client, sessionID, directory, messageID }) => {
-  const response = await client.session.fork({
-    sessionID,
-    directory,
-    ...(messageID ? { messageID } : {}),
+const fetchSessionMessages = async ({ baseUrl, authHeaders, sessionID, directory, limit }) => {
+  const messagesUrl = new URL(`${baseUrl}/session/${encodeURIComponent(sessionID)}/message`);
+  if (limit !== undefined) messagesUrl.searchParams.set('limit', String(limit));
+  messagesUrl.searchParams.set('directory', directory);
+  const response = await fetch(messagesUrl.toString(), {
+    headers: { ...authHeaders, ...buildDirectoryHeaders(directory), accept: 'application/json' },
   });
-  const session = response?.data;
+  if (!response.ok) {
+    throw new Error(`session messages failed (${response.status})`);
+  }
+  const body = await response.json().catch(() => null);
+  if (Array.isArray(body)) return body;
+  return Array.isArray(body?.data) ? body.data : [];
+};
+
+const forkSession = async ({ baseUrl, authHeaders, sessionID, directory, messageID }) => {
+  const forkUrl = new URL(`${baseUrl}/session/${encodeURIComponent(sessionID)}/fork`);
+  forkUrl.searchParams.set('directory', directory);
+  const response = await fetch(forkUrl.toString(), {
+    method: 'POST',
+    headers: {
+      ...authHeaders,
+      ...buildDirectoryHeaders(directory),
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({ ...(messageID ? { messageID } : {}) }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`fork failed (${response.status})${body ? `: ${body}` : ''}`);
+  }
+  const session = await response.json().catch(() => null);
   if (!session?.id) {
     throw new Error('failed to fork session');
   }
   return session;
 };
 
-const latestCompletedAssistantMessageID = async ({ client, sessionID, directory }) => {
-  let response;
+const latestCompletedAssistantMessageID = async ({ baseUrl, authHeaders, sessionID, directory }) => {
+  let messages;
   try {
-    response = await client.session.messages({ sessionID, directory, limit: 100 });
+    messages = await fetchSessionMessages({ baseUrl, authHeaders, sessionID, directory, limit: 100 });
   } catch {
     return null;
   }
-  const messages = Array.isArray(response?.data) ? response.data : [];
   let latest = null;
   for (const message of messages) {
     const info = message?.info;
@@ -300,14 +323,13 @@ const waitForWorktreeBootstrapReady = async ({ directory }) => {
   }
 };
 
-const latestUserMessageID = async ({ client, sessionID, directory }) => {
-  let response;
+const latestUserMessageID = async ({ baseUrl, authHeaders, sessionID, directory }) => {
+  let messages;
   try {
-    response = await client.session.messages({ sessionID, directory, limit: 100 });
+    messages = await fetchSessionMessages({ baseUrl, authHeaders, sessionID, directory, limit: 100 });
   } catch {
     return { ok: false, messageID: null };
   }
-  const messages = Array.isArray(response?.data) ? response.data : [];
   let latest = null;
   for (const message of messages) {
     const info = message?.info;
@@ -320,10 +342,10 @@ const latestUserMessageID = async ({ client, sessionID, directory }) => {
 // `prompt_async` answers 204 as soon as OpenCode forks the run, and every later
 // failure is reported only on the session event stream. Confirm the prompt was
 // actually recorded so `promptDispatched` never claims a dispatch that vanished.
-const waitForPromptLanded = async ({ client, sessionID, directory, baselineUserMessageID }) => {
+const waitForPromptLanded = async ({ baseUrl, authHeaders, sessionID, directory, baselineUserMessageID }) => {
   const deadline = Date.now() + PROMPT_LANDED_TIMEOUT_MS;
   for (;;) {
-    const latest = await latestUserMessageID({ client, sessionID, directory });
+    const latest = await latestUserMessageID({ baseUrl, authHeaders, sessionID, directory });
     // A failed lookup is not authoritative evidence that the prompt was lost.
     if (!latest.ok) return true;
     if (latest.messageID && latest.messageID !== baselineUserMessageID) return true;
@@ -361,10 +383,9 @@ export const createOMPChamberSessionService = (dependencies) => {
 
   // Last user message of an existing session, as a selection to reuse. Returns
   // null when the session has no user message carrying a model.
-  const fetchLastUserSelection = async ({ client, sessionID, directory }) => {
+  const fetchLastUserSelection = async ({ baseUrl, authHeaders, sessionID, directory }) => {
     try {
-      const response = await client.session.messages({ sessionID, directory, limit: 20 });
-      const records = Array.isArray(response?.data) ? response.data : [];
+      const records = await fetchSessionMessages({ baseUrl, authHeaders, sessionID, directory, limit: 20 });
       for (let index = records.length - 1; index >= 0; index -= 1) {
         const info = records[index]?.info;
         if (info?.role !== 'user') continue;
@@ -425,7 +446,6 @@ export const createOMPChamberSessionService = (dependencies) => {
   };
 
   const dispatchPrompt = async ({
-    client,
     baseUrl,
     authHeaders,
     sessionID,
@@ -441,7 +461,7 @@ export const createOMPChamberSessionService = (dependencies) => {
     let agent = requestedAgent;
     let variant = requestedVariant;
     if (reuseSessionSelection && (!model || !agent)) {
-      const previous = await fetchLastUserSelection({ client, sessionID, directory });
+      const previous = await fetchLastUserSelection({ baseUrl, authHeaders, sessionID, directory });
       if (previous) {
         if (!model && previous.model) {
           model = previous.model;
@@ -471,27 +491,16 @@ export const createOMPChamberSessionService = (dependencies) => {
     }
 
     const expandedPrompt = expandSnippets(prompt, directory);
-    const parsedCommand = parseScheduledCommandPrompt(prompt);
-    let resolvedCommand = null;
-    if (parsedCommand) {
-      try {
-        const response = await client.command.list({ directory });
-        const commands = Array.isArray(response?.data) ? response.data : [];
-        const command = commands.find((candidate) => candidate?.name === parsedCommand.command);
-        if (command) resolvedCommand = { ...parsedCommand, template: command.template };
-      } catch {
-      }
-    }
+    // The OMP engine has no command surface (no slash-command templates), so
+    // every prompt dispatches as a plain prompt. `dispatchedAsCommand` stays
+    // false and slash-command text is sent verbatim.
     if (goalInput.enabled) {
-      const commandObjective = resolvedCommand
-        ? expandCommandGoalObjective(resolvedCommand.template, resolvedCommand.arguments)
-        : null;
       await (createSessionGoalOverride || createSessionGoal)({
         baseUrl,
         authHeaders,
         sessionID,
         directory,
-        objective: commandObjective ?? expandedPrompt,
+        objective: expandedPrompt,
         tokenBudget: goalInput.tokenBudget,
         providerID: model.providerID,
         modelID: model.modelID,
@@ -504,62 +513,47 @@ export const createOMPChamberSessionService = (dependencies) => {
       return error;
     };
 
-    if (resolvedCommand) {
-      try {
-        await client.session.command({
-          sessionID,
-          directory,
-          command: resolvedCommand.command,
-          arguments: resolvedCommand.arguments,
-          ...(agent ? { agent } : {}),
-          model: `${model.providerID}/${model.modelID}`,
-          ...(variant ? { variant } : {}),
-        });
-      } catch (error) {
-        throw markGoalPartial(error);
-      }
-    } else {
-      const baseline = await latestUserMessageID({ client, sessionID, directory });
-      try {
-        await runPromptAsync({
-          baseUrl,
-          authHeaders,
-          sessionID,
-          directory,
-          payload: {
-            model,
-            ...(agent ? { agent } : {}),
-            ...(variant ? { variant } : {}),
-            parts: [
-              { type: 'text', text: expandedPrompt },
-              ...(goalInput.enabled
-                ? [{ type: 'text', text: buildGoalIntroText(goalInput.tokenBudget), synthetic: true }]
-                : []),
-            ],
-          },
-        });
-      } catch (error) {
-        throw markGoalPartial(error);
-      }
-      const landed = await waitForPromptLanded({
-        client,
+    const baseline = await latestUserMessageID({ baseUrl, authHeaders, sessionID, directory });
+    try {
+      await runPromptAsync({
+        baseUrl,
+        authHeaders,
         sessionID,
         directory,
-        baselineUserMessageID: baseline.messageID,
-      });
-      if (!landed) {
-        return {
+        payload: {
           model,
-          agent,
-          variant,
-          promptDispatched: false,
-          dispatchedAsCommand: false,
-          promptError: 'OpenCode accepted the prompt but it never appeared in the session',
-        };
-      }
+          ...(agent ? { agent } : {}),
+          ...(variant ? { variant } : {}),
+          parts: [
+            { type: 'text', text: expandedPrompt },
+            ...(goalInput.enabled
+              ? [{ type: 'text', text: buildGoalIntroText(goalInput.tokenBudget), synthetic: true }]
+              : []),
+          ],
+        },
+      });
+    } catch (error) {
+      throw markGoalPartial(error);
+    }
+    const landed = await waitForPromptLanded({
+      baseUrl,
+      authHeaders,
+      sessionID,
+      directory,
+      baselineUserMessageID: baseline.messageID,
+    });
+    if (!landed) {
+      return {
+        model,
+        agent,
+        variant,
+        promptDispatched: false,
+        dispatchedAsCommand: false,
+        promptError: 'OpenCode accepted the prompt but it never appeared in the session',
+      };
     }
 
-    return { model, agent, variant, promptDispatched: true, dispatchedAsCommand: Boolean(resolvedCommand) };
+    return { model, agent, variant, promptDispatched: true, dispatchedAsCommand: false };
   };
 
   const create = async (payload = {}) => {
@@ -609,9 +603,7 @@ export const createOMPChamberSessionService = (dependencies) => {
 
     const baseUrl = buildOpenCodeUrl('/', '').replace(/\/$/, '');
     const authHeaders = getOpenCodeAuthHeaders();
-    const client = createOpencodeClient({ baseUrl, headers: authHeaders });
     const sessionID = await createSession({
-      client,
       baseUrl,
       authHeaders,
       directory: sessionDirectory,
@@ -621,7 +613,6 @@ export const createOMPChamberSessionService = (dependencies) => {
     let dispatch = { model, agent, variant, promptDispatched: false, dispatchedAsCommand: false };
     if (prompt) {
       dispatch = await dispatchPrompt({
-        client,
         baseUrl,
         authHeaders,
         sessionID,
@@ -706,10 +697,10 @@ export const createOMPChamberSessionService = (dependencies) => {
 
       const baseUrl = buildOpenCodeUrl('/', '').replace(/\/$/, '');
       const authHeaders = getOpenCodeAuthHeaders();
-      const client = createOpencodeClient({ baseUrl, headers: authHeaders });
       if (action === 'fork') {
         targetSession = await forkSession({
-          client,
+          baseUrl,
+          authHeaders,
           sessionID: sourceSessionID,
           directory,
           messageID: asNonEmptyString(payload.messageId) || undefined,
@@ -718,13 +709,13 @@ export const createOMPChamberSessionService = (dependencies) => {
       }
 
       const baselineAssistantMessageId = await latestCompletedAssistantMessageID({
-        client,
+        baseUrl,
+        authHeaders,
         sessionID: targetSessionID,
         directory,
       });
 
       const dispatch = await dispatchPrompt({
-        client,
         baseUrl,
         authHeaders,
         sessionID: targetSessionID,

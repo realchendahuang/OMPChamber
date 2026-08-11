@@ -83,7 +83,7 @@ export const getOpenCodeUpgradeStatus = async (manager?: OpenCodeUpgradeManager)
   if (!upgrade.supported || !apiUrl || !manager) return { available: false, currentVersion: null, latestVersion: null, upgrade };
   try {
     const [healthResponse, latestVersion] = await Promise.all([
-      fetch(new URL('global/health', apiUrl).toString(), { method: 'GET', headers: { Accept: 'application/json', ...manager.getOpenCodeAuthHeaders() } }),
+      fetch(new URL('api/global/health', apiUrl).toString(), { method: 'GET', headers: { Accept: 'application/json', ...manager.getOpenCodeAuthHeaders() } }),
       fetchLatestVersion(),
     ]);
     const health = await healthResponse.json().catch(() => null) as { version?: unknown; error?: unknown } | null;
@@ -110,7 +110,7 @@ export const upgradeManagedOpenCode = async (manager: OpenCodeUpgradeManager | u
   const targetVersion = typeof target === 'string' ? target.trim() : '';
   const operation = (async (): Promise<UpgradeResult> => {
     try {
-      const response = await fetch(new URL('global/upgrade', apiUrl).toString(), {
+      const response = await fetch(new URL('api/global/upgrade', apiUrl).toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...manager.getOpenCodeAuthHeaders() },
         body: JSON.stringify(targetVersion ? { target: targetVersion } : {}),

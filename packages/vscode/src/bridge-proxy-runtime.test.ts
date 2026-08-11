@@ -43,7 +43,7 @@ describe('VS Code API proxy aborts', () => {
       }) as typeof fetch;
 
       const pending = handleProxyBridgeMessage(
-        { id: 'req_1', type: 'api:proxy', payload: { method: 'POST', path: '/session/abc/prompt_async', bodyBase64: Buffer.from('{}').toString('base64') } },
+        { id: 'req_1', type: 'api:proxy', payload: { method: 'POST', path: '/api/session/abc/prompt_async', bodyBase64: Buffer.from('{}').toString('base64') } },
         ctx,
         deps,
       );
@@ -77,12 +77,12 @@ describe('VS Code API proxy read coalescing', () => {
       }) as typeof fetch;
 
       const first = handleProxyBridgeMessage(
-        { id: 'r1', type: 'api:proxy', payload: { method: 'GET', path: '/config?directory=/x' } },
+        { id: 'r1', type: 'api:proxy', payload: { method: 'GET', path: '/api/config?directory=/x' } },
         ctx,
         deps,
       );
       const second = handleProxyBridgeMessage(
-        { id: 'r2', type: 'api:proxy', payload: { method: 'GET', path: '/config?directory=/x' } },
+        { id: 'r2', type: 'api:proxy', payload: { method: 'GET', path: '/api/config?directory=/x' } },
         ctx,
         deps,
       );
@@ -109,8 +109,8 @@ describe('VS Code API proxy read coalescing', () => {
         new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } })) as typeof fetch;
 
       await Promise.all([
-        handleProxyBridgeMessage({ id: 'w1', type: 'api:proxy', payload: { method: 'GET', path: '/session?directory=/x' } }, ctx, deps),
-        handleProxyBridgeMessage({ id: 'w2', type: 'api:proxy', payload: { method: 'GET', path: '/session?directory=/x' } }, ctx, deps),
+        handleProxyBridgeMessage({ id: 'w1', type: 'api:proxy', payload: { method: 'GET', path: '/api/session?directory=/x' } }, ctx, deps),
+        handleProxyBridgeMessage({ id: 'w2', type: 'api:proxy', payload: { method: 'GET', path: '/api/session?directory=/x' } }, ctx, deps),
       ]);
       assert.equal(fetchCount, 0); // sanity: counter only bumps in the slow mock above
 
@@ -120,8 +120,8 @@ describe('VS Code API proxy read coalescing', () => {
       }) as typeof fetch;
 
       await Promise.all([
-        handleProxyBridgeMessage({ id: 's1', type: 'api:proxy', payload: { method: 'GET', path: '/session?directory=/x' } }, ctx, deps),
-        handleProxyBridgeMessage({ id: 's2', type: 'api:proxy', payload: { method: 'GET', path: '/session?directory=/x' } }, ctx, deps),
+        handleProxyBridgeMessage({ id: 's1', type: 'api:proxy', payload: { method: 'GET', path: '/api/session?directory=/x' } }, ctx, deps),
+        handleProxyBridgeMessage({ id: 's2', type: 'api:proxy', payload: { method: 'GET', path: '/api/session?directory=/x' } }, ctx, deps),
       ]);
       assert.equal(fetchCount, 2); // /session is not in the read allowlist
     } finally {

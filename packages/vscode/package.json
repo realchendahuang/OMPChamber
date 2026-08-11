@@ -1,6 +1,6 @@
 {
-"name": "ompchamber",
-"displayName": "OMPChamber",
+  "name": "ompchamber",
+  "displayName": "OMPChamber",
   "description": "%extension.description%",
   "version": "1.0.0",
   "publisher": "fedaykindev",
@@ -221,7 +221,7 @@
   },
   "scripts": {
     "vscode:prepublish": "bun run build",
-    "build": "bun run build:extension && bun run build:webview",
+    "build": "bun run build:server && bun run build:extension && bun run build:webview",
     "build:extension": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify --main-fields=module,main",
     "build:webview": "VITE_OPENCODE_URL=/api vite build",
     "dev": "concurrently -n \"ext,web\" -c \"cyan,magenta\" \"bun run watch:extension\" \"bun run dev:webview\"",
@@ -229,8 +229,10 @@
     "watch:extension": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --watch --sourcemap --main-fields=module,main",
     "watch:webview": "vite build --watch",
     "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.webview.json",
+    "test": "bun test src/ --isolate",
     "lint": "bun x eslint --ext .ts,.tsx src webview",
-    "package": "vsce package --no-dependencies"
+    "package": "vsce package --no-dependencies",
+    "build:server": "esbuild ../web/server/index.js --bundle --format=cjs --platform=node --outfile=dist/server.cjs --external:bun-pty --external:node-pty --external:sherpa-onnx-node --main-fields=module,main --define:import.meta.url=\"__bundleFileUrl\" --banner:js=\"const __bundleFileUrl = require('url').pathToFileURL(__filename).href;\""
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
@@ -244,7 +246,6 @@
   },
   "dependencies": {
     "@ompchamber/ui": "workspace:*",
-    "@opencode-ai/sdk": "1.18.16",
     "adm-zip": "^0.6.0",
     "jsonc-parser": "^3.3.1",
     "react": "^19.1.1",

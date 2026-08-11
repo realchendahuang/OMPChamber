@@ -50,6 +50,100 @@ export function createGlobalUiEventBroadcaster({
   };
 }
 
+export const GLOBAL_EVENT_SSE_PATH = '/api/global/event';
+
+/**
+ * Mount the OpenCode-shaped global event stream as a plain SSE GET endpoint
+ * (`/api/global/event`). The browser UI normally consumes the same stream over
+ * the WebSocket bridge, but non-browser clients (VS Code webview SSE proxy,
+ * curl, mobile fallbacks) need a plain SSE response. Events come from the
+ * shared global hub, which the OMP engine drives via `publishEvent`; the
+ * `Last-Event-ID` replay window is honored so reconnecting clients do not miss
+ * events that arrived while disconnected.
+ */
+export function registerGlobalEventSseRoute({
+  app,
+  globalEventHub,
+  writeSseEvent,
+  heartbeatIntervalMs = 25_000,
+}) {
+  app.get(GLOBAL_EVENT_SSE_PATH, (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders?.();
+
+    const requestedLastEventId = typeof req.headers?.['last-event-id'] === 'string'
+      ? req.headers['last-event-id'].trim()
+      : (typeof req.query?.lastEventId === 'string' ? req.query.lastEventId.trim() : '');
+
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      unsubscribe();
+      clearInterval(heartbeat);
+    };
+
+    const unsubscribe = globalEventHub.subscribeEvent((event) => {
+      if (closed) return;
+      try {
+        const payload = event?.payload;
+        if (!payload || typeof payload !== 'object') return;
+        const frame = {
+          ...payload,
+          ...(event?.directory && event.directory !== 'global' ? { directory: event.directory } : {}),
+        };
+        if (event?.eventId) {
+          res.write(`id: ${event.eventId}\n`);
+        }
+        writeSseEvent(res, frame);
+      } catch {
+        close();
+      }
+    });
+
+    const heartbeat = setInterval(() => {
+      if (closed) return;
+      try {
+        writeSseEvent(res, {
+          type: 'ompchamber:heartbeat',
+          properties: { timestamp: Date.now() },
+        });
+      } catch {
+        close();
+      }
+    }, heartbeatIntervalMs);
+
+    // Replay buffered events after the requested Last-Event-ID so a client
+    // that reconnects after a gap receives what it missed.
+    if (requestedLastEventId) {
+      for (const entry of globalEventHub.replayAfter(requestedLastEventId)) {
+        if (closed) break;
+        try {
+          const payload = entry?.payload;
+          if (!payload || typeof payload !== 'object') continue;
+          const frame = {
+            ...payload,
+            ...(entry?.directory && entry.directory !== 'global' ? { directory: entry.directory } : {}),
+          };
+          if (entry?.eventId) {
+            res.write(`id: ${entry.eventId}\n`);
+          }
+          writeSseEvent(res, frame);
+        } catch {
+          close();
+          break;
+        }
+      }
+    }
+
+    req.on('close', close);
+    req.on('error', close);
+  });
+}
+
 export function createMessageStreamWsRuntime({
   server,
   uiAuthController,

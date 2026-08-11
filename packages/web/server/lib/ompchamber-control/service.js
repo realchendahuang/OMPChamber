@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import { OMPChamberControlError, asControlError } from './error.js';
 import { OMPCHAMBER_CONTROL_ACTIONS } from './actions.js';
 
@@ -141,7 +140,7 @@ export const createOMPChamberControlService = (dependencies) => {
     waitForOpenCodeReady,
     sessionService,
     scheduledTaskService,
-    createClient = createOpencodeClient,
+    fetchImpl = fetch,
     sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration)),
     now = Date.now,
   } = dependencies;
@@ -165,12 +164,53 @@ export const createOMPChamberControlService = (dependencies) => {
     });
   };
 
-  const getClient = async () => {
+  const getBaseUrl = async () => {
     if (typeof waitForOpenCodeReady === 'function') await waitForOpenCodeReady(10_000, 250);
-    return createClient({
-      baseUrl: buildOpenCodeUrl('/', '').replace(/\/$/, ''),
-      headers: getOpenCodeAuthHeaders(),
-    });
+    return buildOpenCodeUrl('/', '').replace(/\/$/, '');
+  };
+
+  const buildHeaders = (directory) => ({
+    ...getOpenCodeAuthHeaders(),
+    accept: 'application/json',
+    ...(directory ? { 'x-opencode-directory': directory } : {}),
+  });
+
+  const fetchJson = async (url, options = {}) => {
+    const response = await fetchImpl(url.toString(), options);
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new Error(`request failed (${response.status})${body ? `: ${body}` : ''}`);
+    }
+    return response.json().catch(() => null);
+  };
+
+  const sessionStatus = async (baseUrl, sessionID, directory) => {
+    const statusUrl = new URL(`${baseUrl}/session/status`);
+    if (directory) statusUrl.searchParams.set('directory', directory);
+    const body = await fetchJson(statusUrl, { headers: buildHeaders(directory) });
+    const statuses = body && typeof body === 'object' && !Array.isArray(body) ? body : null;
+    if (!statuses) {
+      throw new OMPChamberControlError('Invalid session status response', 500);
+    }
+    return statuses[sessionID] || { type: 'idle' };
+  };
+
+  const sessionMessages = async (baseUrl, sessionID, directory, role, limit) => {
+    const fetchLimit = limit === undefined ? undefined : Math.max(100, limit * 4);
+    const messagesUrl = new URL(`${baseUrl}/session/${encodeURIComponent(sessionID)}/message`);
+    if (fetchLimit !== undefined) messagesUrl.searchParams.set('limit', String(fetchLimit));
+    if (directory) messagesUrl.searchParams.set('directory', directory);
+    let raw = await fetchJson(messagesUrl, { headers: buildHeaders(directory) });
+    if (!Array.isArray(raw)) raw = [];
+    let messages = extractTextMessages(raw, role);
+    if (limit !== undefined && messages.length < limit && raw.length >= fetchLimit) {
+      const fullUrl = new URL(`${baseUrl}/session/${encodeURIComponent(sessionID)}/message`);
+      if (directory) fullUrl.searchParams.set('directory', directory);
+      const full = await fetchJson(fullUrl, { headers: buildHeaders(directory) });
+      raw = Array.isArray(full) ? full : [];
+      messages = extractTextMessages(raw, role);
+    }
+    return limit === undefined ? messages : messages.slice(-limit);
   };
 
   const projects = async () => {
@@ -193,40 +233,18 @@ export const createOMPChamberControlService = (dependencies) => {
     };
   };
 
-  const sessionStatus = async (client, sessionID, directory) => {
-    const response = await client.session.status({ directory });
-    const statuses = response?.data;
-    if (!statuses || typeof statuses !== 'object' || Array.isArray(statuses)) {
-      throw new OMPChamberControlError('Invalid session status response', 500);
-    }
-    return statuses[sessionID] || { type: 'idle' };
-  };
-
-  const sessionMessages = async (client, sessionID, directory, role, limit) => {
-    const fetchLimit = limit === undefined ? undefined : Math.max(100, limit * 4);
-    let response = await client.session.messages({ sessionID, directory, ...(fetchLimit ? { limit: fetchLimit } : {}) });
-    let raw = Array.isArray(response?.data) ? response.data : [];
-    let messages = extractTextMessages(raw, role);
-    if (limit !== undefined && messages.length < limit && raw.length >= fetchLimit) {
-      response = await client.session.messages({ sessionID, directory });
-      raw = Array.isArray(response?.data) ? response.data : [];
-      messages = extractTextMessages(raw, role);
-    }
-    return limit === undefined ? messages : messages.slice(-limit);
-  };
-
-  const waitForIdle = async ({ client, sessionID, directory, timeoutMs, requireActivity, baselineMessageID, startedAt, signal }) => {
+  const waitForIdle = async ({ baseUrl, sessionID, directory, timeoutMs, requireActivity, baselineMessageID, startedAt, signal }) => {
     const deadline = now() + timeoutMs;
     let observedActivity = false;
     while (true) {
       if (signal?.aborted) throw new OMPChamberControlError('OMPChamber action was cancelled', 499);
-      const status = await sessionStatus(client, sessionID, directory);
+      const status = await sessionStatus(baseUrl, sessionID, directory);
       if (status.type === 'busy' || status.type === 'retry') {
         observedActivity = true;
       } else if (!requireActivity || observedActivity) {
         return status;
       } else {
-        const messages = await sessionMessages(client, sessionID, directory, 'assistant', 1);
+        const messages = await sessionMessages(baseUrl, sessionID, directory, 'assistant', 1);
         const message = messages[0];
         if (message?.completedAt && (baselineMessageID ? message.id !== baselineMessageID : message.completedAt >= startedAt)) {
           return status;
@@ -247,9 +265,10 @@ export const createOMPChamberControlService = (dependencies) => {
   // session list when the caller did not scope explicitly.
   const resolveSessionDirectory = async (sessionID) => {
     try {
-      const client = await getClient();
-      const response = await client.experimental?.session?.list?.({});
-      const sessions = Array.isArray(response?.data) ? response.data : [];
+      const baseUrl = await getBaseUrl();
+      const sessionsUrl = new URL(`${baseUrl}/session`);
+      const body = await fetchJson(sessionsUrl, { headers: buildHeaders() });
+      const sessions = Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
       const session = sessions.find((item) => item?.id === sessionID);
       return asNonEmptyString(session?.directory) || null;
     } catch {
@@ -301,9 +320,9 @@ export const createOMPChamberControlService = (dependencies) => {
       delete publicResult.baselineAssistantMessageId;
       return publicResult;
     }
-    const client = await getClient();
+    const baseUrl = await getBaseUrl();
     const status = await waitForIdle({
-      client,
+      baseUrl,
       sessionID: result.sessionId,
       directory: result.directory,
       timeoutMs: normalizeWaitTimeoutMs(input.timeout),
@@ -315,7 +334,7 @@ export const createOMPChamberControlService = (dependencies) => {
     const publicResult = { ...result, sessionStatus: status };
     delete publicResult.baselineAssistantMessageId;
     if (input.lastAssistant === true) {
-      publicResult.lastAssistantMessage = (await sessionMessages(client, result.sessionId, result.directory, 'assistant', 1))[0] || null;
+      publicResult.lastAssistantMessage = (await sessionMessages(baseUrl, result.sessionId, result.directory, 'assistant', 1))[0] || null;
     }
     return publicResult;
   };
@@ -368,11 +387,13 @@ export const createOMPChamberControlService = (dependencies) => {
       if (action.startsWith('session.')) {
         const directory = asNonEmptyString(input.directory) || asNonEmptyString(contextDirectory);
         const sessionID = asNonEmptyString(input.sessionId);
-        const client = await getClient();
+        const baseUrl = await getBaseUrl();
         if (action === 'session.list') {
           const limit = positiveInteger(input.limit, 10, 'limit');
-          const response = await client.session.list(directory ? { directory } : {});
-          let sessions = Array.isArray(response?.data) ? response.data : [];
+          const sessionsUrl = new URL(`${baseUrl}/session`);
+          if (directory) sessionsUrl.searchParams.set('directory', directory);
+          const body = await fetchJson(sessionsUrl, { headers: buildHeaders(directory) });
+          let sessions = Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : []);
           if (input.all !== true) sessions = sessions.filter((session) => !session?.time?.archived);
           sessions = sessions.slice(0, limit);
           if (input.withStatus === true) {
@@ -381,11 +402,13 @@ export const createOMPChamberControlService = (dependencies) => {
               const sessionDirectory = asNonEmptyString(session?.directory);
               if (!sessionDirectory) return { ...session, status: { type: 'unknown' } };
               if (!cache.has(sessionDirectory)) {
-                const statusRequest = client.session.status({ directory: sessionDirectory }).catch(() => null);
+                const statusUrl = new URL(`${baseUrl}/session/status`);
+                statusUrl.searchParams.set('directory', sessionDirectory);
+                const statusRequest = fetchJson(statusUrl, { headers: buildHeaders(sessionDirectory) }).catch(() => null);
                 cache.set(sessionDirectory, statusRequest);
               }
-              const statusResponse = await cache.get(sessionDirectory);
-              return { ...session, status: statusResponse?.data?.[session.id] || (statusResponse ? { type: 'idle' } : { type: 'unknown' }) };
+              const statusBody = await cache.get(sessionDirectory);
+              return { ...session, status: statusBody?.[session.id] || (statusBody ? { type: 'idle' } : { type: 'unknown' }) };
             }));
           }
           return { sessions, limit, directory, archived: input.all === true ? 'included' : 'excluded' };
@@ -393,7 +416,7 @@ export const createOMPChamberControlService = (dependencies) => {
         if (!sessionID) throw new OMPChamberControlError('sessionId is required', 400);
         if (!directory) throw new OMPChamberControlError('directory is required', 400);
         if (action === 'session.status') {
-          return { sessionId: sessionID, directory, sessionStatus: await sessionStatus(client, sessionID, directory) };
+          return { sessionId: sessionID, directory, sessionStatus: await sessionStatus(baseUrl, sessionID, directory) };
         }
         if (action === 'session.messages') {
           if (input.timeout !== undefined && input.wait !== true) throw new OMPChamberControlError('timeout requires wait', 400);
@@ -403,10 +426,10 @@ export const createOMPChamberControlService = (dependencies) => {
           if (input.all === true && (last || input.limit !== undefined)) throw new OMPChamberControlError('all cannot be combined with last or limit', 400);
           if (last && input.limit !== undefined) throw new OMPChamberControlError('last cannot be combined with limit', 400);
           const currentStatus = input.wait === true
-            ? await waitForIdle({ client, sessionID, directory, timeoutMs: normalizeWaitTimeoutMs(input.timeout), requireActivity: false, startedAt: now(), signal: options.signal })
-            : await sessionStatus(client, sessionID, directory);
+            ? await waitForIdle({ baseUrl, sessionID, directory, timeoutMs: normalizeWaitTimeoutMs(input.timeout), requireActivity: false, startedAt: now(), signal: options.signal })
+            : await sessionStatus(baseUrl, sessionID, directory);
           const limit = input.all === true ? undefined : (last ? 1 : positiveInteger(input.limit, 10, 'limit'));
-          return { sessionId: sessionID, directory, role, sessionStatus: currentStatus, messages: await sessionMessages(client, sessionID, directory, role, limit) };
+          return { sessionId: sessionID, directory, role, sessionStatus: currentStatus, messages: await sessionMessages(baseUrl, sessionID, directory, role, limit) };
         }
       }
       throw new OMPChamberControlError(`Unsupported OMPChamber action: ${action || 'missing'}`, 400);

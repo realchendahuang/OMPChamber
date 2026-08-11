@@ -17,6 +17,7 @@ import {
   resetAllMagicPromptOverrides,
 } from './bridge-settings-runtime';
 import { execGit } from './bridge-git-process-runtime';
+import { getGitRangeDiff, getGitRangeFiles } from './gitService';
 import {
   parseDroppedFileReference,
   readUriAsAttachment,
@@ -83,7 +84,7 @@ export async function handleBridgeMessage(message: BridgeRequest, ctx?: BridgeCo
     const specialGitResponse = await handleSpecialGitBridgeMessage(
       { id, type, payload },
       ctx,
-      { readSettings, execGit }
+      { readSettings, execGit, getGitRangeFiles, getGitRangeDiff }
     );
     if (specialGitResponse) {
       return specialGitResponse;

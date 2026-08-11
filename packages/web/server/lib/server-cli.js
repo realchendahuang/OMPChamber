@@ -7,6 +7,8 @@
  * because they are not OpenCode-specific.
  */
 
+import { realpathSync } from 'fs';
+
 export const parseServeCliOptions = ({
   argv = [],
   env = {},
@@ -155,7 +157,19 @@ export const runCliEntryIfMain = (dependencies) => {
     startServer,
   } = dependencies;
 
-  const isCliExecution = process.argv[1] === currentFilename;
+  // Compare realpaths: on macOS /tmp is a symlink to /private/tmp, so the
+  // argv[1] the shell passed and the resolved module filename can differ
+  // textually while naming the same file. A strict string compare would
+  // silently skip CLI bootstrap for bundled/relocated entrypoints.
+  const normalizeEntryPath = (value) => {
+    if (typeof value !== 'string' || value.length === 0) return null;
+    try {
+      return realpathSync(value);
+    } catch {
+      return value;
+    }
+  };
+  const isCliExecution = normalizeEntryPath(process.argv[1]) === normalizeEntryPath(currentFilename);
   if (!isCliExecution) {
     return;
   }

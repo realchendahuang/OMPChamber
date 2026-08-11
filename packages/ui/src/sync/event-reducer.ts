@@ -7,6 +7,7 @@ import type {
   QuestionRequest,
   Session,
   SessionStatus,
+  SubagentSnapshot,
   Todo,
 } from "@ompchamber/agent-protocol/domain-types"
 import { Binary } from "./binary"
@@ -314,6 +315,29 @@ export function applyDirectoryEvent(
       }
       draft.todo[props.sessionID] = props.todos
       callbacks?.onSetSessionTodo?.(props.sessionID, props.todos)
+      return true
+    }
+
+    case "ompchamber:subagent": {
+      // OMP subagent lifecycle/progress frames project onto this synthetic
+      // event (see omp-event-bridge). The snapshot is upserted per session so
+      // the work-status subagents section can render live subagent state even
+      // though OMP never lists child sessions in the session list.
+      const props = event.properties as { sessionID?: string; subagent?: SubagentSnapshot }
+      const subagent = props?.subagent
+      if (!subagent || typeof subagent.id !== "string" || !subagent.id) {
+        return false
+      }
+      const sessionID = typeof props?.sessionID === "string" && props.sessionID ? props.sessionID : ""
+      const current = draft.subagent[sessionID] ?? []
+      const index = current.findIndex((candidate) => candidate.id === subagent.id)
+      const next = index >= 0
+        ? [...current.slice(0, index), subagent, ...current.slice(index + 1)]
+        : [...current, subagent]
+      if (areJsonEquivalent(current, next)) {
+        return false
+      }
+      draft.subagent[sessionID] = next
       return true
     }
 

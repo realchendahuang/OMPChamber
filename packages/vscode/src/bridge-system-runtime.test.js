@@ -28,10 +28,6 @@ mock.module('vscode', () => ({
   Range,
 }));
 
-mock.module('./opencodeConfig', () => ({
-  removeProviderConfig: mock(),
-  getProviderSources: mock(),
-}));
 mock.module('./opencodeAuth', () => ({
   getProviderAuth: mock(),
   removeProviderAuth: mock(),

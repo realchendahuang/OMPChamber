@@ -5,7 +5,7 @@
 [![Discord](https://img.shields.io/badge/Discord-join.png?style=flat&labelColor=100F0F&color=8B7EC8&logo=discord&logoColor=FFFCF0)](https://discord.gg/ZYRSdnwwKA)
 [![Support the project](https://img.shields.io/badge/Support-Project-black?style=flat&labelColor=100F0F&color=EC8B49&logo=ko-fi&logoColor=FFFCF0)](https://ko-fi.com/G2G41SAWNS)
 
-[OpenCode](https://opencode.ai) AI coding agent, right inside your editor. No tab-switching, no context loss.
+[OMPChamber](https://github.com/realchendahuang/OMPChamber) AI coding agent, right inside your editor. No tab-switching, no context loss.
 
 ![VS Code Extension](https://github.com/realchendahuang/OMPChamber/raw/HEAD/packages/vscode/extension.jpg)
 
@@ -32,7 +32,7 @@ Plus everything from the shared OMPChamber UI: branchable timeline, smart tool U
 | `OMPChamber: Open Agent Manager` | Launch parallel multi-model runs |
 | `OMPChamber: Open Session in Editor` | Open current or new session in an editor tab |
 | `OMPChamber: Settings` | Open extension settings |
-| `OMPChamber: Restart API Connection` | Restart the OpenCode API process |
+| `OMPChamber: Restart API Connection` | Restart the OMPChamber server process |
 | `OMPChamber: Show OpenCode Status` | Debug info for development or bug reports |
 
 ### Right-click menu
@@ -49,12 +49,11 @@ Select code in the editor, right-click, and find the **OMPChamber** submenu:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `ompchamber.apiUrl` | _(empty)_ | URL of an external OpenCode API server. Leave empty to auto-start a local instance. |
-| `ompchamber.opencodeBinary` | _(empty)_ | Absolute path to the `opencode` CLI binary. Useful when PATH lookup fails. Requires window reload to apply. |
+| `ompchamber.apiUrl` | _(empty)_ | URL of an external OMPChamber server. Leave empty to auto-start a local instance. |
 
 ## Requirements
 
-- [OpenCode CLI](https://opencode.ai) installed and available in PATH (or set `OPENCODE_BINARY` env var)
+- Node.js 18+ (the extension spawns the bundled OMPChamber server with `node`)
 - VS Code 1.85+
 
 <details>

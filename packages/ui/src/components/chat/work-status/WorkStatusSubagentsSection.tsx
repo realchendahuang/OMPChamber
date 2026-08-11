@@ -8,6 +8,7 @@ import { isEmbeddedSessionChat } from '@/components/layout/contextPanelEmbeddedC
 import { WorkStatusCollapsibleSection, WorkStatusRow, WorkStatusValue } from './WorkStatusPrimitives';
 import { useReportWorkStatusPresence } from './presenceContext';
 import type { State } from '@/sync/types';
+import type { SubagentSnapshot } from '@ompchamber/agent-protocol/domain-types';
 
 type Props = {
   sessionId: string | null;
@@ -15,6 +16,12 @@ type Props = {
 };
 
 const SECTION_ID = 'subagents';
+
+type SubagentEntry = {
+  id: string;
+  label: string;
+  status: 'running' | 'completed' | 'failed' | 'waiting';
+};
 
 /**
  * Running subagents and, more importantly, their blockers: a permission request
@@ -27,10 +34,40 @@ export const WorkStatusSubagentsSection: React.FC<Props> = ({ sessionId, directo
 
   const liveSessions = useAllLiveSessions();
   const statuses = useAllSessionStatuses();
-  const children = React.useMemo(
+  const childSessions = React.useMemo(
     () => (sessionId ? liveSessions.filter((candidate) => candidate.parentID === sessionId) : []),
     [liveSessions, sessionId],
   );
+
+  // OMP never lists child sessions in the session list, so live subagent
+  // state arrives through `ompchamber:subagent` events instead. The store
+  // snapshot is the authoritative source there; the live-session path stays
+  // for OpenCode-shaped runtimes that materialize subagents as sessions.
+  const subagentSnapshots = useDirectorySync(
+    React.useCallback(
+      (state: State) => (sessionId ? state.subagent[sessionId] ?? [] : []),
+      [sessionId],
+    ),
+  );
+
+  const children = React.useMemo<SubagentEntry[]>(() => {
+    const fromSnapshots: SubagentEntry[] = subagentSnapshots.map((snapshot: SubagentSnapshot) => ({
+      id: snapshot.id,
+      label: snapshot.description?.trim() || snapshot.agent?.trim() || t('chat.workStatus.subagent.untitled'),
+      status: snapshot.status,
+    }));
+    const fromSessions: SubagentEntry[] = childSessions.map((child) => ({
+      id: child.id,
+      label: child.title?.trim() || t('chat.workStatus.subagent.untitled'),
+      status: statuses[child.id]?.type === 'busy' ? 'running' : 'completed',
+    }));
+    const seen = new Set<string>();
+    return [...fromSnapshots, ...fromSessions].filter((entry) => {
+      if (seen.has(entry.id)) return false;
+      seen.add(entry.id);
+      return true;
+    });
+  }, [subagentSnapshots, childSessions, statuses, t]);
 
   // One subscription covers every child: per-session hooks would multiply
   // store subscriptions by the number of subagents.
@@ -72,7 +109,7 @@ export const WorkStatusSubagentsSection: React.FC<Props> = ({ sessionId, directo
 
   if (children.length === 0) return null;
 
-  const busyChildren = children.filter((child) => statuses[child.id]?.type === 'busy').length;
+  const busyChildren = children.filter((child) => child.status === 'running').length;
 
   return (
     <WorkStatusCollapsibleSection
@@ -85,14 +122,13 @@ export const WorkStatusSubagentsSection: React.FC<Props> = ({ sessionId, directo
       {children.map((child) => {
         const blocked = (permissions[child.id]?.length ?? 0) > 0;
         const asked = (questions[child.id]?.length ?? 0) > 0;
-        const busy = statuses[child.id]?.type === 'busy';
-        const label = child.title?.trim() || t('chat.workStatus.subagent.untitled');
+        const busy = child.status === 'running';
         return (
           <WorkStatusRow
             key={child.id}
-            onClick={directory ? () => openChildSession(child.id, label) : undefined}
-            ariaLabel={t('chat.workStatus.action.openSubagent', { name: label })}
-            label={label}
+            onClick={directory ? () => openChildSession(child.id, child.label) : undefined}
+            ariaLabel={t('chat.workStatus.action.openSubagent', { name: child.label })}
+            label={child.label}
             value={blocked ? (
               <WorkStatusValue tone="warning">{t('chat.workStatus.subagent.needsPermission')}</WorkStatusValue>
             ) : asked ? (
