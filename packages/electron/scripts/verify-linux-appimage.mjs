@@ -71,7 +71,9 @@ const defaultCliVersion = (binaryPath) => {
     timeout: 15000,
   });
   if (result.status !== 0) throw new Error(`Failed to run packaged OMP CLI: ${binaryPath}`);
-  return (result.stdout || '').trim().split(/\s+/)[0] || '';
+  // The CLI prints "omp/<version>"; normalize to the bare version for comparison.
+  const token = (result.stdout || '').trim().split(/\s+/)[0] || '';
+  return token.includes('/') ? token.slice(token.lastIndexOf('/') + 1) : token;
 };
 
 /** The bundled OMP CLI is a shell launcher that execs the real cli.js via bun. */

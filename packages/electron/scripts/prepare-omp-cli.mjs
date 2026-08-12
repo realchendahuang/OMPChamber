@@ -23,15 +23,21 @@ const outputDir = path.join(electronRoot, 'resources', 'omp-cli');
 export const PINNED_OMP_VERSION = '17.2.12';
 
 const run = (command, args, options = {}) => {
+  // .cmd shims (npm on Windows) are batch files: CreateProcess cannot execute
+  // them directly, so they must go through cmd.exe via the shell option.
+  const needsShell = process.platform === 'win32' && /\.(cmd|bat)$/i.test(command);
   const result = spawnSync(command, args, {
     encoding: 'utf8',
     stdio: options.stdio || 'pipe',
     windowsHide: true,
+    shell: needsShell,
     ...options,
   });
-  if (result.status !== 0) {
-    const stderr = result.stderr ? `\n${result.stderr.trim()}` : '';
-    throw new Error(`Command failed: ${command} ${args.join(' ')}${stderr}`);
+  if (result.error || result.status !== 0) {
+    const detail = [result.error?.message, result.stdout?.trim(), result.stderr?.trim()]
+      .filter(Boolean)
+      .join('\n');
+    throw new Error(`Command failed: ${command} ${args.join(' ')}${detail ? `\n${detail}` : ''}`);
   }
   return result;
 };
