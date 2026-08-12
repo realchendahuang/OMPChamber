@@ -76,7 +76,7 @@ That runs, in order:
 2. `prepare:omp-cli` to install the pinned OMP CLI into `packages/electron/resources/omp-cli`.
 3. `bundle:main` to create `packages/electron/dist-bundle/main.mjs`.
 4. `rebuild:native` to rebuild native modules for Electron.
-5. `package.mjs` to run `electron-builder`; its `afterPack` hook stages the compiled macOS icon asset catalog.
+5. `package.mjs` to run `electron-builder`; its `afterPack` hook stages the bundled OMP CLI (`resources/omp-cli` → `<resources>/omp-cli`, bypassing electron-builder's file matcher, which would drop the node_modules tree) and the compiled macOS icon asset catalog.
 
 Build output goes to `packages/electron/dist`.
 
@@ -110,11 +110,15 @@ The macOS menu bar item is enabled by default and can be disabled in General set
 
 OMPChamber 1.0 pins the bundled OMP version (OMPChamber 1.0 ↔ OMP 17.2.x). `prepare:omp-cli` installs `@oh-my-pi/pi-coding-agent@<pinned>` with its full dependency tree (including the platform `@oh-my-pi/pi-natives-*` packages) into `packages/electron/resources/omp-cli`, and the packaging step stages that directory into `process.resourcesPath/omp-cli`. The pinned version is defined in `scripts/prepare-omp-cli.mjs` (`PINNED_OMP_VERSION`); do not bump it without running the compatibility suite.
 
+The staged tree is launchable on every desktop platform: `prepare:omp-cli` always writes two launchers, `omp` (POSIX sh) and `omp.cmd` (Windows batch — CreateProcess cannot execute the sh script). Both run the bundled `cli.js` with Bun, so **Bun must be on PATH at runtime**; on Windows `loadWindowsEnv` already prepends `~/.bun/bin` to the inherited PATH. Desktop resolves `omp.cmd` on Windows and `omp` elsewhere. npm `node_modules/.bin` shims are deleted during staging because the launchers bypass them and their symlinks risk EPERM on Windows CI hosts and NSIS mangling.
+
+Staging also prunes the tree down to the build target: compile-time-only `.d.ts`/`.map` files, and every `onnxruntime-node` prebuilt-native dir (`bin/napi-v3/<platform>/<arch>`, both the top-level copy and the nested `@huggingface/transformers` copy) that does not match the target platform/arch (~335MB saved per package; the loader only ever resolves the matching path). The target arch comes from `OMPCHAMBER_TARGET_ARCH` / `ELECTRON_BUILDER_ARCH` / `--x64|--arm64|--arch`, falling back to the host arch; the platform is always the native host. `pi-natives-*` and `sherpa-onnx-*` are arch-scoped runtime deps and are never pruned.
+
 Desktop resolves the OMP binary in this order:
 
 1. `OMP_BINARY` environment override.
-2. The bundled Desktop CLI in `process.resourcesPath/omp-cli/omp`.
-3. System `omp` on PATH.
+2. The bundled Desktop CLI in `process.resourcesPath/omp-cli` (`omp.cmd` on Windows, `omp` elsewhere).
+3. System `omp` on PATH (resolved server-side).
 
 Use an explicit `OMP_BINARY` override when testing a different OMP build. The configured path must point to the standalone OMP CLI, not the OMP desktop app executable.
 
@@ -129,7 +133,7 @@ Use an explicit `OMP_BINARY` override when testing a different OMP build. The co
 | `OMPCHAMBER_HMR_API_PORT` | Preferred API port for desktop dev, default `3901` |
 | `OMPCHAMBER_RUNTIME=desktop` | Set by Electron before starting the web server |
 | `OMPCHAMBER_AGENT_ENGINE` | Agent engine selector; OMP is the only engine, defaulted to `omp` by Desktop |
-| `OMP_BINARY` | Explicit path to the OMP CLI; defaults to the bundled `resources/omp-cli/omp`, then system `omp` on PATH |
+| `OMP_BINARY` | Explicit path to the OMP CLI; defaults to the bundled `resources/omp-cli/omp` (`omp.cmd` on Windows), then system `omp` on PATH |
 | `OMPCHAMBER_TARGET_ARCH` | Explicit desktop package architecture (`x64` or `arm64`); Linux requires it to match the native host |
 | `OMPCHAMBER_DESKTOP_NOTIFY=true` | Enables desktop notification flow in the web server |
 | `OMPCHAMBER_SKIP_API_COMPRESSION=true` | Defaulted by Desktop to reduce local CPU overhead |

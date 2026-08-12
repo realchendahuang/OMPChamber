@@ -242,6 +242,8 @@ const { autoUpdater } = updaterPkg;
 
 const state = {
   serverHandle: null,
+  // Legacy name: this is the in-process OMPChamber server URL (no sidecar
+  // subprocess exists); kept as-is because it is referenced throughout.
   sidecarUrl: null,
   localOrigin: null,
   apiBaseUrl: null,
@@ -339,9 +341,9 @@ const quitConfirmationMessage = () => {
     reasons.push(`${quitRisk.enabledScheduledTasksCount} enabled scheduled task${quitRisk.enabledScheduledTasksCount === 1 ? '' : 's'}`);
   }
   if (reasons.length === 0) {
-    return 'Background processes (sidecar, SSH sessions) will be stopped.';
+    return 'Background processes (SSH sessions and local helpers) will be stopped.';
   }
-  return `OMPChamber detected ${reasons.join(', ')}. Quitting now will stop sidecar/background processes and may interrupt pending work.`;
+  return `OMPChamber detected ${reasons.join(', ')}. Quitting now will stop background processes and may interrupt pending work.`;
 };
 
 const shutdownBackgroundServices = () => {
@@ -1112,11 +1114,13 @@ const buildLocalUrl = (port) => `http://127.0.0.1:${port}`;
 
 const resourceRoot = () => isDev ? path.join(__dirname, 'resources') : process.resourcesPath;
 const resolveWebDistDir = () => path.join(resourceRoot(), 'web-dist');
-// Resolve the bundled OMP launcher (resources/omp-cli/omp), falling back to the
-// system `omp` on PATH when the bundled binary is not present. Returns null
-// when neither is available; the server runtime then reports the missing state.
+// Resolve the bundled OMP launcher: resources/omp-cli/omp.cmd on Windows
+// (CreateProcess cannot execute the POSIX sh script) and omp elsewhere.
+// Returns null when the bundled launcher is not present; the fallback to a
+// system `omp` on PATH happens server-side, not here.
 const resolveManagedOmpBinary = () => {
-  const bundled = path.join(resourceRoot(), 'omp-cli', 'omp');
+  const launcher = process.platform === 'win32' ? 'omp.cmd' : 'omp';
+  const bundled = path.join(resourceRoot(), 'omp-cli', launcher);
   if (fs.existsSync(bundled)) return bundled;
   return null;
 };
@@ -1365,7 +1369,8 @@ const loadWindowsEnv = () => {
 };
 
 // Finder-launched apps on macOS inherit a minimal PATH (no /opt/homebrew, mise, asdf, etc.).
-// Probe the user's login shell once so the sidecar sees the same PATH / tool env as `$SHELL -il`.
+// Probe the user's login shell once so the in-process server (and its child
+// processes) sees the same PATH / tool env as `$SHELL -il`.
 const loadShellEnv = () => {
   if (shellEnvProbed) return cachedShellEnv;
   shellEnvProbed = true;

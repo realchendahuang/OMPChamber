@@ -54,7 +54,7 @@ test('verifies identity, version, and native payload architecture', () => {
     const result = verifyExtractedPayload({
       root,
       targetArchitecture: 'x64',
-      expectedOpenCodeVersion: '17.2.12',
+      expectedOmpVersion: '17.2.12',
       runCliVersion: () => '17.2.12',
     });
     assert.equal(result.nativeModuleCount, 2);
@@ -70,7 +70,7 @@ test('fails on a missing native module', () => {
     assert.throws(() => verifyExtractedPayload({
       root,
       targetArchitecture: 'x64',
-      expectedOpenCodeVersion: '17.2.12',
+      expectedOmpVersion: '17.2.12',
       runCliVersion: () => '17.2.12',
     }), /Missing packaged native module: pty\.node/);
   } finally {
@@ -84,14 +84,14 @@ test('fails on wrong CLI version or native architecture', () => {
     assert.throws(() => verifyExtractedPayload({
       root,
       targetArchitecture: 'x64',
-      expectedOpenCodeVersion: '17.2.12',
+      expectedOmpVersion: '17.2.12',
       runCliVersion: () => '17.2.11',
     }), /OMP CLI version mismatch/);
     writeElf(path.join(root, 'resources/app.asar.unpacked/node_modules/pty.node'), 'arm64');
     assert.throws(() => verifyExtractedPayload({
       root,
       targetArchitecture: 'x64',
-      expectedOpenCodeVersion: '17.2.12',
+      expectedOmpVersion: '17.2.12',
       runCliVersion: () => '17.2.12',
     }), /Native module architecture mismatch/);
   } finally {
@@ -106,14 +106,14 @@ test('fails on a missing or malformed OMP launcher', () => {
     assert.throws(() => verifyExtractedPayload({
       root,
       targetArchitecture: 'x64',
-      expectedOpenCodeVersion: '17.2.12',
+      expectedOmpVersion: '17.2.12',
       runCliVersion: () => '17.2.12',
     }), /Missing bundled OMP launcher/);
     fs.writeFileSync(path.join(root, 'resources/omp-cli/omp'), '#!/bin/sh\necho not-bun\n');
     assert.throws(() => verifyExtractedPayload({
       root,
       targetArchitecture: 'x64',
-      expectedOpenCodeVersion: '17.2.12',
+      expectedOmpVersion: '17.2.12',
       runCliVersion: () => '17.2.12',
     }), /not the expected bun exec script/);
   } finally {

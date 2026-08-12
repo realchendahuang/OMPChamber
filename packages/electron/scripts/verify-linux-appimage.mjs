@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { PINNED_OMP_VERSION } from './prepare-omp-cli.mjs';
 import { normalizeTargetArchitecture } from './target-architecture.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -97,7 +98,7 @@ const verifyOmpCli = (root) => {
 export const verifyExtractedPayload = ({
   root,
   targetArchitecture,
-  expectedOpenCodeVersion,
+  expectedOmpVersion,
   runCliVersion = defaultCliVersion,
 }) => {
   const desktopPath = path.join(root, 'ompchamber.desktop');
@@ -111,8 +112,8 @@ export const verifyExtractedPayload = ({
   assertElfArchitecture(path.join(root, 'ompchamber'), targetArchitecture, 'Electron executable');
   const ompCliLauncher = verifyOmpCli(root);
   const actualVersion = runCliVersion(ompCliLauncher);
-  if (actualVersion && actualVersion !== expectedOpenCodeVersion) {
-    throw new Error(`OMP CLI version mismatch: expected ${expectedOpenCodeVersion}, got ${actualVersion || '(empty)'}`);
+  if (actualVersion && actualVersion !== expectedOmpVersion) {
+    throw new Error(`OMP CLI version mismatch: expected ${expectedOmpVersion}, got ${actualVersion || '(empty)'}`);
   }
 
   const unpackedModules = path.join(root, 'resources', 'app.asar.unpacked', 'node_modules');
@@ -129,7 +130,7 @@ export const verifyExtractedPayload = ({
     }
   }
   for (const modulePath of nativeModules) assertElfArchitecture(modulePath, targetArchitecture, 'Native module');
-  return { nativeModuleCount: nativeModules.length, openCodeVersion: actualVersion };
+  return { nativeModuleCount: nativeModules.length, ompVersion: actualVersion };
 };
 
 const findAppImage = (version, architecture) => {
@@ -164,10 +165,10 @@ const main = () => {
     const result = verifyExtractedPayload({
       root: extractAppImage(appImagePath, temporaryDirectory),
       targetArchitecture: target,
-      expectedOpenCodeVersion: '17.2.12',
+      expectedOmpVersion: PINNED_OMP_VERSION,
     });
     console.log(`[electron] verified Linux ${target} AppImage: ${appImagePath}`);
-    console.log(`[electron] verified OMP CLI ${result.openCodeVersion} and ${result.nativeModuleCount} native modules`);
+    console.log(`[electron] verified OMP CLI ${result.ompVersion} and ${result.nativeModuleCount} native modules`);
   } finally {
     fs.rmSync(temporaryDirectory, { recursive: true, force: true });
   }

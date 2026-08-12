@@ -357,6 +357,10 @@ jobs:
       - name: Prepare bundled OMP CLI
         working-directory: packages/electron
         shell: bash
+        env:
+          # Windows arm64 cross-compiles from an x64 runner; without this the
+          # per-arch onnxruntime pruning would keep the host (x64) natives.
+          ELECTRON_BUILDER_ARCH: ${{ matrix.arch }}
         run: |
           bun run prepare:omp-cli
           # Verify staged OMP CLI bundle (mirrors prepare-omp-cli.mjs layout).
