@@ -3,33 +3,28 @@ import { describe, expect, it } from 'bun:test';
 import { resolveOmpEngineBinary } from './omp-binary-resolution.js';
 
 describe('resolveOmpEngineBinary precedence', () => {
-  it('prefers OMP_BINARY env over settings and OPENCODE_BINARY', () => {
+  it('prefers OMP_BINARY env over settings', () => {
     const result = resolveOmpEngineBinary({
-      env: { OMP_BINARY: '/env/omp', OPENCODE_BINARY: '/legacy/omp' },
-      settings: { opencodeBinary: '/settings/omp' },
+      env: { OMP_BINARY: '/env/omp' },
+      settings: { ompBinary: '/settings/omp' },
     });
     expect(result).toEqual({ binary: '/env/omp', source: 'OMP_BINARY' });
   });
 
-  it('uses the persisted opencodeBinary setting when OMP_BINARY is unset', () => {
+  it('uses the persisted ompBinary setting when OMP_BINARY is unset', () => {
     const result = resolveOmpEngineBinary({
-      env: { OPENCODE_BINARY: '/legacy/omp' },
-      settings: { opencodeBinary: '/settings/omp' },
+      env: {},
+      settings: { ompBinary: '/settings/omp' },
     });
     expect(result).toEqual({ binary: '/settings/omp', source: 'settings' });
   });
 
-  it('treats an empty persisted opencodeBinary as cleared and falls through', () => {
+  it('treats an empty persisted ompBinary as cleared and falls through', () => {
     const result = resolveOmpEngineBinary({
-      env: { OPENCODE_BINARY: '/legacy/omp' },
-      settings: { opencodeBinary: '   ' },
+      env: {},
+      settings: { ompBinary: '   ' },
     });
-    expect(result).toEqual({ binary: '/legacy/omp', source: 'OPENCODE_BINARY' });
-  });
-
-  it('keeps the deprecated OPENCODE_BINARY fallback consistent with the CLI', () => {
-    const result = resolveOmpEngineBinary({ env: { OPENCODE_BINARY: '/legacy/omp' }, settings: {} });
-    expect(result).toEqual({ binary: '/legacy/omp', source: 'OPENCODE_BINARY' });
+    expect(result).toEqual({ binary: 'omp', source: 'default' });
   });
 
   it('defaults to omp on PATH', () => {
@@ -39,7 +34,7 @@ describe('resolveOmpEngineBinary precedence', () => {
   it('trims values and ignores non-string settings', () => {
     expect(resolveOmpEngineBinary({ env: { OMP_BINARY: '  /env/omp  ' }, settings: {} }))
       .toEqual({ binary: '/env/omp', source: 'OMP_BINARY' });
-    expect(resolveOmpEngineBinary({ env: {}, settings: { opencodeBinary: 42 } }))
+    expect(resolveOmpEngineBinary({ env: {}, settings: { ompBinary: 42 } }))
       .toEqual({ binary: 'omp', source: 'default' });
   });
 });

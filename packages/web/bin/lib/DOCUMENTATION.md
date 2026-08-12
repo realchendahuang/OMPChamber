@@ -109,7 +109,7 @@ These modules hold reusable, non-presentational logic for commands.
 
 - `cli-executables.js`
   - Executable path resolution and PATH lookup helpers.
-  - Owns the OMP engine binary resolution contract (`resolveOmpBinary`): `OMP_BINARY` override first, then the deprecated `OPENCODE_BINARY` fallback, then `omp` on PATH, then `opencode` on PATH. `../cli.js` turns a successful resolution into both `OMP_BINARY` and `OPENCODE_BINARY` exports; `cli-startup.js` persists both into startup service env snapshots.
+  - Owns the OMP engine binary resolution contract (`resolveOmpBinary`): `OMP_BINARY` override first, then `omp` on PATH. `../cli.js` exports the resolved binary as `OMP_BINARY`; `cli-startup.js` persists it into startup service env snapshots.
 
 - `cli-startup.js`
   - Native startup service detection, install/uninstall/status helpers, and platform-specific startup command execution.

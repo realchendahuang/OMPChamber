@@ -3,7 +3,7 @@
 // constants from protocol.ts) — MUST stay byte-compatible with those modules.
 // Frame layout: [1 byte frameType (high bit = fragment-continues)][4 byte BE streamId][payload].
 // Client-initiated streams use odd streamIds starting at 1; even ids are reserved.
-// Spec: .opencode/plans/private-relay/01-protocol-spec.md (Layer 3).
+// Spec: .omp/plans/private-relay/01-protocol-spec.md (Layer 3).
 
 import { MAX_PLAINTEXT_FRAME_BYTES } from './e2ee.js';
 

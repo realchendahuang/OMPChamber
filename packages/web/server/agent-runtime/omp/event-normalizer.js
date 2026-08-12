@@ -198,6 +198,22 @@ export const normalizeSessionEvent = (frame) => {
         sessionId: '',
         commands: Array.isArray(frame.commands) ? frame.commands : [],
       }];
+    case 'command_output': {
+      // Slash-command output (e.g. /session). OMP does not model this as a
+      // message, so the UI renders it as a client-only synthetic assistant
+      // message. The frame may carry an originating messageID so the UI can
+      // parent the output to the user prompt that triggered it.
+      const sessionId = asString(frame.sessionId ?? frame.sessionID ?? '');
+      const text = asString(frame.text ?? frame.output ?? '');
+      if (!sessionId || !text) return [];
+      return [{
+        type: 'command-output',
+        sessionId,
+        text,
+        command: asString(frame.command ?? '') || undefined,
+        messageID: asString(frame.messageId ?? frame.messageID ?? '') || undefined,
+      }];
+    }
     default:
       // Unknown frame types pass through as no-ops so future OMP events don't
       // break rendering.

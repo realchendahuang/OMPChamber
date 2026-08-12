@@ -157,7 +157,6 @@ async function serveCommand(options) {
       // Propagate resolved values into env before importing the server module.
       if (ompBinary) {
         process.env.OMP_BINARY = ompBinary;
-        process.env.OPENCODE_BINARY = ompBinary;
       }
       if (effectiveUiPassword) {
         process.env.OMPCHAMBER_UI_PASSWORD = effectiveUiPassword;
@@ -286,7 +285,6 @@ async function serveCommand(options) {
         OMPCHAMBER_PORT: String(targetPort),
         OMPCHAMBER_RUNTIME: 'web',
         OMP_BINARY: ompBinary,
-        OPENCODE_BINARY: ompBinary,
         OMPCHAMBER_HOST: effectiveHost,
         ...(effectiveUiPassword ? { OMPCHAMBER_UI_PASSWORD: effectiveUiPassword } : {}),
         ...(options.apiOnly === true ? { OMPCHAMBER_API_ONLY: 'true' } : {}),

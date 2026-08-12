@@ -170,6 +170,23 @@ export const domainEventToSseFrames = (event) => {
       });
       break;
     }
+    case 'command-output': {
+      // Synthetic event carrying slash-command output (e.g. /session) so the
+      // UI can append it to the chat timeline as a client-only synthetic
+      // assistant message.
+      const { sessionId, text, command, messageID } = event;
+      if (!sessionId || !text) break;
+      frames.push({
+        type: 'ompchamber:command-output',
+        properties: {
+          sessionID: sessionId,
+          text,
+          ...(command ? { command } : {}),
+          ...(messageID ? { messageID } : {}),
+        },
+      });
+      break;
+    }
     case 'session-ended': {
       const { sessionId } = event;
       frames.push({

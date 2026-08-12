@@ -4,7 +4,7 @@
 // WS streams -> `ws` client to the loopback WebSocket endpoints.
 // The dispatcher NEVER injects credentials: tunneled requests authenticate
 // exactly like any remote client (bearer oc_client_* header, oc_url_token query).
-// Spec: .opencode/plans/private-relay/01-protocol-spec.md (Layer 3).
+// Spec: .omp/plans/private-relay/01-protocol-spec.md (Layer 3).
 
 import { WebSocket } from 'ws';
 

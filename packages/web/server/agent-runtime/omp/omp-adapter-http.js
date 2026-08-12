@@ -69,7 +69,9 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     });
   });
 
-  // Session list — the UI sidebar.
+  // Session list — the UI sidebar. Reads the OMP on-disk session store and
+  // merges the live current session; this is a real multi-session list, not a
+  // single-session fake.
   app.get('/api/session', async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
@@ -77,8 +79,21 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
     try {
       const directory = getDirectory(req);
-      const session = runtime.session.current;
-      const sessions = session?.sessionId ? [toSdkSession(session, { cwd: directory, directory })] : [];
+      const rawSessions = await runtime.session.listSessions(directory);
+      const sessions = rawSessions.map((session) => ({
+        id: session.id,
+        slug: session.id.slice(0, 12),
+        projectID: session.directory ?? directory,
+        directory: session.directory ?? directory,
+        title: session.title || 'OMP session',
+        version: OPENCODE_SDK_VERSION,
+        metadata: { engine: 'omp' },
+        time: {
+          created: session.createdAt ?? Date.now(),
+          updated: session.updatedAt ?? Date.now(),
+        },
+        ...(session.parentID ? { parentID: session.parentID } : {}),
+      }));
       return res.json(sessions);
     } catch (error) {
       log(`[OMP] session list failed: ${error.message}`);
@@ -391,16 +406,26 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
   });
 
-  // Delete session. OMP owns session persistence and has no delete command;
-  // the OMP session is the source of truth, so a delete is a no-op at the
-  // engine level (the UI's local session cache is what actually clears). Return
-  // ok:true so the UI's confirmed-deletion path runs and the view updates.
+  // Delete session for real: removes the on-disk JSONL file (and companion
+  // subagent directory). Deleting the active session first moves the engine
+  // onto a fresh session so OMP does not recreate the deleted file on its next
+  // write.
   app.delete('/api/session/:sessionId', async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
       return next();
     }
-    return res.json({ ok: true });
+    try {
+      const directory = getDirectory(req);
+      const result = await runtime.session.deleteSession(req.params.sessionId, directory);
+      if (result.status === 'not-found') {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+      return res.json({ ok: true, wasActive: result.wasActive === true });
+    } catch (error) {
+      log(`[OMP] session delete failed: ${error.message}`);
+      return res.status(500).json({ error: error.message || 'OMP session delete failed' });
+    }
   });
 
   // Execute a command (SDK `session.command`). Verified against the real OMP
@@ -578,21 +603,26 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
   });
 
-  // Get a single session (session resume). The OMP runtime tracks one active
-  // session at a time; returning the current session for any requested id lets
-  // the UI open the selected conversation (source of truth stays the OMP
-  // session, whose messages are read back via GET /api/session/:id/message).
+  // Get/resume a single session. The live session short-circuits; any other id
+  // is loaded from the OMP on-disk session store via switch_session.
   app.get('/api/session/:sessionId', async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
       return next();
     }
     try {
-      const state = runtime.status;
-      const cwd = getDirectory(req);
-      const session = toSdkSession(runtime.session.current, { cwd, directory: req.query?.directory ?? cwd });
+      const directory = getDirectory(req);
+      const result = await runtime.session.resumeSession(req.params.sessionId, directory);
+      if (result.status === 'not-found') {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+      if (result.status === 'failed') {
+        return res.status(500).json({ error: result.error || 'OMP session resume failed' });
+      }
+      const session = toSdkSession(runtime.session.current, { cwd: directory, directory });
       return res.json({ ...session, id: req.params.sessionId });
     } catch (error) {
+      log(`[OMP] session get failed: ${error.message}`);
       return res.status(500).json({ error: error.message || 'OMP session get failed' });
     }
   });

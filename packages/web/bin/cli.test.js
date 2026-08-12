@@ -1424,7 +1424,7 @@ describe('lifecycle commands with unmanaged explicit ports', () => {
 });
 
 describe('checkOmpCLI', () => {
-  const ENV_KEYS = ['OMP_BINARY', 'OPENCODE_BINARY', 'PATH'];
+  const ENV_KEYS = ['OMP_BINARY', 'PATH'];
 
   async function withEnv(overrides, fn) {
     const previous = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
@@ -1466,73 +1466,51 @@ describe('checkOmpCLI', () => {
     return filePath;
   }
 
-  it('resolves OMP_BINARY first and exports both env vars', async () => {
+  it('resolves OMP_BINARY first and exports it', async () => {
     await withTempBinDir(async (dir) => {
       const ompPath = writeExecutable(dir, 'custom-omp');
-      const legacyPath = writeExecutable(dir, 'custom-opencode');
       const notices = [];
-      await withEnv({ OMP_BINARY: ompPath, OPENCODE_BINARY: legacyPath }, async () => {
+      await withEnv({ OMP_BINARY: ompPath }, async () => {
         const resolved = await checkOmpCLI((notice) => notices.push(notice));
         expect(resolved).toBe(ompPath);
         expect(process.env.OMP_BINARY).toBe(ompPath);
-        expect(process.env.OPENCODE_BINARY).toBe(ompPath);
         expect(notices).toEqual([]);
       });
     });
   });
 
-  it('honors deprecated OPENCODE_BINARY with a warning and exports both env vars', async () => {
-    await withTempBinDir(async (dir) => {
-      const legacyPath = writeExecutable(dir, 'custom-opencode');
-      const notices = [];
-      await withEnv({ OMP_BINARY: undefined, OPENCODE_BINARY: legacyPath }, async () => {
-        const resolved = await checkOmpCLI((notice) => notices.push(notice));
-        expect(resolved).toBe(legacyPath);
-        expect(process.env.OMP_BINARY).toBe(legacyPath);
-        expect(process.env.OPENCODE_BINARY).toBe(legacyPath);
-        expect(notices).toEqual([
-          expect.objectContaining({ level: 'warning', code: 'OPENCODE_BINARY_DEPRECATED' }),
-        ]);
-      });
-    });
-  });
-
-  it('warns about an invalid OMP_BINARY and falls back to OPENCODE_BINARY', async () => {
-    await withTempBinDir(async (dir) => {
-      const legacyPath = writeExecutable(dir, 'custom-opencode');
-      const missing = path.join(dir, 'missing-omp');
-      const notices = [];
-      await withEnv({ OMP_BINARY: missing, OPENCODE_BINARY: legacyPath }, async () => {
-        const resolved = await checkOmpCLI((notice) => notices.push(notice));
-        expect(resolved).toBe(legacyPath);
-        expect(notices.map((notice) => notice.code)).toEqual([
-          'OMP_BINARY_INVALID',
-          'OPENCODE_BINARY_DEPRECATED',
-        ]);
-      });
-    });
-  });
-
-  it('prefers omp over opencode on PATH and exports both env vars', async () => {
+  it('warns about an invalid OMP_BINARY and falls back to PATH', async () => {
     await withTempBinDir(async (dir) => {
       const ompPath = writeExecutable(dir, 'omp');
-      writeExecutable(dir, 'opencode');
+      const missing = path.join(dir, 'missing-omp');
       const notices = [];
-      await withEnv({ OMP_BINARY: undefined, OPENCODE_BINARY: undefined, PATH: dir }, async () => {
+      await withEnv({ OMP_BINARY: missing, PATH: dir }, async () => {
+        const resolved = await checkOmpCLI((notice) => notices.push(notice));
+        expect(resolved).toBe(ompPath);
+        expect(notices.map((notice) => notice.code)).toEqual([
+          'OMP_BINARY_INVALID',
+        ]);
+      });
+    });
+  });
+
+  it('resolves omp on PATH and exports it', async () => {
+    await withTempBinDir(async (dir) => {
+      const ompPath = writeExecutable(dir, 'omp');
+      const notices = [];
+      await withEnv({ OMP_BINARY: undefined, PATH: dir }, async () => {
         const resolved = await checkOmpCLI((notice) => notices.push(notice));
         expect(resolved).toBe(ompPath);
         expect(process.env.OMP_BINARY).toBe(ompPath);
-        expect(process.env.OPENCODE_BINARY).toBe(ompPath);
         expect(notices).toEqual([]);
       });
     });
   });
 
   it('throws an omp-focused error when nothing resolves', async () => {
-    await withEnv({ OMP_BINARY: undefined, OPENCODE_BINARY: undefined, PATH: '' }, async () => {
+    await withEnv({ OMP_BINARY: undefined, PATH: '' }, async () => {
       await expect(checkOmpCLI(() => {})).rejects.toThrow(/omp CLI/);
       await expect(checkOmpCLI(() => {})).rejects.toThrow(/OMP_BINARY/);
-      await expect(checkOmpCLI(() => {})).rejects.toThrow(/OPENCODE_BINARY/);
     });
   });
 });

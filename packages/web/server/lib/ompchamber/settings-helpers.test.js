@@ -273,25 +273,25 @@ describe('settings helpers', () => {
     });
   });
 
-  it('accepts OpenCode update notification preference as a persisted shared setting', () => {
+  it('accepts OMP update notification preference as a persisted shared setting', () => {
     const helpers = createTestHelpers();
 
-    expect(helpers.sanitizeSettingsUpdate({ showOpenCodeUpdateNotifications: false })).toEqual({
-      showOpenCodeUpdateNotifications: false,
+    expect(helpers.sanitizeSettingsUpdate({ showOmpUpdateNotifications: false })).toEqual({
+      showOmpUpdateNotifications: false,
     });
-    expect(helpers.sanitizeSettingsUpdate({ showOpenCodeUpdateNotifications: true })).toEqual({
-      showOpenCodeUpdateNotifications: true,
+    expect(helpers.sanitizeSettingsUpdate({ showOmpUpdateNotifications: true })).toEqual({
+      showOmpUpdateNotifications: true,
     });
   });
 
-  it('accepts dismissed OpenCode update toast version as a persisted shared setting', () => {
+  it('accepts dismissed OMP update toast version as a persisted shared setting', () => {
     const helpers = createTestHelpers();
 
-    expect(helpers.sanitizeSettingsUpdate({ openCodeUpdateToastDismissedVersion: ' 1.16.0 ' })).toEqual({
-      openCodeUpdateToastDismissedVersion: '1.16.0',
+    expect(helpers.sanitizeSettingsUpdate({ ompUpdateToastDismissedVersion: ' 1.16.0 ' })).toEqual({
+      ompUpdateToastDismissedVersion: '1.16.0',
     });
-    expect(helpers.sanitizeSettingsUpdate({ openCodeUpdateToastDismissedVersion: '' })).toEqual({
-      openCodeUpdateToastDismissedVersion: '',
+    expect(helpers.sanitizeSettingsUpdate({ ompUpdateToastDismissedVersion: '' })).toEqual({
+      ompUpdateToastDismissedVersion: '',
     });
   });
 

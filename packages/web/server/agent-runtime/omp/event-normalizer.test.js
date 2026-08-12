@@ -132,6 +132,29 @@ describe('normalizeSessionEvent', () => {
     expect(events[0].commands[0].name).toBe('compact');
   });
 
+  it('maps command_output to command-output domain event', () => {
+    const events = normalizeSessionEvent({
+      type: 'command_output',
+      sessionId: 'sess-1',
+      text: 'Current session: foo',
+      command: '/session',
+      messageId: 'msg-1',
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toEqual({
+      type: 'command-output',
+      sessionId: 'sess-1',
+      text: 'Current session: foo',
+      command: '/session',
+      messageID: 'msg-1',
+    });
+  });
+
+  it('drops command_output frames missing required fields', () => {
+    expect(normalizeSessionEvent({ type: 'command_output', sessionId: 'sess-1' })).toEqual([]);
+    expect(normalizeSessionEvent({ type: 'command_output', text: 'hi' })).toEqual([]);
+  });
+
   it('ignores unknown frames (forward compatibility)', () => {
     expect(normalizeSessionEvent({ type: 'brand_new_event_2027' })).toEqual([]);
     expect(normalizeSessionEvent(null)).toEqual([]);

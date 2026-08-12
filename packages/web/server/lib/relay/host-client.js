@@ -1,7 +1,7 @@
 // Long-lived relay host client: maintains the signed `host-control` socket to
 // the relay, and per connected client a signed `host-data` socket that runs the
 // responder E2EE handshake and feeds decrypted frames into a tunnel-host
-// dispatcher. Spec: .opencode/plans/private-relay/01-protocol-spec.md (Layer 1).
+// dispatcher. Spec: .omp/plans/private-relay/01-protocol-spec.md (Layer 1).
 
 import { WebSocket } from 'ws';
 

@@ -166,21 +166,11 @@ async function checkOmpCLI(onNotice) {
     throw new Error(
       `Unable to locate the omp CLI on PATH (${process.env.PATH || '<empty>'}). ` +
       'Install OMP (npm package @oh-my-pi/pi-coding-agent) so `omp` is reachable on PATH, ' +
-      'or set OMP_BINARY to its full path (deprecated fallback: OPENCODE_BINARY).'
+      'or set OMP_BINARY to its full path.'
     );
   }
 
-  if (resolution.source === 'OPENCODE_BINARY') {
-    emitWarning(
-      'OPENCODE_BINARY_DEPRECATED',
-      'OPENCODE_BINARY is deprecated and will be removed in a future release; set OMP_BINARY instead.'
-    );
-  }
-
-  // Export both names: the server reads OMP_BINARY to launch the engine,
-  // while legacy consumers may still read OPENCODE_BINARY.
   process.env.OMP_BINARY = resolution.binary;
-  process.env.OPENCODE_BINARY = resolution.binary;
   return resolution.binary;
 }
 

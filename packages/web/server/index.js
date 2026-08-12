@@ -1021,10 +1021,9 @@ const stopOmpEngine = async () => {
   ompRuntime = null;
 };
 
-// Binary precedence: OMP_BINARY env > persisted settings `opencodeBinary`
-// (the desktop settings field — previously a dead write) > OPENCODE_BINARY
-// deprecated env alias > 'omp' on PATH. A settings read failure is logged and
-// falls through to the env/default chain rather than blocking startup.
+// Binary precedence: OMP_BINARY env > persisted settings `ompBinary`
+// (the desktop settings field) > 'omp' on PATH. A settings read failure is
+// logged and falls through to the env/default chain rather than blocking startup.
 const resolveOmpLaunchConfig = async () => {
   let settings = {};
   try {

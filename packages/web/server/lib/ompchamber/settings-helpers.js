@@ -169,12 +169,12 @@ export const createSettingsHelpers = (dependencies) => {
       }
     }
 
-    // Absolute path to the opencode CLI binary (optional override).
+    // Absolute path to the OMP CLI binary (optional override).
     // Accept empty-string to clear (we persist an empty string sentinel so the running
-    // process can reliably drop a previously applied OPENCODE_BINARY override).
-    if (typeof candidate.opencodeBinary === 'string') {
-      const normalized = normalizeDirectoryPath(candidate.opencodeBinary).trim();
-      result.opencodeBinary = normalized;
+    // process can reliably drop a previously applied OMP_BINARY override).
+    if (typeof candidate.ompBinary === 'string') {
+      const normalized = normalizeDirectoryPath(candidate.ompBinary).trim();
+      result.ompBinary = normalized;
     }
     if (typeof candidate.workStatusPanelEnabled === 'boolean') {
       result.workStatusPanelEnabled = candidate.workStatusPanelEnabled;
@@ -508,8 +508,8 @@ export const createSettingsHelpers = (dependencies) => {
     if (typeof candidate.inputSpellcheckEnabled === 'boolean') {
       result.inputSpellcheckEnabled = candidate.inputSpellcheckEnabled;
     }
-    if (typeof candidate.showOpenCodeUpdateNotifications === 'boolean') {
-      result.showOpenCodeUpdateNotifications = candidate.showOpenCodeUpdateNotifications;
+    if (typeof candidate.showOmpUpdateNotifications === 'boolean') {
+      result.showOmpUpdateNotifications = candidate.showOmpUpdateNotifications;
     }
     if (typeof candidate.agentControlToolEnabled === 'boolean') {
       result.agentControlToolEnabled = candidate.agentControlToolEnabled;
@@ -517,9 +517,9 @@ export const createSettingsHelpers = (dependencies) => {
     if (typeof candidate.optimizeSystemPrompt === 'boolean') {
       result.optimizeSystemPrompt = candidate.optimizeSystemPrompt;
     }
-    if (typeof candidate.openCodeUpdateToastDismissedVersion === 'string') {
-      const version = candidate.openCodeUpdateToastDismissedVersion.trim();
-      result.openCodeUpdateToastDismissedVersion = version.slice(0, VERSION_STRING_MAX_LENGTH);
+    if (typeof candidate.ompUpdateToastDismissedVersion === 'string') {
+      const version = candidate.ompUpdateToastDismissedVersion.trim();
+      result.ompUpdateToastDismissedVersion = version.slice(0, VERSION_STRING_MAX_LENGTH);
     }
     if (typeof candidate.showToolFileIcons === 'boolean') {
       result.showToolFileIcons = candidate.showToolFileIcons;

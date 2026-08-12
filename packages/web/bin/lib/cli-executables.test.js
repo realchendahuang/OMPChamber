@@ -22,13 +22,11 @@ function writeExecutable(dir, name) {
 }
 
 describe('resolveOmpBinary', () => {
-  it('prefers OMP_BINARY over OPENCODE_BINARY and PATH', () => {
+  it('prefers OMP_BINARY over PATH', () => {
     withTempBinDir((dir) => {
       const ompPath = writeExecutable(dir, 'custom-omp');
-      const legacyPath = writeExecutable(dir, 'custom-opencode');
       const resolution = resolveOmpBinary({
         OMP_BINARY: ompPath,
-        OPENCODE_BINARY: legacyPath,
         PATH: dir,
       });
       expect(resolution.binary).toBe(ompPath);
@@ -37,52 +35,29 @@ describe('resolveOmpBinary', () => {
     });
   });
 
-  it('falls back to OPENCODE_BINARY when OMP_BINARY is unset', () => {
+  it('reports an invalid OMP_BINARY override and falls through to PATH', () => {
     withTempBinDir((dir) => {
-      const legacyPath = writeExecutable(dir, 'custom-opencode');
-      const resolution = resolveOmpBinary({
-        OPENCODE_BINARY: legacyPath,
-        PATH: '',
-      });
-      expect(resolution.binary).toBe(legacyPath);
-      expect(resolution.source).toBe('OPENCODE_BINARY');
-    });
-  });
-
-  it('reports an invalid OMP_BINARY override and falls through to OPENCODE_BINARY', () => {
-    withTempBinDir((dir) => {
-      const legacyPath = writeExecutable(dir, 'custom-opencode');
+      const ompPath = writeExecutable(dir, 'omp');
       const resolution = resolveOmpBinary({
         OMP_BINARY: path.join(dir, 'missing-omp'),
-        OPENCODE_BINARY: legacyPath,
-        PATH: '',
+        PATH: dir,
       });
-      expect(resolution.binary).toBe(legacyPath);
-      expect(resolution.source).toBe('OPENCODE_BINARY');
+      expect(resolution.binary).toBe(ompPath);
+      expect(resolution.source).toBe('PATH');
+      expect(resolution.command).toBe('omp');
       expect(resolution.invalidOverrides).toEqual([
         { name: 'OMP_BINARY', value: path.join(dir, 'missing-omp') },
       ]);
     });
   });
 
-  it('prefers omp over opencode on PATH', () => {
+  it('resolves omp on PATH', () => {
     withTempBinDir((dir) => {
       const ompPath = writeExecutable(dir, 'omp');
-      writeExecutable(dir, 'opencode');
       const resolution = resolveOmpBinary({ PATH: dir });
       expect(resolution.binary).toBe(ompPath);
       expect(resolution.source).toBe('PATH');
       expect(resolution.command).toBe('omp');
-    });
-  });
-
-  it('falls back to opencode on PATH when omp is absent', () => {
-    withTempBinDir((dir) => {
-      const opencodePath = writeExecutable(dir, 'opencode');
-      const resolution = resolveOmpBinary({ PATH: dir });
-      expect(resolution.binary).toBe(opencodePath);
-      expect(resolution.source).toBe('PATH');
-      expect(resolution.command).toBe('opencode');
     });
   });
 

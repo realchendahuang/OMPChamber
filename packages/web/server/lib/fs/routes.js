@@ -1343,7 +1343,7 @@ export const registerFsRoutes = (app, dependencies) => {
     const isPlansDirectory = (value) => {
       if (!value || typeof value !== 'string') return false;
       const normalized = value.replace(/\\/g, '/').replace(/\/+$/, '');
-      return normalized.endsWith('/.opencode/plans') || normalized.endsWith('.opencode/plans');
+      return normalized.endsWith('/.omp/plans') || normalized.endsWith('.omp/plans');
     };
 
     try {

@@ -8,20 +8,34 @@
 
 import { OMP_COMMANDS } from './rpc-types.js';
 import { normalizeTodos } from './event-normalizer.js';
-
-const normalizeSessionList = (frames) => {
-  // OMP's get_state returns the current session. Session listing across
-  // directories is derived from OMP's session store on disk; the RPC surface
-  // exposes the current session plus branch/resume operations.
-  return [];
-};
+import {
+  resolveOmpSessionsRoot,
+  listOmpSessions,
+  findOmpSessionFile,
+  deleteOmpSessionFile,
+} from './session-store.js';
 
 /**
  * @param {object} opts
  * @param {() => Promise<object|null>} opts.rpc — returns the active RPC client
  * @param {string} opts.cwd
+ * @param {string} [opts.profile] — OMP profile (isolates the on-disk store)
+ * @param {object} [opts.env] — extra env passed to the OMP child (affects the
+ *   data-dir resolution: PI_CONFIG_DIR / PI_CODING_AGENT_DIR / XDG_DATA_HOME)
  */
-export const createOmpSessionManager = ({ rpc, cwd }) => {
+export const createOmpSessionManager = ({ rpc, cwd, profile = undefined, env = {} }) => {
+  // Memoized sessions-root resolution (mirrors OMP's data-dir chain; see
+  // session-store.js). Resolved lazily so test doubles need no filesystem.
+  let sessionsRootCache = null;
+  const getSessionsRoot = () => {
+    if (!sessionsRootCache) {
+      sessionsRootCache = resolveOmpSessionsRoot({
+        env: { ...process.env, ...env },
+        profile,
+      });
+    }
+    return sessionsRootCache;
+  };
   const current = {
     sessionId: null,
     sessionFile: null,
@@ -261,7 +275,111 @@ export const createOmpSessionManager = ({ rpc, cwd }) => {
       const resp = await client.send({ type: OMP_COMMANDS.GET_SUBAGENTS }, { timeoutMs: 15_000 });
       return resp?.data?.subagents ?? [];
     },
+
+    /**
+     * Real session list for a directory, read from the OMP on-disk session
+     * store (see session-store.js). The live current session is merged in even
+     * when it has no file on disk yet (OMP only writes the file once the
+     * session has content) and its live name wins over the on-disk title.
+     * Disk reads happen per request — no cache — so the list never goes
+     * stale; corrupt files are skipped individually by the store reader.
+     */
+    async listSessions(directory) {
+      const dir = directory || cwd;
+      const entries = await listOmpSessions({ sessionsRoot: getSessionsRoot(), directory: dir });
+      const liveId = current.sessionId;
+      const seen = new Set();
+      const list = entries.map((entry) => {
+        seen.add(entry.id);
+        return {
+          id: entry.id,
+          title: entry.id === liveId
+            ? (current.sessionName ?? entry.title ?? 'OMP session')
+            : (entry.title ?? 'OMP session'),
+          directory: dir,
+          parentID: entry.parentSession ?? undefined,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+        };
+      });
+      if (liveId && !seen.has(liveId)) {
+        const now = Date.now();
+        list.unshift({
+          id: liveId,
+          title: current.sessionName ?? 'OMP session',
+          directory: dir,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+      return list;
+    },
+
+    /**
+     * Resume a session by id. The live session short-circuits; any other id
+     * is resolved to its on-disk file and loaded via switch_session.
+     * Verified against the real binary: switch_session with a session FILE
+     * PATH loads that session (get_state + get_messages reflect it), but with
+     * a path that does not exist OMP silently fabricates a NEW empty session
+     * at that path — so the file must be verified on disk before switching,
+     * and the post-switch session id is checked to catch a race where the
+     * file disappeared in between.
+     */
+    async resumeSession(sessionId, directory) {
+      if (!sessionId || typeof sessionId !== 'string') return { status: 'not-found' };
+      if (current.sessionId === sessionId) {
+        await refreshState();
+        return { status: 'current', state: { ...current } };
+      }
+      const dir = directory || cwd;
+      const found = await findOmpSessionFile({
+        sessionsRoot: getSessionsRoot(),
+        directory: dir,
+        sessionId,
+      });
+      if (!found) return { status: 'not-found' };
+      await this.switchSession(found.file);
+      if (current.sessionId !== sessionId) {
+        // The file vanished between lookup and switch and OMP created a fresh
+        // session at that path instead of loading the requested one.
+        return { status: 'failed', error: 'session switch did not land on the requested session' };
+      }
+      return { status: 'resumed', state: { ...current }, file: found.file };
+    },
+
+    /**
+     * Delete a session for real: removes its on-disk JSONL file (plus the
+     * companion subagent directory). Deleting the ACTIVE session first moves
+     * the engine onto a fresh session (verified: OMP tolerates its active
+     * file disappearing — it would recreate it on the next write — so the
+     * switch must happen before the unlink). If the new-session step fails,
+     * the file is left untouched. Missing sessions report 'not-found'.
+     */
+    async deleteSession(sessionId, directory) {
+      if (!sessionId || typeof sessionId !== 'string') return { status: 'not-found' };
+      const dir = directory || cwd;
+      const isActive = current.sessionId === sessionId;
+      let file = null;
+      if (isActive) {
+        file = current.sessionFile ?? null;
+      } else {
+        const found = await findOmpSessionFile({
+          sessionsRoot: getSessionsRoot(),
+          directory: dir,
+          sessionId,
+        });
+        if (!found) return { status: 'not-found' };
+        file = found.file;
+      }
+      if (isActive) {
+        // Move the engine off the session being deleted. Throws on failure,
+        // leaving the session and its file intact.
+        await this.createSession();
+      }
+      if (file) {
+        await deleteOmpSessionFile(file);
+      }
+      return { status: 'deleted', wasActive: isActive, file };
+    },
   };
 };
-
-export { normalizeSessionList };

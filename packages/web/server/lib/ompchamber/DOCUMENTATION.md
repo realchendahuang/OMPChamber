@@ -21,7 +21,7 @@ the server runs only the OMP engine (`packages/web/server/agent-runtime/omp/`).
 - `packages/web/server/lib/ompchamber/mcp.js`: MCP config file CRUD.
 - `packages/web/server/lib/ompchamber/models-metadata.js`: models.dev metadata fetch/cache.
 - `packages/web/server/lib/ompchamber/npm-registry.js`: npm registry queries for plugin specs.
-- `packages/web/server/lib/ompchamber/omp-binary-resolution.js`: OMP engine binary resolution (`resolveOmpEngineBinary`) — precedence `OMP_BINARY` env > persisted settings `opencodeBinary` (empty string = cleared sentinel) > deprecated `OPENCODE_BINARY` env alias > `omp` on PATH. Used by `index.js` `resolveOmpLaunchConfig`, which logs the winning source at startup.
+- `packages/web/server/lib/ompchamber/omp-binary-resolution.js`: OMP engine binary resolution (`resolveOmpEngineBinary`) — precedence `OMP_BINARY` env > persisted settings `ompBinary` (empty string = cleared sentinel) > `omp` on PATH. Used by `index.js` `resolveOmpLaunchConfig`, which logs the winning source at startup.
 - `packages/web/server/lib/ompchamber/ompchamber-routes.js`: OMPChamber update and models metadata route registration.
 - `packages/web/server/lib/ompchamber/plugin-routes.js`: plugin config CRUD routes.
 - `packages/web/server/lib/ompchamber/plugin-spec.js`: plugin spec parsing (npm/path specs).

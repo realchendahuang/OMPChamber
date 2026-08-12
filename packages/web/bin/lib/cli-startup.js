@@ -85,7 +85,6 @@ function collectStartupEnv(options = {}) {
     const ompBinary = resolveOmpBinary().binary;
     if (typeof ompBinary === 'string' && ompBinary.trim().length > 0) {
       env.OMP_BINARY = ompBinary.trim();
-      env.OPENCODE_BINARY = ompBinary.trim();
     }
   }
   const uiPassword = hasUiPasswordConfigured(options.uiPassword) ? options.uiPassword : undefined;

@@ -164,6 +164,9 @@ export const createOmpRuntime = ({
       getLastAssistantText: () => sessionManager.getLastAssistantText(),
       setTodos: (todoPhases) => sessionManager.setTodos(todoPhases),
       getSubagents: () => sessionManager.getSubagents(),
+      listSessions: (directory) => sessionManager.listSessions(directory),
+      resumeSession: (sessionId, directory) => sessionManager.resumeSession(sessionId, directory),
+      deleteSession: (sessionId, directory) => sessionManager.deleteSession(sessionId, directory),
     },
 
     // Model surface

@@ -4,7 +4,7 @@
 // plain JS and cannot import from packages/ui, so the logic is copied verbatim
 // (converted to JSDoc'd JS) and MUST stay byte-compatible with those modules.
 // WebCrypto only: `globalThis.crypto.subtle` (Node >= 22).
-// Spec: .opencode/plans/private-relay/01-protocol-spec.md (Layer 2).
+// Spec: .omp/plans/private-relay/01-protocol-spec.md (Layer 2).
 
 const subtle = globalThis.crypto.subtle;
 

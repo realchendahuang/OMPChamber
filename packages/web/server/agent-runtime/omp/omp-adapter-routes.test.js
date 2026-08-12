@@ -9,7 +9,7 @@ import express from 'express';
 import { registerOmpAdapterRoutes } from './omp-adapter-http.js';
 
 const createFakeRuntime = (overrides = {}) => {
-  const calls = { prompt: [], branch: [], compact: 0, runBash: [], create: [], refresh: 0, listCommands: 0 };
+  const calls = { prompt: [], branch: [], compact: 0, runBash: [], create: [], refresh: 0, listCommands: 0, listSessions: 0, resumeSession: [], deleteSession: [] };
   const runtime = {
     status: { status: 'ready', restartCount: 0, crash: null },
     pid: 4242,
@@ -30,6 +30,9 @@ const createFakeRuntime = (overrides = {}) => {
       getMessages: async () => [],
       getSubagents: async () => [],
       setTodos: async () => {},
+      listSessions: async () => { calls.listSessions += 1; return []; },
+      resumeSession: async (sessionId) => { calls.resumeSession.push(sessionId); return { status: 'current' }; },
+      deleteSession: async (sessionId) => { calls.deleteSession.push(sessionId); return { status: 'deleted', wasActive: false }; },
     },
     models: {
       list: async () => [],
@@ -307,5 +310,66 @@ describe('pending question/permission registry', () => {
     await startApp(runtime);
     expect(await (await fetch(`${baseUrl}/api/permission`)).json()).toEqual([]);
     expect(await (await fetch(`${baseUrl}/api/question`)).json()).toEqual([]);
+  });
+});
+
+describe('session list/get/delete', () => {
+  it('lists sessions from the on-disk store', async () => {
+    const { runtime, calls } = createFakeRuntime();
+    runtime.session.listSessions = async () => {
+      calls.listSessions += 1;
+      return [
+        {
+          id: 'sess-disk-1',
+          title: 'Disk session',
+          directory: '/tmp',
+          parentID: 'parent-1',
+          createdAt: 1_700_000_000_000,
+          updatedAt: 1_700_000_100_000,
+        },
+      ];
+    };
+    await startApp(runtime);
+    const res = await fetch(`${baseUrl}/api/session`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveLength(1);
+    expect(body[0]).toMatchObject({
+      id: 'sess-disk-1',
+      title: 'Disk session',
+      directory: '/tmp',
+      parentID: 'parent-1',
+      metadata: { engine: 'omp' },
+    });
+    expect(calls.listSessions).toBe(1);
+  });
+
+  it('returns 404 when resuming a missing session', async () => {
+    const { runtime, calls } = createFakeRuntime();
+    runtime.session.resumeSession = async (sessionId) => { calls.resumeSession.push(sessionId); return { status: 'not-found' }; };
+    await startApp(runtime);
+    const res = await fetch(`${baseUrl}/api/session/missing-id`);
+    expect(res.status).toBe(404);
+    expect(calls.resumeSession).toEqual(['missing-id']);
+  });
+
+  it('deletes a session and reports whether it was active', async () => {
+    const { runtime, calls } = createFakeRuntime();
+    runtime.session.deleteSession = async (sessionId) => { calls.deleteSession.push(sessionId); return { status: 'deleted', wasActive: true }; };
+    await startApp(runtime);
+    const res = await fetch(`${baseUrl}/api/session/sess-1`, { method: 'DELETE' });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.wasActive).toBe(true);
+    expect(calls.deleteSession).toEqual(['sess-1']);
+  });
+
+  it('returns 404 when deleting a missing session', async () => {
+    const { runtime } = createFakeRuntime();
+    runtime.session.deleteSession = async () => ({ status: 'not-found' });
+    await startApp(runtime);
+    const res = await fetch(`${baseUrl}/api/session/missing-id`, { method: 'DELETE' });
+    expect(res.status).toBe(404);
   });
 });

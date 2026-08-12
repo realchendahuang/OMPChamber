@@ -606,7 +606,6 @@ ENVIRONMENT:
   OMPCHAMBER_API_ONLY         Set to true/1 to start API routes only
   OMPCHAMBER_DATA_DIR         Override OMPChamber data directory
   OMP_BINARY                  Full path to the omp binary (default: omp on PATH)
-  OPENCODE_BINARY             Deprecated alias for OMP_BINARY (legacy fallback)
 
 EXAMPLES:
   ompchamber                    # Start in daemon mode on default port 3000 (or free port)
