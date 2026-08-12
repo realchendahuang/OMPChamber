@@ -215,8 +215,8 @@ jobs:
           # crash on require inside the packaged app.
           bun run rebuild:native
           bunx electron-builder --mac --${{ matrix.arch }} --publish=never
-          # Verify the packaged app ships the OMP CLI bundle (extraResources
-          # copies resources/omp-cli to <resources>/omp-cli).
+          # Verify the packaged app ships the OMP CLI bundle (afterPack
+          # stages resources/omp-cli into <resources>/omp-cli).
           PACKAGED_OMP=$(find dist -type f -path '*/omp-cli/omp' -print -quit)
           if [ -z "$PACKAGED_OMP" ]; then
             echo "Error: packaged OMP CLI launcher not found under packages/electron/dist"
@@ -369,8 +369,8 @@ jobs:
         shell: bash
         run: |
           node ./scripts/package.mjs --win --${{ matrix.arch }} --publish=never
-          # Verify the packaged app ships the OMP CLI bundle (extraResources
-          # copies resources/omp-cli to <resources>/omp-cli).
+          # Verify the packaged app ships the OMP CLI bundle (afterPack
+          # stages resources/omp-cli into <resources>/omp-cli).
           PACKAGED_OMP=$(find dist -type f -path '*/omp-cli/omp' -print -quit)
           if [ -z "$PACKAGED_OMP" ]; then
             echo "Error: packaged OMP CLI launcher not found under packages/electron/dist"
@@ -476,8 +476,8 @@ jobs:
           bun run bundle:main
           bun run rebuild:native
           node ./scripts/package.mjs --linux --${{ matrix.arch }} --publish=never
-          # Verify the packaged app ships the OMP CLI bundle (extraResources
-          # copies resources/omp-cli to <resources>/omp-cli).
+          # Verify the packaged app ships the OMP CLI bundle (afterPack
+          # stages resources/omp-cli into <resources>/omp-cli).
           PACKAGED_OMP=$(find dist -type f -path '*/omp-cli/omp' -print -quit)
           if [ -z "$PACKAGED_OMP" ]; then
             echo "Error: packaged OMP CLI launcher not found under packages/electron/dist"

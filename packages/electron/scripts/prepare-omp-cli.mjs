@@ -46,7 +46,9 @@ const prepare = async () => {
   fs.mkdirSync(outputDir, { recursive: true });
   // Install the pinned OMP package with its full dependency tree (natives
   // included). --no-save keeps the resource dir a standalone runtime bundle.
-  run('npm', [
+  // npm is npm.cmd on Windows; spawnSync cannot resolve .cmd shims without a shell.
+  const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  run(npmCommand, [
     'install',
     '--prefix',
     outputDir,

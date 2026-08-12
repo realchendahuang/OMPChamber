@@ -5,6 +5,24 @@ module.exports = (context) => {
   const resourcesPath = context.electronPlatformName === 'darwin'
     ? path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`, 'Contents', 'Resources')
     : path.join(context.appOutDir, 'resources');
+
+  // Stage the bundled OMP CLI runtime ourselves. electron-builder's file
+  // matcher silently drops the node_modules tree from extraResources, which
+  // would ship a launcher without the engine.
+  const ompCliSource = path.join(__dirname, '..', 'resources', 'omp-cli');
+  const ompCliTarget = path.join(resourcesPath, 'omp-cli');
+  const engineEntry = path.join(ompCliTarget, 'node_modules', '@oh-my-pi', 'pi-coding-agent', 'dist', 'cli.js');
+  if (!fs.existsSync(engineEntry)) {
+    if (!fs.existsSync(path.join(ompCliSource, 'node_modules'))) {
+      throw new Error(`Missing staged OMP CLI dependencies at ${ompCliSource}; run "bun run prepare:omp-cli" first`);
+    }
+    fs.rmSync(ompCliTarget, { recursive: true, force: true });
+    fs.cpSync(ompCliSource, ompCliTarget, { recursive: true });
+  }
+  if (!fs.existsSync(engineEntry)) {
+    throw new Error(`OMP CLI engine entry missing after staging: ${engineEntry}`);
+  }
+
   if (context.electronPlatformName !== 'darwin') return;
 
   const sourceAssetsPath = path.join(__dirname, '..', 'resources', 'icons', 'Assets.car');

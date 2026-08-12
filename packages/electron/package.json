@@ -70,10 +70,6 @@
       {
         "from": "resources/icons/tray",
         "to": "icons/tray"
-      },
-      {
-        "from": "resources/omp-cli",
-        "to": "omp-cli"
       }
     ],
     "afterPack": "scripts/after-pack.cjs",
