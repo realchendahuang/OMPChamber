@@ -90,6 +90,9 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
   // /api/session/:sessionId route (express matches in registration order) —
   // otherwise "status" is captured as a session id and the UI receives a
   // session object where it expects a Record<sessionId, {type}> map.
+  // Busy is event-derived (agent_start → agent_end) and reconciled against
+  // get_state isStreaming/isCompacting by the session manager; idle sessions
+  // are omitted from the map (the UI treats a missing sessionId as idle).
   app.get('/api/session/status', async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
@@ -97,7 +100,7 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
     try {
       const session = runtime.session.current;
-      if (session?.sessionId) {
+      if (session?.sessionId && session.busy === true) {
         return res.json({ [session.sessionId]: { type: 'busy' } });
       }
       return res.json({});
@@ -316,35 +319,70 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
   });
 
-  // Branch the session.
-  // Branch session (OMP `branch` command).
-  app.post('/api/session/:sessionId/branch', async (req, res, next) => {
+  // Resolve the branch entry for fork/branch: exact match when the caller
+  // passed an OMP entryId, otherwise the latest branchable user message.
+  // Returns null when the session has no branchable entries.
+  const resolveBranchEntry = async (runtime, messageID) => {
+    const entries = await runtime.session.getBranchMessages();
+    if (!Array.isArray(entries) || entries.length === 0) return null;
+    if (typeof messageID === 'string' && messageID) {
+      const match = entries.find((entry) => entry?.entryId === messageID);
+      if (match) return match;
+    }
+    return entries[entries.length - 1];
+  };
+
+  // Branch the session (OMP `branch` command). OMP requires a user-message
+  // entryId; when the caller omits one we branch at the latest user message.
+  app.post('/api/session/:sessionId/branch', ompJsonParser, async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
       return next();
     }
     try {
-      const result = await runtime.session.branch();
+      const entry = await resolveBranchEntry(runtime, req.body?.entryId);
+      if (!entry) {
+        return res.status(400).json({ error: 'Session has no branchable messages' });
+      }
+      const result = await runtime.session.branch(entry.entryId);
+      if (result?.cancelled === true) {
+        return res.status(400).json({ error: 'Session branch cancelled' });
+      }
+      await runtime.session.refresh();
       return res.json(result ?? { ok: true });
     } catch (error) {
       return res.status(500).json({ error: error.message || 'OMP branch failed' });
     }
   });
 
-  // Fork session from a message. OMP has no per-message fork; the closest
-  // native operation is a new session, which OMP itself treats as a fork of
-  // the current conversation (the OMP session remains the source of truth).
-  // The UI consumes the returned session object to insert into its sidebar.
-  app.post('/api/session/:sessionId/fork', async (req, res, next) => {
+  // Fork session from a message. OMP's native fork is `branch` at a
+  // user-message entry; get_branch_messages lists the branchable entries.
+  // Semantic difference vs OpenCode: the forked session is NEW and does not
+  // copy conversation history — OMP returns the entry text for the caller to
+  // re-send (we do not auto-prompt it). UI messageIDs are OMPChamber-normalized
+  // ids, not OMP entryIds, so an explicit entryId match is rare; the default
+  // forks at the latest user message (i.e. the session head), not at the
+  // requested message. Sessions without branchable entries fall back to the
+  // previous new-session behavior.
+  app.post('/api/session/:sessionId/fork', ompJsonParser, async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
       return next();
     }
     try {
       const cwd = getDirectory(req);
-      const created = await runtime.session.create({ parentID: req.params.sessionId });
-      if (created?.cancelled === true) {
-        return res.status(400).json({ error: 'Session creation cancelled' });
+      const entry = await resolveBranchEntry(runtime, req.body?.messageID);
+      if (!entry) {
+        const created = await runtime.session.create({ parentID: req.params.sessionId });
+        if (created?.cancelled === true) {
+          return res.status(400).json({ error: 'Session creation cancelled' });
+        }
+      } else {
+        const result = await runtime.session.branch(entry.entryId);
+        if (result?.cancelled === true) {
+          return res.status(400).json({ error: 'Session fork cancelled' });
+        }
+        await runtime.session.refresh();
       }
       const session = toSdkSession(runtime.session.current, { cwd, directory: req.query?.directory ?? cwd });
       return res.json({ ...session, id: session.id });
@@ -365,23 +403,68 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     return res.json({ ok: true });
   });
 
-  // Execute a command (SDK `session.command`). OMP exposes no command
-  // registry in the RPC surface (get_available_commands lists UI commands, not
-  // an execution path), so command invocations are not supported by the OMP
-  // engine. The UI never sends commands here in practice — its slash-command
-  // detection relies on the command list, which is empty under OMP — so this
-  // is a defensive explicit failure rather than a silent no-op.
+  // Execute a command (SDK `session.command`). Verified against the real OMP
+  // binary: `prompt` with text `/name args` executes a registered slash
+  // command (OMP answers { agentInvoked } and streams a `command_output`
+  // frame), while an UNREGISTERED `/name` silently falls through to the agent
+  // as plain text — so the name is validated against the available command
+  // list first and unknown commands fail explicitly instead of burning a turn.
   app.post('/api/session/:sessionId/command', ompJsonParser, async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
       return next();
     }
-    return res.status(501).json({ error: 'commands are not supported by the OMP engine' });
+    try {
+      const command = req.body?.command;
+      if (typeof command !== 'string' || !command.trim()) {
+        return res.status(400).json({ error: 'command is required' });
+      }
+      const name = command.trim();
+      let commands = runtime.session.getCachedCommands();
+      if (commands.length === 0) {
+        commands = await runtime.session.listCommands();
+      }
+      if (!commands.some((entry) => entry?.name === name)) {
+        return res.status(404).json({ error: `unknown command: ${name}` });
+      }
+      const args = typeof req.body?.arguments === 'string' ? req.body.arguments.trim() : '';
+      await runtime.session.prompt(`/${name}${args ? ` ${args}` : ''}`);
+      return res.json({ ok: true });
+    } catch (error) {
+      log(`[OMP] command failed: ${error.message}`);
+      return res.status(500).json({ error: error.message || 'OMP command failed' });
+    }
   });
 
-  // Get session todos (SDK `session.todo`). OMP pushes todo updates via
-  // todo_reminder events (bridged to the UI); the GET surface returns the
-  // current OMP session's todo state when known, otherwise an empty list.
+  // Available slash commands (SDK `command.list`), backed by OMP's
+  // get_available_commands RPC. Mapped onto the OpenCode command shape the UI
+  // consumes (name/description/agent/model/source/template); OMP entries carry
+  // no template — skill commands are recognizable by their `skill:` prefix.
+  app.get('/api/command', async (req, res, next) => {
+    const runtime = getOmpRuntime();
+    if (!runtime) {
+      return next();
+    }
+    try {
+      const commands = await runtime.session.listCommands();
+      return res.json(commands.map((entry) => ({
+        name: entry?.name ?? '',
+        description: entry?.description ?? undefined,
+        agent: entry?.agent ?? undefined,
+        model: entry?.model ?? undefined,
+        source: entry?.source ?? (typeof entry?.name === 'string' && entry.name.startsWith('skill:') ? 'skill' : undefined),
+        template: entry?.template ?? undefined,
+      })));
+    } catch (error) {
+      log(`[OMP] command list failed: ${error.message}`);
+      return res.status(500).json({ error: error.message || 'OMP command list failed' });
+    }
+  });
+
+  // Get session todos (SDK `session.todo`). The live path is todo_reminder /
+  // todo_auto_clear events (recorded by the session manager and bridged to the
+  // UI as todo.updated); this GET reflects that last-known state, plus any
+  // todos mined from get_state, instead of a hardcoded empty list.
   app.get('/api/session/:sessionId/todo', async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
@@ -395,9 +478,9 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
   });
 
-  // Revert/unrevert/shell/summarize have no OMP RPC equivalent. These are
-  // OpenCode-specific session operations; return an explicit failure so the
-  // UI's catch paths surface a message instead of a bare 404.
+  // Revert/unrevert have no OMP RPC equivalent. These are OpenCode-specific
+  // session operations; return an explicit failure so the UI's catch paths
+  // surface a message instead of a bare 404.
   app.post('/api/session/:sessionId/revert', async (_req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
@@ -412,19 +495,71 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
     return res.status(501).json({ error: 'unrevert is not supported by the OMP engine' });
   });
-  app.post('/api/session/:sessionId/shell', async (_req, res, next) => {
+
+  // Run a shell command (SDK `session.shell`) through OMP's bash RPC.
+  // Request/response mapping: OMP returns the captured output after
+  // completion; there is no output streaming. The SDK body's agent/model/
+  // messageID fields are turn-scoped and intentionally ignored — OMP bash is
+  // an engine-level operation. Note: the UI's shellSession caller is
+  // fire-and-forget (output normally arrives via SSE under OpenCode), so the
+  // output below is currently not rendered in the chat timeline.
+  app.post('/api/session/:sessionId/shell', ompJsonParser, async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
       return next();
     }
-    return res.status(501).json({ error: 'shell is not supported by the OMP engine' });
+    try {
+      const command = req.body?.command;
+      if (typeof command !== 'string' || !command.trim()) {
+        return res.status(400).json({ error: 'command is required' });
+      }
+      const result = await runtime.session.runBash(command);
+      const now = Date.now();
+      return res.json({
+        info: {
+          id: `shell-${now}`,
+          sessionID: req.params.sessionId,
+          role: 'assistant',
+          time: { created: now, completed: now },
+          version: OPENCODE_SDK_VERSION,
+        },
+        parts: [{
+          type: 'text',
+          text: result?.output ?? '',
+          sessionID: req.params.sessionId,
+          metadata: {
+            engine: 'omp',
+            exitCode: result?.exitCode,
+            cancelled: result?.cancelled === true,
+            truncated: result?.truncated === true,
+            workingDir: result?.workingDir,
+          },
+        }],
+      });
+    } catch (error) {
+      log(`[OMP] shell failed: ${error.message}`);
+      return res.status(500).json({ error: error.message || 'OMP shell failed' });
+    }
   });
-  app.post('/api/session/:sessionId/summarize', async (_req, res, next) => {
+
+  // Summarize (SDK `session.summarize`) aliases OMP compaction. The SDK body
+  // carries providerID/modelID/auto, but OMP compacts engine-side with the
+  // active model, so those fields are explicitly ignored. The UI checks the
+  // response body === true, so a genuine boolean is returned.
+  app.post('/api/session/:sessionId/summarize', ompJsonParser, async (req, res, next) => {
     const runtime = getOmpRuntime();
     if (!runtime) {
       return next();
     }
-    return res.status(501).json({ error: 'summarize is not supported by the OMP engine' });
+    try {
+      const ok = await runtime.session.compact();
+      if (!ok) {
+        return res.status(500).json({ error: 'OMP compact did not complete' });
+      }
+      return res.json(true);
+    } catch (error) {
+      return res.status(500).json({ error: error.message || 'OMP summarize failed' });
+    }
   });
 
   // Rename session.
@@ -590,15 +725,65 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     }
   });
 
+  // Pending permission/question requests, backed by the runtime's ask
+  // registry (extension_ui_request select/confirm/input frames). Shapes mirror
+  // the SSE projections in omp-event-bridge.js: confirm → PermissionRequest,
+  // select/input → QuestionRequest. Entries leave the registry on reply,
+  // OMP-side cancel, or engine crash, so this list is real pending state.
+  app.get('/api/permission', async (req, res, next) => {
+    const runtime = getOmpRuntime();
+    if (!runtime) {
+      return next();
+    }
+    const fallbackSessionId = runtime.session.current?.sessionId ?? '';
+    const permissions = runtime.listPendingAsks()
+      .filter((ask) => ask.method === 'confirm')
+      .map((ask) => ({
+        id: ask.id,
+        sessionID: ask.sessionId || fallbackSessionId,
+        permission: ask.title || 'Agent request',
+        patterns: [],
+        metadata: { omp: { kind: 'confirm', title: ask.title, message: ask.message } },
+        always: [],
+      }));
+    return res.json(permissions);
+  });
+  app.get('/api/question', async (req, res, next) => {
+    const runtime = getOmpRuntime();
+    if (!runtime) {
+      return next();
+    }
+    const fallbackSessionId = runtime.session.current?.sessionId ?? '';
+    const questions = runtime.listPendingAsks()
+      .filter((ask) => ask.method !== 'confirm')
+      .map((ask) => {
+        const options = Array.isArray(ask.options) && ask.options.length > 0
+          ? ask.options.map((option) => typeof option === 'string'
+            ? { label: option, description: '' }
+            : { label: option?.label ?? String(option?.value ?? ''), description: option?.description ?? '' })
+          : [];
+        return {
+          id: ask.id,
+          sessionID: ask.sessionId || fallbackSessionId,
+          questions: [{
+            question: ask.message || ask.title || 'Agent request',
+            header: ask.title || 'Agent request',
+            ...(options.length > 0 ? { options } : {}),
+            ...(ask.placeholder ? { placeholder: ask.placeholder } : {}),
+          }],
+        };
+      });
+    return res.json(questions);
+  });
+
   // OpenCode-ecosystem data endpoints the UI still polls (agents/mcp/skills/
-  // commands/projects). The OMP engine owns its own configuration model, so
+  // projects). The OMP engine owns its own configuration model, so
   // these return explicit empty shapes instead of 404 — the UI renders an
   // empty state rather than surfacing repeated fetch errors. Domain mapping
   // for these surfaces is Phase 6 work (OMP-native equivalents).
   const EMPTY_LIST = [];
   const openCodeEcosystemEndpoints = [
     '/api/agent',
-    '/api/command',
     '/api/mcp',
     '/api/project',
     '/api/skill',
@@ -611,10 +796,6 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     '/api/project/current',
     // Experimental tool id registry (used by tool state checks).
     '/api/experimental/tool/ids',
-    // Pending permission/question requests — OMP asks flow through the
-    // /api/ompchamber/ask endpoints, not the OpenCode permission surface.
-    '/api/question',
-    '/api/permission',
   ];
   for (const endpoint of openCodeEcosystemEndpoints) {
     app.get(endpoint, (req, res, next) => {
@@ -635,12 +816,16 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     return res.json({ directory: value, worktree: value, state: value });
   });
   app.get('/api/global/version', (req, res, next) => {
-    if (!getOmpRuntime()) {
+    const runtime = getOmpRuntime();
+    if (!runtime) {
       return next();
     }
+    // Real OMP engine version (detected via `omp --version` at startup); the
+    // SDK-shape constant remains only as a graceful fallback when unknown.
+    const version = runtime.version ?? OPENCODE_SDK_VERSION;
     return res.json({
-      version: OPENCODE_SDK_VERSION,
-      clientVersion: OPENCODE_SDK_VERSION,
+      version,
+      clientVersion: version,
       git: { sha: '', branch: '' },
     });
   });
@@ -653,7 +838,7 @@ export const registerOmpAdapterRoutes = (app, { getOmpRuntime, getDirectory = ()
     const healthy = state?.status === 'ready' || state?.status === 'running';
     return res.json({
       healthy,
-      version: OPENCODE_SDK_VERSION,
+      version: runtime.version ?? OPENCODE_SDK_VERSION,
     });
   });
 };

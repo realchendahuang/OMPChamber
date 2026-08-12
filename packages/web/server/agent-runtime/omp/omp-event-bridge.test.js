@@ -56,7 +56,37 @@ describe('domainEventToSseFrames', () => {
 
   it('returns empty for non-message events', () => {
     expect(domainEventToSseFrames({ type: 'tool-start', sessionId: 's', call: {} })).toEqual([]);
-    expect(domainEventToSseFrames({ type: 'session-ended', sessionId: 's' })).toEqual([]);
+  });
+
+  it('converts session-state (turn begin) into a session.status busy frame', () => {
+    const frames = domainEventToSseFrames({
+      type: 'session-state',
+      sessionId: 's1',
+      state: { sessionId: 's1', status: 'running', streaming: true },
+    });
+    expect(frames).toHaveLength(1);
+    expect(frames[0].type).toBe('session.status');
+    expect(frames[0].properties.sessionID).toBe('s1');
+    expect(frames[0].properties.status).toEqual({ type: 'busy' });
+  });
+
+  it('converts session-ended (turn end) into a session.idle frame', () => {
+    const frames = domainEventToSseFrames({ type: 'session-ended', sessionId: 's1' });
+    expect(frames).toHaveLength(1);
+    expect(frames[0].type).toBe('session.idle');
+    expect(frames[0].properties.sessionID).toBe('s1');
+  });
+
+  it('converts available-commands-update into an ompchamber:available-commands frame', () => {
+    const frames = domainEventToSseFrames({
+      type: 'available-commands-update',
+      sessionId: 's1',
+      commands: [{ name: 'compact', description: 'Compact the session' }],
+    });
+    expect(frames).toHaveLength(1);
+    expect(frames[0].type).toBe('ompchamber:available-commands');
+    expect(frames[0].properties.sessionID).toBe('s1');
+    expect(frames[0].properties.commands[0].name).toBe('compact');
   });
 });
 
@@ -128,7 +158,6 @@ describe('ask projection', () => {
 
   it('ignores asks without an id and non-ask events', () => {
     expect(domainEventToSseFrames({ type: 'ask', sessionId: 's1', ask: { method: 'confirm' } })).toEqual([]);
-    expect(domainEventToSseFrames({ type: 'session-ended', sessionId: 's1' })).toEqual([]);
   });
 });
 

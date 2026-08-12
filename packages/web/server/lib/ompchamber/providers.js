@@ -148,8 +148,8 @@ function validateCustomProviderConfig(providerId, config, options = {}) {
 }
 
 /**
- * Persist (create or update) a custom provider block in OpenCode user/project/custom config.
- * Does not write secrets — API keys remain in auth.json via the OpenCode auth API.
+ * Persist (create or update) a custom provider block in the user/project/custom config.
+ * Does not write secrets — API keys remain in auth.json via the auth API.
  */
 function upsertProviderConfig(providerId, config, workingDirectory, scope = 'user', options = {}) {
   const validated = validateCustomProviderConfig(providerId, config, options);

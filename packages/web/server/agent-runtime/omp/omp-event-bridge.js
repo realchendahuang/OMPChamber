@@ -148,8 +148,36 @@ export const domainEventToSseFrames = (event) => {
       });
       break;
     }
-    case 'session-ended':
+    case 'session-state': {
+      // OMP agent_start (turn begin) → OpenCode-shaped busy signal. Turn end
+      // arrives as 'session-ended' (OMP agent_end) and projects session.idle.
+      const { sessionId, state } = event;
+      const status = state?.status === 'running' || state?.streaming === true ? 'busy' : null;
+      if (!status) break;
+      frames.push({
+        type: 'session.status',
+        properties: { sessionID: sessionId, status: { type: status } },
+      });
       break;
+    }
+    case 'available-commands-update': {
+      // Synthetic event (mirrors the ompchamber:subagent pattern) carrying the
+      // live OMP command list for the UI slash-command palette.
+      const { sessionId, commands } = event;
+      frames.push({
+        type: 'ompchamber:available-commands',
+        properties: { sessionID: sessionId, commands: commands ?? [] },
+      });
+      break;
+    }
+    case 'session-ended': {
+      const { sessionId } = event;
+      frames.push({
+        type: 'session.idle',
+        properties: { sessionID: sessionId },
+      });
+      break;
+    }
     default:
       break;
   }

@@ -217,7 +217,7 @@ export const registerPwaManifestRoute = (app, dependencies) => {
     const manifest = {
       name: appName,
       short_name: shortName,
-      description: 'Web interface companion for OpenCode AI coding agent',
+      description: 'Web interface companion for the OMP AI coding agent',
       id: '/',
       start_url: '/',
       scope: '/',

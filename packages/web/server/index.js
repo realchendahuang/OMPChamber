@@ -58,6 +58,7 @@ import { createSettingsNormalizationRuntime } from './lib/ompchamber/settings-no
 import { createSettingsHelpers } from './lib/ompchamber/settings-helpers.js';
 import { createThemeRuntime } from './lib/ompchamber/theme-runtime.js';
 import { createFeatureRoutesRuntime } from './lib/ompchamber/feature-routes-runtime.js';
+import { resolveOmpEngineBinary } from './lib/ompchamber/omp-binary-resolution.js';
 import { parseServeCliOptions } from './lib/server-cli.js';
 import {
   registerAuthAndAccessRoutes,
@@ -972,7 +973,7 @@ const getOmpRuntime = () => ompRuntime;
 
 const startOmpEngine = async () => {
   if (ompRuntime) return ompRuntime;
-  const { binary, profile } = resolveOmpLaunchConfig();
+  const { binary, profile } = await resolveOmpLaunchConfig();
   ompRuntime = createOmpRuntime({
     binary,
     cwd: process.cwd(),
@@ -1002,7 +1003,7 @@ const startOmpEngine = async () => {
     // SSE. Mark the hub connected so WS clients don't see an initial-error
     // from the (absent) OpenCode upstream.
     globalMessageStreamHub.markConnected();
-    console.log(`[OMP] engine ready (pid=${ompRuntime.pid})`);
+    console.log(`[OMP] engine ready (pid=${ompRuntime.pid}${ompRuntime.version ? `, version=${ompRuntime.version}` : ''})`);
   } catch (error) {
     console.error(`[OMP] engine failed to start: ${error.message}`);
     throw error;
@@ -1020,8 +1021,19 @@ const stopOmpEngine = async () => {
   ompRuntime = null;
 };
 
-const resolveOmpLaunchConfig = () => {
-  const binary = process.env.OMP_BINARY || 'omp';
+// Binary precedence: OMP_BINARY env > persisted settings `opencodeBinary`
+// (the desktop settings field — previously a dead write) > OPENCODE_BINARY
+// deprecated env alias > 'omp' on PATH. A settings read failure is logged and
+// falls through to the env/default chain rather than blocking startup.
+const resolveOmpLaunchConfig = async () => {
+  let settings = {};
+  try {
+    settings = await readSettingsFromDisk();
+  } catch (error) {
+    console.warn(`[OMP] settings read failed during binary resolution: ${error?.message || error}`);
+  }
+  const { binary, source } = resolveOmpEngineBinary({ env: process.env, settings });
+  console.log(`[OMP] binary resolved from ${source}: ${binary}`);
   const profile = process.env.OMP_PROFILE || undefined;
   return { binary, profile };
 };
@@ -1054,6 +1066,13 @@ const stampSessionId = (frame, sessionId) => {
   }
   if (frame?.properties?.subagent) {
     return { ...frame, properties: { ...frame.properties, subagent: { ...frame.properties.subagent, sessionID: sessionId }, sessionID: sessionId } };
+  }
+  // Generic top-level sessionID stamping (session.status, session.idle,
+  // ompchamber:available-commands, ...): only fill an empty value so frames
+  // that already carry a real session id keep it.
+  if (frame?.properties && typeof frame.properties === 'object'
+    && 'sessionID' in frame.properties && !frame.properties.sessionID) {
+    return { ...frame, properties: { ...frame.properties, sessionID: sessionId } };
   }
   return frame;
 };

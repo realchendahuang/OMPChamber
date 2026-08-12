@@ -19,6 +19,18 @@ const DEFAULT_RESTART_BACKOFF_MS = 750;
 const DEFAULT_MAX_RESTART_BACKOFF_MS = 15_000;
 const READY_FRAME_TIMEOUT_MS = 20_000;
 
+/**
+ * Windows cannot spawn .cmd/.bat launchers directly (Node EINVAL since the
+ * CVE-2024-27980 fix); they require a shell. The staged OMP CLI is a plain
+ * script on POSIX but resolves to `omp.cmd` on win32, so shell mode is enabled
+ * only for batch launchers on Windows. `windowsHide` keeps the console window
+ * from flashing on packaged desktop builds.
+ */
+export const resolveSpawnOptions = ({ binary, platform = process.platform } = {}) => ({
+  windowsHide: true,
+  ...(platform === 'win32' && /\.(cmd|bat)$/i.test(String(binary ?? '')) ? { shell: true } : {}),
+});
+
 export const OMP_CRASH_STATES = {
   EXITED: 'exited',
   START_TIMEOUT: 'start-timeout',
@@ -86,6 +98,7 @@ export const createOmpProcessManager = ({
           cwd,
           env: { ...process.env, ...env },
           stdio: ['pipe', 'pipe', 'pipe'],
+          ...resolveSpawnOptions({ binary }),
         });
       } catch (error) {
         setState({ status: 'crashed', crash: { kind: OMP_CRASH_STATES.SPAWN_ERROR, message: error.message } });

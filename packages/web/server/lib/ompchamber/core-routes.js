@@ -305,7 +305,7 @@ export const registerServerStatusRoutes = (app, dependencies) => {
     res.json({ ok: true });
 
     // Terminate the entire dev process group so `bun run dev` leaves no orphans.
-    // We still run graceful shutdown to clean up OpenCode, terminals, websockets.
+    // We still run graceful shutdown to clean up the OMP engine, terminals, websockets.
     try {
       const rawPreviewUrls = Array.isArray(req.body?.previewUrls) ? req.body.previewUrls : [];
       const previewPorts = Array.from(new Set(
@@ -1038,7 +1038,7 @@ export const registerSettingsUtilityRoutes = (app, dependencies) => {
 
       if (refreshResult?.external) {
         return res.json(buildExternalManualRestartResponse(
-          'Configuration is saved on disk. Restart your connected OpenCode server to apply the changes.',
+          'Configuration is saved on disk. Restart your connected OMPChamber server to apply the changes.',
         ));
       }
 

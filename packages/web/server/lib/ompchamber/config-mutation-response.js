@@ -1,9 +1,9 @@
 /**
- * Shared response shapes for OpenCode config mutations.
+ * Shared response shapes for OMPChamber config mutations.
  *
- * Settings writes persist to disk immediately but defer the OpenCode restart
+ * Settings writes persist to disk immediately but defer the server restart
  * so the UI can accumulate pending changes and apply them once via
- * POST /api/config/reload ("Apply & Restart OpenCode").
+ * POST /api/config/reload ("Apply & Restart OMPChamber").
  */
 
 export function buildDeferredRestartResponse(message) {

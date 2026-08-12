@@ -132,7 +132,7 @@ export const createServerStartupRuntime = (dependencies) => {
         await gracefulShutdown();
       };
       // Cover every signal a shell or dev harness may use to stop/restart us, so
-      // the managed OpenCode child is always torn down gracefully instead of
+      // the managed OMP child is always torn down gracefully instead of
       // orphaned: SIGINT/SIGQUIT (Ctrl+C/Ctrl+\), SIGTERM (kill/default), SIGHUP
       // (terminal close), SIGUSR2 (nodemon restart for `dev:server:watch`).
       process.on('SIGTERM', handleSignal);

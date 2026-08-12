@@ -371,7 +371,7 @@ describe('scheduled-tasks runtime OMP execution path', () => {
       const result = await runtime.runNow('proj', task.id);
 
       expect(result.ok).toBe(true);
-      expect(listCommands).toHaveBeenCalledWith({ directory: repoPath });
+      expect(listCommands).toHaveBeenCalledWith(expect.objectContaining({ directory: repoPath }));
       expect(runSessionCommand).not.toHaveBeenCalled();
       const promptCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/prompt_async'));
       expect(promptCall).toBeTruthy();
@@ -417,6 +417,8 @@ describe('scheduled-tasks runtime OMP execution path', () => {
 
       expect(result.ok).toBe(true);
       expect(runSessionCommand).toHaveBeenCalledWith({
+        baseUrl: 'http://localhost',
+        authHeaders: {},
         projectPath: repoPath,
         sessionID: 'sess-1',
         command: 'review',
@@ -427,6 +429,106 @@ describe('scheduled-tasks runtime OMP execution path', () => {
       });
       // No prompt_async call when a command matched.
       expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      await cleanup();
+    }
+  });
+
+  it('default hooks list commands via GET /command and dispatch via POST /session/:id/command', async () => {
+    const { tempRoot, repoPath, cleanup } = await createTempProject();
+    const originalFetch = globalThis.fetch;
+    try {
+      const projectConfigRuntime = await createProjectConfig(tempRoot);
+      const task = await createEnabledTask(projectConfigRuntime, {
+        execution: {
+          providerID: 'openai',
+          modelID: 'gpt-5',
+          prompt: '/review src/components',
+        },
+      });
+      const fetchMock = vi.fn(async (url, options) => {
+        const target = String(url);
+        if (options?.method === 'POST' && target.includes('/session?directory=')) {
+          return { ok: true, status: 200, json: async () => ({ id: 'sess-1' }), text: async () => '' };
+        }
+        if (target.includes('/command?directory=') && options?.method !== 'POST') {
+          return { ok: true, status: 200, json: async () => [{ name: 'review', description: 'Review code' }], text: async () => '' };
+        }
+        if (target.includes('/session/sess-1/command') && options?.method === 'POST') {
+          return { ok: true, status: 200, json: async () => ({ ok: true }), text: async () => '' };
+        }
+        return { ok: false, status: 404, json: async () => ({}), text: async () => 'not found' };
+      });
+      globalThis.fetch = fetchMock;
+
+      // No injected listCommands/runSessionCommand — exercise the defaults.
+      const runtime = createScheduledTasksRuntime({
+        ...createRuntimeDeps(),
+        projectConfigRuntime,
+        listProjects: async () => [{ id: 'proj', path: repoPath }],
+      });
+      await runtime.syncProject('proj');
+
+      const result = await runtime.runNow('proj', task.id);
+
+      expect(result.ok).toBe(true);
+      const listCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/command?directory='));
+      expect(listCall).toBeTruthy();
+      const commandCall = fetchMock.mock.calls.find(([url, options]) => String(url).includes('/session/sess-1/command') && options?.method === 'POST');
+      expect(commandCall).toBeTruthy();
+      expect(JSON.parse(commandCall[1].body)).toMatchObject({
+        command: 'review',
+        arguments: 'src/components',
+        model: 'openai/gpt-5',
+      });
+      // Command dispatch replaced the plain prompt path.
+      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/prompt_async'))).toBe(false);
+    } finally {
+      globalThis.fetch = originalFetch;
+      await cleanup();
+    }
+  });
+
+  it('falls back to a plain prompt when the default command list fetch fails', async () => {
+    const { tempRoot, repoPath, cleanup } = await createTempProject();
+    const originalFetch = globalThis.fetch;
+    try {
+      const projectConfigRuntime = await createProjectConfig(tempRoot);
+      const task = await createEnabledTask(projectConfigRuntime, {
+        execution: {
+          providerID: 'openai',
+          modelID: 'gpt-5',
+          prompt: '/review src/components',
+        },
+      });
+      const fetchMock = vi.fn(async (url, options) => {
+        const target = String(url);
+        if (options?.method === 'POST' && target.includes('/session?directory=')) {
+          return { ok: true, status: 200, json: async () => ({ id: 'sess-1' }), text: async () => '' };
+        }
+        if (target.includes('/command?directory=')) {
+          return { ok: false, status: 500, json: async () => ({}), text: async () => 'boom' };
+        }
+        if (target.includes('/prompt_async')) {
+          return { ok: true, status: 200, json: async () => ({ ok: true }), text: async () => '' };
+        }
+        return { ok: false, status: 404, json: async () => ({}), text: async () => 'not found' };
+      });
+      globalThis.fetch = fetchMock;
+
+      const runtime = createScheduledTasksRuntime({
+        ...createRuntimeDeps(),
+        projectConfigRuntime,
+        listProjects: async () => [{ id: 'proj', path: repoPath }],
+      });
+      await runtime.syncProject('proj');
+
+      const result = await runtime.runNow('proj', task.id);
+
+      expect(result.ok).toBe(true);
+      const promptCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/prompt_async'));
+      expect(promptCall).toBeTruthy();
     } finally {
       globalThis.fetch = originalFetch;
       await cleanup();

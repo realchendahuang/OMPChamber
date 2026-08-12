@@ -13,6 +13,13 @@ import { OMP_UI_REQUEST_METHODS } from './rpc-types.js';
  * @param {() => Promise<object|null>} opts.rpc
  */
 export const createOmpUiRequestHandler = ({ onAsk, onResponse, rpc }) => {
+  // Pending ask registry: select/confirm/input asks stay here until answered
+  // (respond), cancelled by OMP (extension_ui_request method 'cancel'), or the
+  // engine restarts. Backs the adapter's GET /api/question + /api/permission
+  // surfaces so reconnect resync sees genuinely pending requests instead of a
+  // hardcoded empty list.
+  const pendingAsks = new Map();
+
   const ensureRpc = async () => {
     const client = await rpc();
     if (!client) throw new Error('OMP runtime is not connected');
@@ -29,6 +36,7 @@ export const createOmpUiRequestHandler = ({ onAsk, onResponse, rpc }) => {
   const handleFrame = (frame) => {
     if (!frame || frame.type !== 'extension_ui_request') return false;
     if (frame.method === OMP_UI_REQUEST_METHODS.CANCEL) {
+      untrack(frame.targetId);
       onResponse?.(frame.targetId, { id: frame.targetId, cancelled: true });
       return true;
     }
@@ -49,6 +57,32 @@ export const createOmpUiRequestHandler = ({ onAsk, onResponse, rpc }) => {
     return true;
   };
 
+  /**
+   * Record a pending ask (called by the runtime when an ask frame arrives,
+   * alongside the domain event emission). Session id is stamped at track time
+   * because extension_ui_request frames do not carry one.
+   */
+  const track = (ask, sessionId) => {
+    if (!ask || typeof ask.id !== 'string' || !ask.id) return;
+    pendingAsks.set(ask.id, {
+      ...ask,
+      sessionId: typeof sessionId === 'string' ? sessionId : '',
+      createdAt: Date.now(),
+    });
+  };
+
+  const untrack = (id) => {
+    if (typeof id === 'string' && id) pendingAsks.delete(id);
+  };
+
+  /** Snapshot of pending asks (newest last). */
+  const listPending = () => Array.from(pendingAsks.values());
+
+  /** Drop all pending asks (engine restart — outstanding asks are dead). */
+  const clearPending = () => {
+    pendingAsks.clear();
+  };
+
   /** Answer a pending ask back to OMP. */
   const respond = async (id, { cancelled = false, value, confirmed } = {}) => {
     const client = await ensureRpc();
@@ -61,7 +95,8 @@ export const createOmpUiRequestHandler = ({ onAsk, onResponse, rpc }) => {
       frame.value = value;
     }
     await client.notify(frame);
+    untrack(id);
   };
 
-  return { handleFrame, respond };
+  return { handleFrame, respond, track, untrack, listPending, clearPending };
 };

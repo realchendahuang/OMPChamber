@@ -47,7 +47,7 @@ export const registerPluginRoutes = (app, dependencies) => {
 
     const pastTense = operation.replace(/ion$/, 'ed').replace(/update$/, 'updated');
     return res.json(buildDeferredRestartResponse(
-      `Plugin ${pastTense}. Restart OpenCode to apply.`,
+      `Plugin ${pastTense}. Restart OMPChamber to apply.`,
     ));
   };
 

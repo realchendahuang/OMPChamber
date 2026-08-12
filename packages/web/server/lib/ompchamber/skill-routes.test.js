@@ -28,7 +28,7 @@ const createTempProject = () => {
   return projectRoot;
 };
 
-const startSkillsApp = ({ projectRoot }) => {
+const startSkillsApp = ({ projectRoot, overrides = {} }) => {
   const app = express();
   app.use(express.json());
 
@@ -79,6 +79,7 @@ const startSkillsApp = ({ projectRoot }) => {
     isClawdHubSource: () => false,
     getProfiles: () => [],
     getProfile: () => null,
+    ...overrides,
   });
 
   const server = app.listen(0);
@@ -215,5 +216,55 @@ describe('skill-routes directory soft fallback', () => {
         force: true,
       });
     }
+  });
+
+  it('renames a managed skill without a ReferenceError and triggers the post-rename refresh', async () => {
+    // Regression: the PATCH rename path referenced refreshOmpAfterConfigChange
+    // and clientReloadDelayMs, but neither was destructured from dependencies,
+    // so renaming any skill crashed with a ReferenceError (500).
+    projectRoot = createTempProject();
+    const managedDir = path.join(projectRoot, '.opencode', 'skills', 'rename-me');
+    fs.mkdirSync(managedDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(managedDir, 'SKILL.md'),
+      [
+        '---',
+        'name: rename-me',
+        'description: Skill to rename',
+        '---',
+        '',
+        'Body',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+
+    let refreshCalls = 0;
+    appHandle = startSkillsApp({
+      projectRoot,
+      overrides: {
+        refreshOmpAfterConfigChange: async () => {
+          refreshCalls += 1;
+        },
+        clientReloadDelayMs: 0,
+      },
+    });
+
+    const response = await fetch(
+      `${appHandle.baseUrl}/api/config/skills/rename-me?directory=${encodeURIComponent(projectRoot)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ renameTo: 'renamed-skill' }),
+      },
+    );
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload.success).toBe(true);
+    expect(payload.name).toBe('renamed-skill');
+    expect(payload.requiresReload).toBe(true);
+    expect(refreshCalls).toBe(1);
+    expect(fs.existsSync(path.join(projectRoot, '.opencode', 'skills', 'renamed-skill', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(managedDir)).toBe(false);
   });
 });

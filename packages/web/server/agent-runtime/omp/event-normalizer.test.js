@@ -122,6 +122,16 @@ describe('normalizeSessionEvent', () => {
     expect(events[0].type).toBe('session-ended');
   });
 
+  it('maps available_commands_update to available-commands-update', () => {
+    const events = normalizeSessionEvent({
+      type: 'available_commands_update',
+      commands: [{ name: 'compact', description: 'Compact' }],
+    });
+    expect(events).toHaveLength(1);
+    expect(events[0].type).toBe('available-commands-update');
+    expect(events[0].commands[0].name).toBe('compact');
+  });
+
   it('ignores unknown frames (forward compatibility)', () => {
     expect(normalizeSessionEvent({ type: 'brand_new_event_2027' })).toEqual([]);
     expect(normalizeSessionEvent(null)).toEqual([]);

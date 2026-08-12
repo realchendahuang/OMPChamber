@@ -167,11 +167,20 @@ describe('OMP adapter HTTP surface', () => {
   });
 
   it('degrades OpenCode-ecosystem endpoints to empty lists instead of 404', async () => {
-    for (const endpoint of ['/api/agent', '/api/command', '/api/mcp', '/api/project', '/api/skill']) {
+    for (const endpoint of ['/api/agent', '/api/mcp', '/api/project', '/api/skill']) {
       const res = await fetch(`${baseUrl}${endpoint}`);
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual([]);
     }
+  });
+
+  it('lists real OMP slash commands in the OpenCode command shape', async () => {
+    const res = await fetch(`${baseUrl}/api/command`);
+    expect(res.status).toBe(200);
+    const commands = await res.json();
+    expect(Array.isArray(commands)).toBe(true);
+    expect(commands.length).toBeGreaterThan(0);
+    expect(typeof commands[0].name).toBe('string');
   });
 
   it('serves the extended ecosystem endpoints without 404', async () => {
@@ -182,13 +191,13 @@ describe('OMP adapter HTTP surface', () => {
     }
   });
 
-  it('reports session status as a Record<sessionId,{type}> map', async () => {
+  it('reports session status as a Record<sessionId,{type}> map ({} when idle)', async () => {
     const res = await fetch(`${baseUrl}/api/session/status`);
     expect(res.status).toBe(200);
     const body = await res.json();
-    const sessionIds = Object.keys(body);
-    expect(sessionIds.length).toBeGreaterThan(0);
-    for (const id of sessionIds) {
+    expect(typeof body).toBe('object');
+    // Idle sessions are omitted; any present entry must be a valid status.
+    for (const id of Object.keys(body)) {
       expect(body[id]).toHaveProperty('type');
       expect(['idle', 'busy', 'retry']).toContain(body[id].type);
     }
@@ -203,12 +212,16 @@ describe('OMP adapter HTTP surface', () => {
     expect(body.state).toBe('/tmp');
   });
 
-  it('reports an OpenCode-shaped global version without a real OpenCode server', async () => {
+  it('reports the real OMP version in the OpenCode-shaped payload', async () => {
     const res = await fetch(`${baseUrl}/api/global/version`);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(typeof body.version).toBe('string');
-    expect(typeof body.clientVersion).toBe('string');
+    // Detected via `omp --version` at runtime startup ("omp/17.2.12" → "17.2.12").
+    expect(body.version).toMatch(/^\d+\.\d+\.\d+/);
+    expect(body.clientVersion).toBe(body.version);
+    const health = await (await fetch(`${baseUrl}/api/global/health`)).json();
+    expect(health.healthy).toBe(true);
+    expect(health.version).toBe(body.version);
   });
 
   it('returns the current OMP session for a single-session resume', async () => {
@@ -275,7 +288,7 @@ describe('OMP adapter HTTP surface', () => {
     expect(res.status).toBe(400);
   });
 
-  it('forks a session via POST fork (OMP new_session mapping)', async () => {
+  it('forks a session via POST fork (OMP branch mapping)', async () => {
     const statusRes = await fetch(`${baseUrl}/api/ompchamber/agent/status`);
     const status = await statusRes.json();
     const sessionId = status.session?.sessionId;
@@ -299,19 +312,25 @@ describe('OMP adapter HTTP surface', () => {
     expect(body.ok).toBe(true);
   });
 
-  it('reports command invocations as unsupported (501)', async () => {
+  it('rejects unknown commands with 404 and missing command names with 400', async () => {
     const statusRes = await fetch(`${baseUrl}/api/ompchamber/agent/status`);
     const status = await statusRes.json();
     const sessionId = status.session?.sessionId;
 
-    const res = await fetch(`${baseUrl}/api/session/${sessionId}/command`, {
+    const unknown = await fetch(`${baseUrl}/api/session/${sessionId}/command`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ command: 'compact', arguments: [] }),
+      body: JSON.stringify({ command: 'definitely-not-a-real-command-xyz', arguments: '' }),
     });
-    expect(res.status).toBe(501);
-    const body = await res.json();
-    expect(typeof body.error).toBe('string');
+    expect(unknown.status).toBe(404);
+    expect(typeof (await unknown.json()).error).toBe('string');
+
+    const missing = await fetch(`${baseUrl}/api/session/${sessionId}/command`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(missing.status).toBe(400);
   });
 
   it('returns session todos as an array', async () => {
@@ -325,16 +344,50 @@ describe('OMP adapter HTTP surface', () => {
     expect(Array.isArray(body)).toBe(true);
   });
 
-  it('reports revert/unrevert/shell/summarize as unsupported (501)', async () => {
+  it('reports revert/unrevert as unsupported (501)', async () => {
     const statusRes = await fetch(`${baseUrl}/api/ompchamber/agent/status`);
     const status = await statusRes.json();
     const sessionId = status.session?.sessionId;
 
-    for (const op of ['revert', 'unrevert', 'shell', 'summarize', 'command']) {
+    for (const op of ['revert', 'unrevert']) {
       const res = await fetch(`${baseUrl}/api/session/${sessionId}/${op}`, { method: 'POST' });
       expect(res.status).toBe(501);
       const body = await res.json();
       expect(typeof body.error).toBe('string');
+    }
+  });
+
+  it('runs a shell command through the OMP bash RPC', async () => {
+    const statusRes = await fetch(`${baseUrl}/api/ompchamber/agent/status`);
+    const status = await statusRes.json();
+    const sessionId = status.session?.sessionId;
+
+    const res = await fetch(`${baseUrl}/api/session/${sessionId}/shell`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: 'echo omp-shell-echo' }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.info?.role).toBe('assistant');
+    expect(body.parts?.[0]?.text).toContain('omp-shell-echo');
+    expect(body.parts?.[0]?.metadata?.exitCode).toBe(0);
+  });
+
+  it('summarizes via the compact alias', async () => {
+    const statusRes = await fetch(`${baseUrl}/api/ompchamber/agent/status`);
+    const status = await statusRes.json();
+    const sessionId = status.session?.sessionId;
+
+    const res = await fetch(`${baseUrl}/api/session/${sessionId}/summarize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ providerID: 'p', modelID: 'm', auto: true }),
+    });
+    // Compact needs a configured model; accept an honest failure.
+    expect([200, 500]).toContain(res.status);
+    if (res.status === 200) {
+      expect(await res.json()).toBe(true);
     }
   });
 
@@ -374,6 +427,45 @@ describe('OMP adapter HTTP surface', () => {
     expect(rejectRes.status).toBe(200);
     expect((await rejectRes.json()).ok).toBe(true);
   });
+
+  it('derives busy status from the live turn and returns to idle after abort', async () => {
+    const statusRes = await fetch(`${baseUrl}/api/ompchamber/agent/status`);
+    const status = await statusRes.json();
+    const sessionId = status.session?.sessionId;
+
+    await fetch(`${baseUrl}/api/session/${sessionId}/prompt_async`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parts: [{ type: 'text', text: 'Write a very long essay about everything. Keep going.' }],
+      }),
+    });
+
+    let sawBusy = false;
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const res = await fetch(`${baseUrl}/api/session/status`);
+      const body = await res.json();
+      if (body[sessionId]?.type === 'busy') {
+        sawBusy = true;
+        break;
+      }
+    }
+    expect(sawBusy).toBe(true);
+
+    await fetch(`${baseUrl}/api/session/${sessionId}/abort`, { method: 'POST' });
+    let sawIdle = false;
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const res = await fetch(`${baseUrl}/api/session/status`);
+      const body = await res.json();
+      if (!body[sessionId]) {
+        sawIdle = true;
+        break;
+      }
+    }
+    expect(sawIdle).toBe(true);
+  }, 45_000);
 
   it('aborts an in-flight prompt and leaves the session usable for follow-up prompts', async () => {
     // The UI "stop" button hits POST /session/:id/abort while a prompt is

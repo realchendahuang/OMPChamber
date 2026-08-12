@@ -270,15 +270,53 @@ const defaultCreateSession = async ({ baseUrl, authHeaders, directory, title }) 
   return sessionID;
 };
 
-// OMP has no command surface; the adapter degrades /api/command to an empty
-// list, so scheduled slash-command prompts resolve to no command and run as
-// plain prompts (same behavior as the OpenCode-shaped empty fallback).
-const defaultListCommands = async () => [];
+// Slash-command list through the adapter's OpenCode-shaped surface
+// (GET /api/command), backed by OMP's get_available_commands RPC. Failure
+// throws so resolveScheduledCommand falls back to the plain prompt path
+// instead of treating the engine as having no commands.
+const defaultListCommands = async ({ baseUrl, authHeaders, directory }) => {
+  const url = new URL(`${baseUrl}/command`);
+  url.searchParams.set('directory', directory);
+  const response = await fetch(url.toString(), {
+    headers: {
+      ...authHeaders,
+      accept: 'application/json',
+    },
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`command list failed (${response.status})${body ? `: ${body}` : ''}`);
+  }
+  const commands = await response.json().catch(() => null);
+  return Array.isArray(commands) ? commands : [];
+};
 
-// OMP has no session command RPC; the adapter answers /session/:id/command
-// with 501. Scheduled slash-command prompts therefore run through the plain
-// prompt path instead of failing the run.
-const defaultRunSessionCommand = async () => {};
+// Command execution through the adapter (POST /api/session/:id/command),
+// which the OMP adapter maps onto a `/name args` prompt after validating the
+// command name against the available command list.
+const defaultRunSessionCommand = async ({ baseUrl, authHeaders, projectPath, sessionID, command, arguments: commandArguments, agent, model, variant }) => {
+  const url = new URL(`${baseUrl}/session/${encodeURIComponent(sessionID)}/command`);
+  url.searchParams.set('directory', projectPath);
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      ...authHeaders,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({
+      command,
+      arguments: commandArguments,
+      ...(agent ? { agent } : {}),
+      ...(model ? { model } : {}),
+      ...(variant ? { variant } : {}),
+    }),
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`session command failed (${response.status})${body ? `: ${body}` : ''}`);
+  }
+};
 
 export const createScheduledTasksRuntime = (deps) => {
   const {
@@ -538,8 +576,10 @@ export const createScheduledTasksRuntime = (deps) => {
     return command ? { ...parsed, template: command.template } : null;
   };
 
-  const runScheduledCommand = async ({ projectPath, sessionID, task, command }) => {
+  const runScheduledCommand = async ({ baseUrl, authHeaders, projectPath, sessionID, task, command }) => {
     await runSessionCommand({
+      baseUrl,
+      authHeaders,
       projectPath,
       sessionID,
       command: command.command,
@@ -594,7 +634,11 @@ export const createScheduledTasksRuntime = (deps) => {
       }
     }
 
-    const scheduledCommand = await resolveScheduledCommand({ listCommands, projectPath, task });
+    const scheduledCommand = await resolveScheduledCommand({
+      listCommands: (args) => listCommands({ baseUrl, authHeaders, ...args }),
+      projectPath,
+      task,
+    });
 
     if (task.execution.goalEnabled) {
       const commandObjective = scheduledCommand
@@ -614,7 +658,7 @@ export const createScheduledTasksRuntime = (deps) => {
     }
 
     if (scheduledCommand) {
-      await runScheduledCommand({ projectPath, sessionID, task, command: scheduledCommand });
+      await runScheduledCommand({ baseUrl, authHeaders, projectPath, sessionID, task, command: scheduledCommand });
     } else {
       await runPromptAsync({
         baseUrl,

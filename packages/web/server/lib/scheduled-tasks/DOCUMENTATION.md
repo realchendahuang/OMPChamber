@@ -118,14 +118,16 @@ future engines can swap them:
 | Hook | Default (OMP) | Notes |
 |---|---|---|
 | `createSession({ baseUrl, authHeaders, directory, title })` | `POST {baseUrl}/session?directory=…` with `{ title }`; returns the session `id` from the adapter's `toSdkSession` shape | Throws `session create failed (status)` on non-2xx and `failed to create session` when no id comes back |
-| `listCommands({ directory })` | `[]` | OMP has no command surface; the adapter degrades `/api/command` to an empty list, so slash-command prompts resolve to no command |
-| `runSessionCommand({ projectPath, sessionID, command, arguments, agent, model, variant })` | no-op | OMP has no session command RPC (adapter answers 501); a matched command would be dispatched here, but with the default it never matches |
+| `listCommands({ baseUrl, authHeaders, directory })` | `GET {baseUrl}/command?directory=…`; returns the adapter's real command list (OMP `get_available_commands`) | Throws `command list failed (status)` on non-2xx; `resolveScheduledCommand` catches and falls back to the plain prompt path |
+| `runSessionCommand({ baseUrl, authHeaders, projectPath, sessionID, command, arguments, agent, model, variant })` | `POST {baseUrl}/session/:id/command?directory=…` with `{ command, arguments, agent?, model?, variant? }` | The adapter validates the name against the available command list and executes it as a `/name args` prompt; throws `session command failed (status)` on non-2xx |
 
 Consequences on the OMP engine:
 
-- A task whose prompt starts with `/` (e.g. `/review src/components`) runs as a
-  **plain prompt** through `prompt_async` — the slash text is sent verbatim.
-  This is intentional: failing the run would be worse than sending the text.
+- A task whose prompt starts with `/` (e.g. `/review src/components`) matches
+  against the real OMP command list. A match is dispatched through the command
+  endpoint; a non-match (or a failed command-list fetch) runs as a **plain
+  prompt** through `prompt_async` with the slash text sent verbatim. Falling
+  back beats failing the run.
 - `permissionAutoAccept` enrollment and session-goal creation still run before
   the prompt (unchanged behavior).
 - The watchdog, concurrency limits, one-time-task consumption, and run-state
@@ -143,8 +145,8 @@ Consequences on the OMP engine:
 - Injectable execution hooks (defaults use plain `fetch` against the OMP
   adapter surface; see "Execution on the OMP engine" above):
   - `createSession({ baseUrl, authHeaders, directory, title })` → session id
-  - `listCommands({ directory })` → command list (OMP: always `[]`)
-  - `runSessionCommand({ projectPath, sessionID, command, arguments, agent, model, variant })` (OMP: no-op)
+  - `listCommands({ baseUrl, authHeaders, directory })` → real command list
+  - `runSessionCommand({ baseUrl, authHeaders, projectPath, sessionID, command, arguments, agent, model, variant })`
 
 ## Public exports (routes.js)
 

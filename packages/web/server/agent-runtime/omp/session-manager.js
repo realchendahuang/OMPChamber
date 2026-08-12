@@ -7,6 +7,7 @@
  */
 
 import { OMP_COMMANDS } from './rpc-types.js';
+import { normalizeTodos } from './event-normalizer.js';
 
 const normalizeSessionList = (frames) => {
   // OMP's get_state returns the current session. Session listing across
@@ -25,7 +26,18 @@ export const createOmpSessionManager = ({ rpc, cwd }) => {
     sessionId: null,
     sessionFile: null,
     sessionName: null,
+    // Event-derived liveness: true between agent_start and agent_end. Reconciled
+    // against the authoritative get_state isStreaming/isCompacting flags on
+    // every refresh, so a missed event cannot wedge the status endpoint.
+    busy: false,
+    // Last known todo list (todo_reminder/todo_auto_clear events, or todos
+    // mined from get_state when OMP includes them). Drives GET …/todo.
+    todos: [],
   };
+  // Latest get_available_commands result (RPC response or live
+  // available_commands_update frame). Used by /api/command and command
+  // validation for POST …/command.
+  let availableCommands = [];
 
   const ensureRpc = async () => {
     const client = await rpc();
@@ -41,15 +53,55 @@ export const createOmpSessionManager = ({ rpc, cwd }) => {
       current.sessionId = data.sessionId ?? current.sessionId;
       current.sessionFile = data.sessionFile ?? current.sessionFile;
       current.sessionName = data.sessionName ?? current.sessionName;
+      // Authoritative reconciliation of the event-derived busy flag.
+      if (typeof data.isStreaming === 'boolean' || typeof data.isCompacting === 'boolean') {
+        current.busy = data.isStreaming === true || data.isCompacting === true;
+      }
+      // Mine todos from get_state when OMP includes them (the live path stays
+      // the todo_reminder event stream; todoPhases is the plan-phase surface,
+      // not the OpenCode-shaped todo list, so it is intentionally not mapped).
+      if (Array.isArray(data.todos)) {
+        current.todos = normalizeTodos(data.todos);
+      }
     }
     return data ?? null;
   };
 
+  /**
+   * Observe a raw OMP frame to keep derived session state current. Called by
+   * the runtime for every frame before normalization.
+   */
+  const observeFrame = (frame) => {
+    if (!frame || typeof frame !== 'object') return;
+    switch (frame.type) {
+      case 'agent_start':
+        current.busy = true;
+        break;
+      case 'agent_end':
+      case 'session_end':
+        current.busy = false;
+        break;
+      case 'todo_reminder':
+        current.todos = normalizeTodos(frame.todos);
+        break;
+      case 'todo_auto_clear':
+        current.todos = [];
+        break;
+      case 'available_commands_update':
+        if (Array.isArray(frame.commands)) availableCommands = frame.commands;
+        break;
+      default:
+        break;
+    }
+  };
+
   return {
-    /** Current OMP session identity (id/file/name). */
+    /** Current OMP session identity (id/file/name) plus derived live state. */
     get current() {
-      return { ...current };
+      return { ...current, todos: [...current.todos] };
     },
+
+    observeFrame,
 
     async refresh() {
       return await refreshState();
@@ -97,10 +149,68 @@ export const createOmpSessionManager = ({ rpc, cwd }) => {
       return resp?.success === true;
     },
 
-    async branch() {
+    /**
+     * Branch the session at a user-message entry. OMP requires an `entryId`
+     * (from get_branch_messages); branching with no entry is rejected by the
+     * engine ("Invalid entry ID for branching"). The branched session is new
+     * and starts empty — OMP returns the entry text for the caller to re-send.
+     */
+    async branch(entryId) {
       const client = await ensureRpc();
-      const resp = await client.send({ type: OMP_COMMANDS.BRANCH }, { timeoutMs: 60_000 });
+      const frame = { type: OMP_COMMANDS.BRANCH };
+      if (typeof entryId === 'string' && entryId) frame.entryId = entryId;
+      const resp = await client.send(frame, { timeoutMs: 60_000 });
       return resp?.data ?? null;
+    },
+
+    /**
+     * List branchable user-message entries ([{ entryId, text }]). Fork uses
+     * this to resolve a target entry (exact match on messageID, else the
+     * latest entry) before branching.
+     */
+    async getBranchMessages() {
+      const client = await ensureRpc();
+      const resp = await client.send({ type: OMP_COMMANDS.GET_BRANCH_MESSAGES }, { timeoutMs: 15_000 });
+      return resp?.data?.messages ?? [];
+    },
+
+    /**
+     * Run a shell command through OMP's bash RPC. Request/response only: OMP
+     * returns the captured output after completion ({ exitCode, output,
+     * truncated, cancelled, workingDir, ... }); there is no output streaming.
+     */
+    async runBash(command) {
+      const client = await ensureRpc();
+      const resp = await client.send({ type: OMP_COMMANDS.BASH, command }, { timeoutMs: 120_000 });
+      if (resp?.success === false) {
+        throw new Error(resp?.error || 'OMP bash failed');
+      }
+      return resp?.data ?? null;
+    },
+
+    async abortBash() {
+      const client = await ensureRpc();
+      await client.send({ type: OMP_COMMANDS.ABORT_BASH }, { timeoutMs: 10_000 });
+    },
+
+    /**
+     * Fetch the available slash-command list from OMP. Updates the cache that
+     * available_commands_update frames also keep warm.
+     */
+    async listCommands() {
+      const client = await ensureRpc();
+      const resp = await client.send({ type: OMP_COMMANDS.GET_AVAILABLE_COMMANDS }, { timeoutMs: 15_000 });
+      const commands = resp?.data?.commands;
+      if (Array.isArray(commands)) {
+        availableCommands = commands;
+        return availableCommands;
+      }
+      throw new Error(resp?.error || 'OMP get_available_commands failed');
+    },
+
+    /** Last known command list (may be empty before the first fetch). */
+    getCachedCommands() {
+      return availableCommands;
     },
 
     async switchSession(sessionPath) {

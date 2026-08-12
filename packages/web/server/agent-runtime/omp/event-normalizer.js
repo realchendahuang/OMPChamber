@@ -6,7 +6,7 @@
  * sibling normalizers). When OMP changes its protocol, only this module changes.
  */
 
-import { OMP_SESSION_EVENT_TYPES } from './rpc-types.js';
+import { OMP_FRAME_TYPES, OMP_SESSION_EVENT_TYPES } from './rpc-types.js';
 
 const asString = (value, fallback = '') =>
   typeof value === 'string' ? value : fallback;
@@ -189,6 +189,15 @@ export const normalizeSessionEvent = (frame) => {
       }];
     case 'todo_auto_clear':
       return [{ type: 'todo-update', sessionId: '', todos: [] }];
+    case OMP_FRAME_TYPES.AVAILABLE_COMMANDS_UPDATE:
+      // Live slash-command list refresh (extensions/skills hot-reload). The
+      // session manager also caches these frames; this domain event feeds the
+      // SSE projection so the UI palette can update without a refetch.
+      return [{
+        type: 'available-commands-update',
+        sessionId: '',
+        commands: Array.isArray(frame.commands) ? frame.commands : [],
+      }];
     default:
       // Unknown frame types pass through as no-ops so future OMP events don't
       // break rendering.

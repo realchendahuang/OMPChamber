@@ -124,12 +124,12 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
   };
 
   const fetchLatestOmpVersionFromGithub = async () => {
-    const response = await fetch('https://api.github.com/repos/anomalyco/opencode/releases/latest', {
+    const response = await fetch('https://api.github.com/repos/can1357/oh-my-pi/releases/latest', {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(10_000),
     });
     if (!response.ok) {
-      throw new Error(`OpenCode releases responded with ${response.status}`);
+      throw new Error(`OMP releases responded with ${response.status}`);
     }
     const payload = await response.json();
     const tag = typeof payload?.tag_name === 'string' ? payload.tag_name.trim() : '';
@@ -137,12 +137,12 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
   };
 
   const fetchLatestOmpVersionFromNpm = async () => {
-    const response = await fetch('https://registry.npmjs.org/opencode-ai/latest', {
+    const response = await fetch('https://registry.npmjs.org/@oh-my-pi%2Fpi-coding-agent/latest', {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(10_000),
     });
     if (!response.ok) {
-      throw new Error(`OpenCode npm registry responded with ${response.status}`);
+      throw new Error(`OMP npm registry responded with ${response.status}`);
     }
     const payload = await response.json();
     return typeof payload?.version === 'string' ? payload.version.trim().replace(/^v/, '') : '';
@@ -158,7 +158,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       .map((result) => result.value);
     if (versions.length === 0) {
       const failure = results.find((result) => result.status === 'rejected');
-      throw failure?.reason instanceof Error ? failure.reason : new Error('Failed to resolve latest OpenCode version');
+      throw failure?.reason instanceof Error ? failure.reason : new Error('Failed to resolve latest OMP version');
     }
     return versions.sort((left, right) => compareVersions(right, left))[0];
   };
@@ -188,8 +188,8 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       const resolution = await getOmpResolutionSnapshot(settings);
       res.json(resolution);
     } catch (error) {
-      console.error('Failed to resolve OpenCode binary:', error);
-      res.status(500).json({ error: 'Failed to resolve OpenCode binary' });
+      console.error('Failed to resolve OMP binary:', error);
+      res.status(500).json({ error: 'Failed to resolve OMP binary' });
     }
   });
 
@@ -205,15 +205,15 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
             ? 'OPENCODE_UPGRADE_MANAGED_BY_OMPCHAMBER'
             : 'OPENCODE_UPGRADE_UNSUPPORTED',
           error: capability.reason === 'bundled'
-            ? 'OpenCode is bundled with OMPChamber Desktop and updates with the app.'
-            : 'This OpenCode runtime cannot be upgraded by OMPChamber.',
+            ? 'OMP is bundled with OMPChamber Desktop and updates with the app.'
+            : 'This OMP runtime cannot be upgraded by OMPChamber.',
         });
       }
       if (ompUpgradePromise) {
         return res.status(409).json({
           success: false,
           code: 'OPENCODE_UPGRADE_IN_PROGRESS',
-          error: 'An OpenCode upgrade is already in progress.',
+          error: 'An OMP upgrade is already in progress.',
         });
       }
 
@@ -236,13 +236,13 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
             status: response.status,
             body: {
               success: false,
-              error: payload?.error || response.statusText || 'Failed to upgrade OpenCode',
+              error: payload?.error || response.statusText || 'Failed to upgrade OMP',
             },
           };
         }
 
         try {
-          await refreshOmpAfterConfigChange('OpenCode upgrade');
+          await refreshOmpAfterConfigChange('OMP upgrade');
         } catch (restartError) {
           return {
             status: 500,
@@ -250,8 +250,8 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
               success: false,
               upgraded: true,
               error: restartError instanceof Error
-                ? `OpenCode upgraded, but restart failed: ${restartError.message}`
-                : 'OpenCode upgraded, but restart failed',
+                ? `OMP upgraded, but restart failed: ${restartError.message}`
+                : 'OMP upgraded, but restart failed',
             },
           };
         }
@@ -272,10 +272,10 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         }
       }
     } catch (error) {
-      console.error('Failed to upgrade OpenCode:', error);
+      console.error('Failed to upgrade OMP:', error);
       return res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to upgrade OpenCode',
+        error: error instanceof Error ? error.message : 'Failed to upgrade OMP',
       });
     }
   });
@@ -304,7 +304,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       if (!healthResponse.ok) {
         return res.status(healthResponse.status).json({
           available: null,
-          error: health?.error || healthResponse.statusText || 'Failed to read OpenCode version',
+          error: health?.error || healthResponse.statusText || 'Failed to read OMP version',
         });
       }
       const currentVersion = typeof health?.version === 'string' ? health.version.replace(/^v/, '') : null;
@@ -321,7 +321,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     } catch (error) {
       return res.status(500).json({
         available: null,
-        error: error instanceof Error ? error.message : 'Failed to check OpenCode upgrade status',
+        error: error instanceof Error ? error.message : 'Failed to check OMP upgrade status',
       });
     }
   });
@@ -336,14 +336,14 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       if (!healthResponse.ok) {
         return res.status(healthResponse.status).json({
           healthy: false,
-          error: health?.error || healthResponse.statusText || 'OpenCode health check failed',
+          error: health?.error || healthResponse.statusText || 'OMP health check failed',
         });
       }
       return res.json({ healthy: health?.healthy === true });
     } catch (error) {
       return res.status(503).json({
         healthy: false,
-        error: error instanceof Error ? error.message : 'OpenCode health check failed',
+        error: error instanceof Error ? error.message : 'OMP health check failed',
       });
     }
   });
@@ -358,7 +358,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       if (!healthResponse.ok) {
         return res.status(healthResponse.status).json({
           version: null,
-          error: health?.error || healthResponse.statusText || 'Failed to read OpenCode version',
+          error: health?.error || healthResponse.statusText || 'Failed to read OMP version',
         });
       }
       const version = typeof health?.version === 'string' ? health.version.replace(/^v/, '') : null;
@@ -366,7 +366,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
     } catch (error) {
       return res.status(500).json({
         version: null,
-        error: error instanceof Error ? error.message : 'Failed to read OpenCode version',
+        error: error instanceof Error ? error.message : 'Failed to read OMP version',
       });
     }
   });
@@ -529,7 +529,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         const payload = await upstream.json().catch(() => null);
         return finish(502, {
           title: 'Authorization Failed',
-          message: payload?.error || payload?.message || `OpenCode rejected the authorization code (${upstream.status}). Start authorization again from MCP Settings.`,
+          message: payload?.error || payload?.message || `OMP rejected the authorization code (${upstream.status}). Start authorization again from MCP Settings.`,
         });
       }
       return finish(200, {
@@ -624,7 +624,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
 
       return res.json({
         ...buildDeferredRestartResponse(
-          `Provider ${providerID} saved. Restart OpenCode to apply.`,
+          `Provider ${providerID} saved. Restart OMPChamber to apply.`,
         ),
         providerId: upsertResult.providerId,
         path: upsertResult.path,
@@ -686,7 +686,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         return res.json({
           success: true,
           removed,
-          ...buildDeferredRestartResponse('Provider disconnected successfully. Restart OpenCode to apply.'),
+          ...buildDeferredRestartResponse('Provider disconnected successfully. Restart OMPChamber to apply.'),
         });
       }
 
@@ -750,7 +750,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
         settings: updated,
       });
     } catch (error) {
-      console.error('Failed to update OpenCode working directory:', error);
+      console.error('Failed to update OMP working directory:', error);
       return res.status(500).json({ error: error.message || 'Failed to update working directory' });
     }
   });
@@ -793,7 +793,7 @@ ${desktopReturn ? `<a class="return" href="openchamber://focus/mcp-auth">Return 
       await fs.promises.writeFile(AGENTS_MD_PATH, content, 'utf8');
 
       return res.json(buildDeferredRestartResponse(
-        'AGENTS.md saved. Restart OpenCode to apply.',
+        'AGENTS.md saved. Restart OMPChamber to apply.',
       ));
     } catch (error) {
       console.error('Failed to write AGENTS.md:', error);

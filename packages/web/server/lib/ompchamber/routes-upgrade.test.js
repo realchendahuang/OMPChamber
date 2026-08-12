@@ -27,8 +27,8 @@ const createApp = (overrides = {}) => {
   return { app, dependencies };
 };
 
-describe('OpenCode upgrade routes', () => {
-  it('fails closed without contacting the bundled OpenCode updater', async () => {
+describe('OMP upgrade routes', () => {
+  it('fails closed without contacting the bundled OMP updater', async () => {
     globalThis.fetch = vi.fn();
     const { app } = createApp();
 
@@ -38,7 +38,7 @@ describe('OpenCode upgrade routes', () => {
       .expect(409, {
         success: false,
         code: 'OPENCODE_UPGRADE_MANAGED_BY_OMPCHAMBER',
-        error: 'OpenCode is bundled with OMPChamber Desktop and updates with the app.',
+        error: 'OMP is bundled with OMPChamber Desktop and updates with the app.',
       });
 
     expect(globalThis.fetch).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe('OpenCode upgrade routes', () => {
     const { app, dependencies } = createApp({
       getOmpUpgradeCapability: () => ({
         supported: true,
-        manager: 'opencode',
+        manager: 'omp',
         reason: null,
       }),
     });
@@ -103,11 +103,63 @@ describe('OpenCode upgrade routes', () => {
       .expect(409, {
         success: false,
         code: 'OPENCODE_UPGRADE_IN_PROGRESS',
-        error: 'An OpenCode upgrade is already in progress.',
+        error: 'An OMP upgrade is already in progress.',
       });
 
     releaseUpgrade();
     await first;
     expect(dependencies.refreshOmpAfterConfigChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('checks OMP feeds (npm scoped package + oh-my-pi releases) when upgrades are supported', async () => {
+    const requestedUrls = [];
+    globalThis.fetch = vi.fn(async (input) => {
+      const url = String(input);
+      requestedUrls.push(url);
+      if (url === 'http://127.0.0.1:4096/global/health') {
+        return new Response(JSON.stringify({ version: '17.2.12' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (url === 'https://registry.npmjs.org/@oh-my-pi%2Fpi-coding-agent/latest') {
+        return new Response(JSON.stringify({ version: '17.2.15' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (url === 'https://api.github.com/repos/can1357/oh-my-pi/releases/latest') {
+        return new Response(JSON.stringify({ tag_name: 'v17.2.14' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('not found', { status: 404 });
+    });
+    const { app } = createApp({
+      getOmpUpgradeCapability: () => ({
+        supported: true,
+        manager: 'omp',
+        reason: null,
+      }),
+    });
+
+    const response = await request(app)
+      .get('/api/omp/upgrade-status')
+      .expect(200);
+
+    expect(response.body).toEqual({
+      available: true,
+      currentVersion: '17.2.12',
+      latestVersion: '17.2.15',
+      upgrade: {
+        supported: true,
+        manager: 'omp',
+        reason: null,
+      },
+    });
+    expect(requestedUrls).toContain('https://registry.npmjs.org/@oh-my-pi%2Fpi-coding-agent/latest');
+    expect(requestedUrls).toContain('https://api.github.com/repos/can1357/oh-my-pi/releases/latest');
+    expect(requestedUrls.some((url) => url.includes('opencode'))).toBe(false);
   });
 });

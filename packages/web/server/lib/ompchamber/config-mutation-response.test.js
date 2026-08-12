@@ -7,12 +7,12 @@ import {
 
 describe('config mutation response helpers', () => {
   test('buildDeferredRestartResponse marks restart as deferred', () => {
-    expect(buildDeferredRestartResponse('Saved. Restart OpenCode to apply.')).toEqual({
+    expect(buildDeferredRestartResponse('Saved. Restart OMPChamber to apply.')).toEqual({
       success: true,
       requiresReload: false,
       requiresRestart: true,
       restartDeferred: true,
-      message: 'Saved. Restart OpenCode to apply.',
+      message: 'Saved. Restart OMPChamber to apply.',
     });
   });
 
