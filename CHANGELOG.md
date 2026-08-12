@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-08-12
+
+- **Packaged desktop apps ship the OMP engine again.** electron-builder's file matcher silently dropped the bundled `omp-cli` `node_modules` tree from `extraResources`, producing installers with a launcher but no engine. The runtime is now staged by `afterPack` (with a hard build failure when the engine entry is missing), and the release pipeline verifies the packaged tree.
+- **Windows packaging fixed.** `prepare-omp-cli` now spawns `npm.cmd` on Windows — `spawnSync` cannot resolve the `.cmd` shim without a shell, which broke the "Prepare bundled OMP CLI" release step.
+- **Linux AppImage release builds fixed.** The Go `app-builder` binary downloads the AppImage toolchain with a retry-less HTTP client that dies with a bare EOF on GitHub-hosted runners (electron-builder surfaces no error at all). Release CI now pre-seeds the toolchain cache with curl+7z so the flaky download never happens. Root-caused with an ubuntu:24.04 Docker reproduction of the release job.
+
 ## [2.0.0] - 2026-08-12
 
 - **OpenCode naming purged across the product.** The UI package (~192 files), the VS Code extension, the documentation site (10 locales), the CLI, Docker assets, and developer tooling now use OMP/OMPChamber naming throughout — components, modules, types, i18n keys (11 locales), bridge message types, and user-facing strings. Historical references to OpenCode and OpenChamber (attribution, migration notes) are intentionally preserved.
