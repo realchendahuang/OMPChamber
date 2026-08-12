@@ -63,6 +63,26 @@ const prepare = async () => {
     `@oh-my-pi/pi-coding-agent@${PINNED_OMP_VERSION}`,
   ], { stdio: 'pipe' });
 
+  // Prune compile-time-only artifacts from the staged engine tree. They are
+  // never read at runtime, but they double the file count the macOS signing
+  // walk must open (EMFILE) and inflate every installer.
+  const prunePatterns = [/\.d\.ts$/, /\.map$/];
+  const pending = [path.join(outputDir, 'node_modules')];
+  let prunedCount = 0;
+  while (pending.length > 0) {
+    const directory = pending.pop();
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const fullPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(fullPath);
+      } else if (entry.isFile() && prunePatterns.some((pattern) => pattern.test(entry.name))) {
+        fs.rmSync(fullPath);
+        prunedCount += 1;
+      }
+    }
+  }
+  console.log(`Pruned ${prunedCount} compile-time-only files (.d.ts/.map) from the bundled OMP tree.`);
+
   // npm installs a bin shim at node_modules/.bin/omp (JS entry via bun/node).
   const binShim = path.join(outputDir, 'node_modules', '.bin', 'omp');
   const cliPath = path.join(outputDir, 'node_modules', '@oh-my-pi', 'pi-coding-agent', 'dist', 'cli.js');

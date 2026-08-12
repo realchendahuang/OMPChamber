@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ## [2.0.2] - 2026-08-12
 
 - **Releases no longer require signing secrets.** The macOS desktop job now produces unsigned (ad-hoc signed) DMG/ZIP artifacts when the Apple certificate secrets are absent — unsigned builds install via right-click → Open (Gatekeeper warns once). When the secrets are present, signing, the hardened-runtime/entitlement verification, and notarization run exactly as before.
+- **Bundled OMP tree slimmed and made portable.** `prepare-omp-cli` prunes compile-time-only `.d.ts`/`.map` files (~13k files, ~110MB) from the staged engine — they are never read at runtime and their file count exhausted the macOS signing walk (EMFILE) — and `afterPack` now copies npm's `.bin` shims verbatim, so packaged apps no longer contain absolute symlinks into the build machine (which also broke macOS codesign).
 - **Android falls back to a self-signed keystore.** Without `ANDROID_KEYSTORE_*` secrets the mobile pipeline generates a throwaway key and still ships an installable APK/AAB for sideloading. iOS TestFlight still requires paid-developer signing; the job now skips with a notice instead of failing when those secrets are missing.
 - **npm publish skips cleanly without `NPM_TOKEN`** instead of failing the release run.
 

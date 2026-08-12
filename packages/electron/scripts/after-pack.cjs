@@ -17,7 +17,11 @@ module.exports = (context) => {
       throw new Error(`Missing staged OMP CLI dependencies at ${ompCliSource}; run "bun run prepare:omp-cli" first`);
     }
     fs.rmSync(ompCliTarget, { recursive: true, force: true });
-    fs.cpSync(ompCliSource, ompCliTarget, { recursive: true });
+    // verbatimSymlinks: npm's .bin shims are relative symlinks; the default
+    // would rewrite them as absolute build-machine paths, which breaks
+    // packaged installs and macOS codesign ("invalid destination for
+    // symbolic link in bundle").
+    fs.cpSync(ompCliSource, ompCliTarget, { recursive: true, verbatimSymlinks: true });
   }
   if (!fs.existsSync(engineEntry)) {
     throw new Error(`OMP CLI engine entry missing after staging: ${engineEntry}`);
