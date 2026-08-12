@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-08-12
+
+- **Real multi-session support for the OMP engine.** The adapter's `GET /api/session`, `GET /api/session/:id`, and `DELETE /api/session/:id` endpoints now read from the OMP on-disk session store (`session-store.js` + `session-manager.js`), merging live sessions into the list. Deleted sessions remove their companion subagent directories; missing files return 404; active-session deletion behavior is explicitly defined and tested.
+- **Command output appears in the chat timeline.** OMP `command_output` frames are normalized and bridged as `ompchamber:command-output` SSE events; the UI sync layer consumes them as synthetic assistant messages with replay deduplication and parent-message attribution.
+- **Plan file paths fully OMP-branded.** `PlanView` and the server fs guard now use `.omp/plans` and `~/.omp/plans` consistently.
+- **Settings keys fully renamed with no legacy fallback.** `opencodeBinary` → `ompBinary`, `showOpenCodeUpdateNotifications` → `showOmpUpdateNotifications`, `openCodeUpdateToastDismissedVersion` → `ompUpdateToastDismissedVersion`; the localStorage dismissal key is now `omp-update-toast-dismissed-version`. The `OPENCODE_BINARY` env fallback was removed from binary resolution and the CLI preflight.
+- **Dead OpenCode branch-prefix workarounds removed.** The sidebar path normalizer no longer special-cases `opencode/`, and `GitView` no longer tries to fix a self-referential `opencode/` branch.
+- **Polish:** tightened internal `session-store` exports; dead-code scan holds at the 2 pre-existing unused files (`smoke-test.mjs` and `tool-normalizer.js`).
+
 ## [2.0.3] - 2026-08-12
 
 - **Windows desktops can now run the bundled OMP engine.** The staged launcher was a POSIX `sh` script that `CreateProcess` cannot execute, so bundled OMP could never spawn on Windows. `prepare-omp-cli` now always writes both an `omp` sh launcher and an `omp.cmd` batch launcher, the Electron main process resolves `omp.cmd` on win32, and the server's process manager spawns `.cmd`/`.bat` binaries through the shell (`windowsHide` set).

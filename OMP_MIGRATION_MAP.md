@@ -309,3 +309,28 @@ Phase 6  browser/lsp/mcp/skills/extensions/memory/github/debug
 - `gitService.ts` 读 `storage/project/<id>.json` 的 `commands.start` 在 OMP 下是否有效无法从本仓库证实。
 
 **验证基线（2026-08-12，v2.0.3）**：web vitest 全量 135 files / 1237 pass / 1 skip（1 flake 隔离重跑 6/6 通过）；adapter 集成测试 33/33（真实二进制）；vscode `bun test --isolate` 101 pass/0 fail；web/ui/vscode/electron type-check 全绿；web + vscode build 成功；electron `test:architecture` 43/43；knip 无新增告警。
+
+## 10. Phase 9：v2.0.4 妥协清零（2026-08-12）
+
+业主已确认产品未正式发布，允许彻底 breaking change、不要任何迁移/兼容 fallback 代码。
+
+**Server 端真化：**
+- 多会话：新增 `packages/web/server/agent-runtime/omp/session-store.js` 读取 OMP 磁盘会话（布局经真实 `omp/17.2.12` 二进制验证），`session-manager.js` 实现 `listSessions`/`resumeSession`/`deleteSession`；HTTP 端点 `GET /api/session`、`GET /api/session/:id`、`DELETE /api/session/:id` 接到真实实现；损坏文件跳过，删除同时清理子代理伴随目录。
+- `command_output` 上时间线：`event-normalizer.js` 映射 `command_output` 帧 → `command-output` domain event；`omp-event-bridge.js` 投影为 `ompchamber:command-output` SSE；UI `event-reducer.ts` 消费为合成 assistant 消息，支持 Last-Event-ID 重放去重与显式 messageID 归属。
+- fs 守卫：`packages/web/server/lib/fs/routes.js` 的 plans 路径从 `.opencode/plans` 改为 `.omp/plans`。
+- 设置键彻底改名：`lib/ompchamber/settings-helpers.js` 白名单、`omp-binary-resolution.js` 解析、CLI（`bin/cli.js` / `cli-executables.js` / `cli-startup.js` / `commands-serve.js` / `cli-args.js`）、UI（`desktop.ts` / `persistence.ts` / `useUIStore.ts` / `OmpCliSettings.tsx` / `OmpUpdateToast.tsx` / `LocalSetupScreen.tsx` / `ChooserScreen.tsx`）及测试同步；localStorage 键同步改名；移除 `OPENCODE_BINARY` fallback。
+
+**UI 端：**
+- `PlanView.tsx` 写路径改为 `.omp/plans` / `~/.omp/plans`。
+- 设置键、localStorage 键、组件、测试同步改名。
+- 移除 `components/session/sidebar/utils.tsx` 的 `opencode/` 前缀归一化与 `GitView.tsx` 的 `opencode/` 自指向分支修复。
+
+**剩余偏差（非阻塞，如实记录）：**
+- revert/unrevert 仍为 OMP RPC 真实缺口，保持 501。
+- `ompchamber:available-commands` SSE 暂无 UI 消费者。
+- `app.skills`/`app.agents` 仍为空（OMP 命令条目无 `location`/`content` 字段，映射会产生坏数据）。
+- PlanView 路径已 OMP 化；历史 `.opencode/plans` 文件不迁移（产品未发布，无用户数据包袱）。
+- Windows 端到端 spawn（`omp.cmd` + `shell:true`）依赖 CI/手动实测。
+- `gitService.ts` 的 `commands.start` 兼容性未从本仓库证实。
+
+**验证基线（2026-08-12，v2.0.4）**：web vitest 135 files / 1240 pass / 1 skip；vscode `bun test --isolate` 101 pass/0 fail；UI type-check 干净、目标测试 31 pass；electron `test:architecture` 43/43；web + vscode build 成功；knip 无新增告警（仍为 2 个历史未使用文件：`smoke-test.mjs`、`tool-normalizer.js`）。

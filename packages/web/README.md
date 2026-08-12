@@ -99,7 +99,6 @@ Generating a client token does not automatically password-protect the hosted bro
 | Variable | Description |
 |----------|-------------|
 | `OMP_BINARY` | Full path to the `omp` binary (default: `omp` on PATH) |
-| `OPENCODE_BINARY` | Deprecated alias for `OMP_BINARY` (legacy fallback; warns when used) |
 | `OMPCHAMBER_HOST` | Bind hostname for the OMPChamber web server (default: `127.0.0.1`; use `0.0.0.0` for LAN/remote access — trusted networks only) |
 | `OMPCHAMBER_VERBOSE_REQUEST_LOGS` | Set to `true` to log every HTTP request; disabled by default to keep user logs small |
 | `OMPCHAMBER_SKIP_API_COMPRESSION` | Set to `true` to disable gzip compression for `/api/*` responses |
