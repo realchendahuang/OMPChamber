@@ -458,6 +458,27 @@ jobs:
           bun run test:architecture
           bun run test:updater
 
+      - name: Pre-seed AppImage toolchain cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The Go app-builder binary downloads appimage-12.0.1.7z with a
+          # retry-less HTTP client that dies with a bare EOF on the runners
+          # (no error surfaced by electron-builder). Pre-seed its cache
+          # (<ELECTRON_BUILDER_CACHE|~/.cache/electron-builder>/appimage/appimage-12.0.1)
+          # so the flaky download never happens.
+          CACHE_ROOT="${ELECTRON_BUILDER_CACHE:-$HOME/.cache/electron-builder}"
+          TOOL_DIR="$CACHE_ROOT/appimage/appimage-12.0.1"
+          if [ ! -x "$TOOL_DIR/linux-${{ matrix.arch }}/mksquashfs" ]; then
+            command -v 7z >/dev/null || { sudo apt-get update; sudo apt-get install -y p7zip-full; }
+            mkdir -p "$TOOL_DIR"
+            curl -fsSL --retry 5 --retry-all-errors -o /tmp/appimage-12.0.1.7z \
+              https://github.com/electron-userland/electron-builder-binaries/releases/download/appimage-12.0.1/appimage-12.0.1.7z
+            7z x -bd /tmp/appimage-12.0.1.7z -o"$TOOL_DIR" >/dev/null
+            rm -f /tmp/appimage-12.0.1.7z
+          fi
+          test -x "$TOOL_DIR/linux-${{ matrix.arch }}/mksquashfs"
+
       - name: Build and package Linux AppImage
         working-directory: packages/electron
         env:
