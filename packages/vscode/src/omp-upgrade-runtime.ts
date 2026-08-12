@@ -1,7 +1,7 @@
 type UpgradeCapability = {
   supported: boolean;
-  manager: 'opencode' | 'external' | 'ompchamber' | null;
-  reason: 'external' | 'unavailable' | 'windows-arm64-workaround' | null;
+  manager: 'omp' | 'external' | 'ompchamber' | null;
+  reason: 'external' | 'unavailable' | null;
 };
 
 export type OmpUpgradeManager = {
@@ -14,12 +14,6 @@ export type OmpUpgradeManager = {
 type UpgradeResult = { status: number; body: Record<string, unknown> };
 
 let ompUpgradePromise: Promise<UpgradeResult> | null = null;
-
-// TEMPORARY WORKAROUND — Windows ARM64: native opencode.exe fails with a Bun
-// FFI/TinyCC dlopen error (https://github.com/anomalyco/opencode/issues/19130).
-// Disable OpenCode self-upgrade on ARM64 so it can't overwrite the working x64
-// binary with the broken ARM64 build. Remove when the upstream issue is resolved.
-const isWindowsArm64 = (): boolean => process.platform === 'win32' && process.arch === 'arm64';
 
 const parseVersion = (value: unknown): { parts: number[]; prerelease: boolean } => {
   const normalized = String(value || '').replace(/^v/, '').split('+')[0];
@@ -45,11 +39,10 @@ const compareVersions = (left: unknown, right: unknown): number => {
 };
 
 const getCapability = (manager?: OmpUpgradeManager): UpgradeCapability => {
-  if (isWindowsArm64()) return { supported: false, manager: 'ompchamber', reason: 'windows-arm64-workaround' };
   if (!manager) return { supported: false, manager: null, reason: 'unavailable' };
   if (manager.getDebugInfo().mode !== 'managed') return { supported: false, manager: 'external', reason: 'external' };
   if (!manager.getApiUrl()) return { supported: false, manager: null, reason: 'unavailable' };
-  return { supported: true, manager: 'opencode', reason: null };
+  return { supported: true, manager: 'omp', reason: null };
 };
 
 const getApiUrl = (manager?: OmpUpgradeManager): string | null => {
@@ -59,21 +52,21 @@ const getApiUrl = (manager?: OmpUpgradeManager): string | null => {
 
 const fetchLatestVersion = async (): Promise<string> => {
   const results = await Promise.allSettled([
-    fetch('https://registry.npmjs.org/opencode-ai/latest', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) })
+    fetch('https://registry.npmjs.org/@oh-my-pi%2Fpi-coding-agent/latest', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) })
       .then(async (response) => {
-        if (!response.ok) throw new Error(`OpenCode npm registry responded with ${response.status}`);
+        if (!response.ok) throw new Error(`OMP npm registry responded with ${response.status}`);
         const payload = await response.json() as { version?: unknown };
         return typeof payload.version === 'string' ? payload.version.trim().replace(/^v/, '') : '';
       }),
-    fetch('https://api.github.com/repos/anomalyco/opencode/releases/latest', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) })
+    fetch('https://api.github.com/repos/can1357/oh-my-pi/releases/latest', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) })
       .then(async (response) => {
-        if (!response.ok) throw new Error(`OpenCode releases responded with ${response.status}`);
+        if (!response.ok) throw new Error(`OMP releases responded with ${response.status}`);
         const payload = await response.json() as { tag_name?: unknown };
         return typeof payload.tag_name === 'string' ? payload.tag_name.trim().replace(/^v/, '') : '';
       }),
   ]);
   const versions = results.flatMap((result) => result.status === 'fulfilled' && result.value ? [result.value] : []);
-  if (versions.length === 0) throw new Error('Failed to resolve latest OpenCode version');
+  if (versions.length === 0) throw new Error('Failed to resolve latest OMP version');
   return versions.sort((left, right) => compareVersions(right, left))[0];
 };
 
@@ -102,7 +95,7 @@ export const upgradeManagedOmp = async (manager: OmpUpgradeManager | undefined, 
   const upgrade = getCapability(manager);
   const apiUrl = getApiUrl(manager);
   if (!upgrade.supported || !apiUrl || !manager) {
-    return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_UNSUPPORTED', error: 'This OpenCode runtime cannot be upgraded by OMPChamber.' } };
+    return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_UNSUPPORTED', error: 'This OMP runtime cannot be upgraded by OMPChamber.' } };
   }
   if (ompUpgradePromise) {
     return { status: 409, body: { success: false, code: 'OPENCODE_UPGRADE_IN_PROGRESS', error: 'An OMP upgrade is already in progress.' } };

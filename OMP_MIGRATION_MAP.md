@@ -275,3 +275,37 @@ Phase 6  browser/lsp/mcp/skills/extensions/memory/github/debug
 - opencode-go 配额集成（外部第三方服务）；skill `source: 'opencode'` 数据契约；OpenCode-shaped SSE schema（`processOpenCodeSsePayload`，UI sync 层形状名）；`OPENCODE_UPGRADE_*` payload codes 与外部 release-feed URL（升级检查仍读上游 feed 的形状）。
 
 **验证基线（2026-08-12）**：web vitest 全量 130 files / 1179 pass / 1 skip；web/ui/vscode type-check 全绿；vscode `bun test --isolate` 96 pass/0 fail；ui `bun test` 1588 pass / 257 fail（与上游基线完全一致）。注意：packages/web 下**禁止直接 `bun test`**（bun 运行器跨文件假定时器泄漏会挂起，官方路径是 `bun run test` 即 vitest）。
+
+## 10. Phase 8：妥协代码打磨（2026-08-12，v2.0.3）
+
+对迁移遗留的妥协/降级实现做全仓审计并真化。关键事实：**OMP 引擎自身会读 `opencode.json` / `.opencode/` / `~/.config/opencode/`**（MCP/skills/commands/settings/AGENTS.md 插件加载，已从 bundled cli.js 验证），因此 Phase 7 保留的磁盘路径契约不是死写，配置 CRUD 层是活功能。
+
+**Server adapter 真化**（全部经真实 omp/17.2.12 二进制 RPC 实验验证）：
+- `GET /api/command` 接 `get_available_commands`（真实命令列表，OpenCode 形状）；`available_commands_update` 帧 → `ompchamber:available-commands` SSE；`POST /api/session/:id/command` 校验命令名后经 `prompt "/name args"` 执行（实验证实可执行；未注册命令会静默降级为普通文本，故 adapter 先校验）。
+- `POST /api/session/:id/shell` → `bash` RPC（新增 `bash`/`abort_bash` 常量）；`/summarize` → `compact()` 别名；`/fork` 与 `/branch` 改用 `get_branch_messages` + `branch(entryId)`（修复了原本对真实 OMP 必然失败的 no-args branch）。
+- `/api/global/version` + `/api/global/health` 返回真实 OMP 版本（启动时 `omp --version`，compatibility 解析，未知时回退 `'1.0.0'`）。
+- `GET /api/session/status` 事件派生 busy/idle（`agent_start`/`agent_end`，`get_state` 的 `isStreaming`/`isCompacting` 权威对账）；`/api/session/:id/todo` 由 `todo_reminder`/`todo_auto_clear` 帧填充。
+- `GET /api/question` + `/api/permission` 由 ui-request-handler 新增 pending 注册表供数（track/untrack/clear，crash 清理）。
+- scheduled-tasks 默认 `listCommands`/`runSessionCommand` 走真实端点。
+- 修复 skill 重命名路径 `refreshOmpAfterConfigChange`/`clientReloadDelayMs` 未解构的 `ReferenceError`（潜在 bug，含回归测试）。
+- 设置里的自定义 OMP binary（`opencodeBinary` 持久化 key）真正生效：新模块 `lib/ompchamber/omp-binary-resolution.js`，优先级 `OMP_BINARY` env > settings > `OPENCODE_BINARY`（deprecated）> `omp`。**注意**：Electron 总是注入 `OMP_BINARY`，桌面端 env 优先 by design，设置在 CLI/standalone 运行生效。
+- `process-manager.js` Windows spawn：`.cmd/.bat` 时 `shell: true` + `windowsHide`（CVE-2024-27980）。
+
+**Electron 打包**：
+- Windows bundled OMP 启动器修复：`prepare-omp-cli.mjs` 始终写双启动器（`omp` sh + `omp.cmd` bat），`main.mjs` win32 解析 `omp.cmd`（原 sh 启动器在 Windows 永远无法 spawn）。
+- onnxruntime-node 双副本（1.21.0 + transformers 嵌套 1.24.3，各含全平台 napi 预编译产物）按目标架构剪枝，每包省 ~350MB；同时删除 staged `.bin`。目标架构解析走 `OMPCHAMBER_TARGET_ARCH`/`ELECTRON_BUILDER_ARCH`/CLI args/host；CI Windows job 已补 `ELECTRON_BUILDER_ARCH`（arm64 交叉编译必需）。
+- `verify-linux-appimage.mjs` 版本改为 import `PINNED_OMP_VERSION`（消除硬编码漂移）。
+
+**升级链路**：OMP 引擎版本检查 feed 从 OpenCode 上游（`anomalyco/opencode`、`opencode-ai`）重定向到真实渠道（`can1357/oh-my-pi` releases + npm `@oh-my-pi%2Fpi-coding-agent`，均探测 200，当前上游 17.2.15 vs pinned 17.2.12）；`OPENCODE_UPGRADE_*` payload codes 按契约保留；删除全链路 Windows ARM64 workaround（`platform.ts` 等 5 文件）；VS Code `manager: 'opencode'` → `'omp'`。
+
+**文案清扫**：server + VS Code 全部 "Restart OpenCode to apply" → "Restart OMPChamber to apply"（约 35 处含测试断言）；PWA manifest description、health/version/auth 错误文案、过时注释（sidecar/OpenCode 叙事）一并修正。VS Code 侧确认配置应用语义为「落盘立即生效，运行中 server 不热重载，`api:config/reload` 真实重启 spawn 的 server」。
+
+**已知剩余偏差（非阻塞，如实记录）**：
+- revert/unrevert、session delete、多 session 列表为 OMP RPC 真实缺口，保持 501/降级。
+- `app.skills`/`app.agents` 空列表：OMP 命令条目无 `location`/`content` 字段，映射会产生坏数据，保持显式为空。
+- `command_output` 帧未投影到聊天时间线（UI 侧消费工作）；`ompchamber:available-commands` SSE 暂无 UI 消费者。
+- UI `PlanView` 仍写 `.opencode/plans/`（OMP 自身 plans 在 `~/.omp/agent/plans`）——OMPChamber 自有计划文档功能，迁移路径涉及用户数据，待产品决策。
+- Windows 端到端 spawn（`omp.cmd` + `shell:true`）未经真实 Windows 主机验证，依赖 CI/手动 smoke test。
+- `gitService.ts` 读 `storage/project/<id>.json` 的 `commands.start` 在 OMP 下是否有效无法从本仓库证实。
+
+**验证基线（2026-08-12，v2.0.3）**：web vitest 全量 135 files / 1237 pass / 1 skip（1 flake 隔离重跑 6/6 通过）；adapter 集成测试 33/33（真实二进制）；vscode `bun test --isolate` 101 pass/0 fail；web/ui/vscode/electron type-check 全绿；web + vscode build 成功；electron `test:architecture` 43/43；knip 无新增告警。

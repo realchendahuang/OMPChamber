@@ -24,16 +24,17 @@ describe('VS Code OMP upgrades', () => {
     const { manager } = createManager();
     globalThis.fetch = (async (input: Parameters<typeof fetch>[0]) => {
       const url = String(input);
-      if (url.endsWith('/api/global/health')) return new Response(JSON.stringify({ version: '1.18.8' }));
-      if (url.includes('registry.npmjs.org')) return new Response(JSON.stringify({ version: '1.18.9' }));
-      return new Response(JSON.stringify({ tag_name: 'v1.18.9' }));
+      if (url.endsWith('/api/global/health')) return new Response(JSON.stringify({ version: '17.2.12' }));
+      if (url === 'https://registry.npmjs.org/@oh-my-pi%2Fpi-coding-agent/latest') return new Response(JSON.stringify({ version: '17.2.15' }));
+      if (url === 'https://api.github.com/repos/can1357/oh-my-pi/releases/latest') return new Response(JSON.stringify({ tag_name: 'v17.2.14' }));
+      return new Response('not found', { status: 404 });
     }) as typeof fetch;
 
     assert.deepEqual(await getOmpUpgradeStatus(manager), {
       available: true,
-      currentVersion: '1.18.8',
-      latestVersion: '1.18.9',
-      upgrade: { supported: true, manager: 'opencode', reason: null },
+      currentVersion: '17.2.12',
+      latestVersion: '17.2.15',
+      upgrade: { supported: true, manager: 'omp', reason: null },
     });
   });
 
@@ -50,7 +51,7 @@ describe('VS Code OMP upgrades', () => {
       body: {
         success: false,
         code: 'OPENCODE_UPGRADE_UNSUPPORTED',
-        error: 'This OpenCode runtime cannot be upgraded by OMPChamber.',
+        error: 'This OMP runtime cannot be upgraded by OMPChamber.',
       },
     });
     assert.equal(fetchCount, 0);

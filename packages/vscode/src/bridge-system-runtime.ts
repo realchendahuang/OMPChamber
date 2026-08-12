@@ -450,7 +450,7 @@ export async function handleSystemBridgeMessage(
           data: {
             removed,
             ...(removed
-              ? buildDeferredRestartResponse(`Provider ${providerId} disconnected successfully. Restart OpenCode to apply.`)
+              ? buildDeferredRestartResponse(`Provider ${providerId} disconnected successfully. Restart OMPChamber to apply.`)
               : {
                 success: true,
                 requiresReload: false,

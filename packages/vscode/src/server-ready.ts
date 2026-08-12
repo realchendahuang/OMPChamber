@@ -10,13 +10,14 @@ export async function waitForApiUrl(
     return null;
   }
 
-  // Only hand out an API URL once OpenCode has actually passed its readiness
-  // check. getApiUrl() exposes `server.url` as soon as the process is spawned —
-  // BEFORE waitForReady confirms it can serve — so URL-presence alone would
-  // forward requests to a not-yet-ready OpenCode (and to a stale port during a
-  // workspace-switch restart). Gating on the connected status, which flips only
-  // after readiness and clears while restarting, mirrors the web proxy's
-  // isOmpReady hold and closes that pre-ready forwarding window.
+  // Only hand out an API URL once the OMPChamber server has actually passed
+  // its readiness check. getApiUrl() exposes `server.url` as soon as the
+  // process is spawned — BEFORE waitForReady confirms it can serve — so
+  // URL-presence alone would forward requests to a not-yet-ready server (and
+  // to a stale port during a workspace-switch restart). Gating on the
+  // connected status, which flips only after readiness and clears while
+  // restarting, mirrors the web proxy's isOmpReady hold and closes that
+  // pre-ready forwarding window.
   const readyUrl = (): string | null => {
     if (manager.getStatus() !== 'connected') {
       return null;

@@ -126,7 +126,7 @@ describe('VS Code config bridge plugin parity', () => {
       requiresReload: false,
       requiresRestart: true,
       restartDeferred: true,
-      message: 'Plugin entry changed. Restart OpenCode to apply.',
+      message: 'Plugin entry changed. Restart OMPChamber to apply.',
     });
     expect(ctx.restart).not.toHaveBeenCalled();
 
@@ -301,7 +301,7 @@ describe('VS Code config bridge plugin parity', () => {
       requiresReload: false,
       requiresRestart: true,
       restartDeferred: true,
-      message: 'MCP server "mcp-deferred" created. Restart OpenCode to apply.',
+      message: 'MCP server "mcp-deferred" created. Restart OMPChamber to apply.',
     });
     expect(ctx.restart).not.toHaveBeenCalled();
     expect(readJson(path.join(root, '.opencode', 'opencode.json')).mcp['mcp-deferred']).toMatchObject({

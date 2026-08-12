@@ -71,10 +71,10 @@ const proxyAbortControllers = new Map<string, AbortController>();
 // On cold start the webview's two data layers — the sync bootstrap and the
 // config store — fire the SAME idempotent reads (config, path, agents, agent,
 // project, command) concurrently through the bridge with no shared dedup. That
-// saturates the single OpenCode process and delays everything queued behind it
-// (e.g. createSession). Coalesce genuinely-concurrent identical GETs to those
-// read endpoints so OpenCode does the work once; every caller gets its own
-// response payload copy.
+// saturates the single OMPChamber server process and delays everything queued
+// behind it (e.g. createSession). Coalesce genuinely-concurrent identical GETs
+// to those read endpoints so the server does the work once; every caller gets
+// its own response payload copy.
 //
 // Scope is deliberately tight: GET only, an allowlist of read paths. The shared
 // fetch runs without a per-request AbortController, so one caller's
@@ -166,8 +166,8 @@ export async function handleProxyBridgeMessage(
 
       const base = `${apiUrl.replace(/\/+$/, '')}/`;
       // The webview forwards the full /api-prefixed path; the OMPChamber server
-      // serves its OpenCode-compatible API under /api, so the path is resolved
-      // verbatim against the server base URL.
+      // serves its API under /api, so the path is resolved verbatim against the
+      // server base URL.
       const targetUrl = new URL(normalizedPath.replace(/^\/+/, ''), base).toString();
       const requestHeaders: Record<string, string> = {
         ...deps.sanitizeForwardHeaders(headers),
@@ -180,7 +180,8 @@ export async function handleProxyBridgeMessage(
           : undefined;
 
       // Coalesce concurrent identical GET reads to idempotent endpoints so the
-      // single OpenCode process serves them once. The shared fetch carries no
+      // single OMPChamber server process serves them once. The shared fetch
+      // carries no
       // AbortController (api:proxy:abort can't cancel these reads), so one
       // caller aborting can't strand the others.
       const coalesceKey =

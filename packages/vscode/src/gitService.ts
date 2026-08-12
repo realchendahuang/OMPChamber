@@ -1482,11 +1482,10 @@ const loadProjectStartCommand = async (projectID: string): Promise<string> => {
   }
 };
 
-// OpenCode owns its own project/sandbox registry and records a worktree as a
-// sandbox itself when an instance boots for that directory. OMPChamber used to
-// write that state into OpenCode's storage JSON directly, behind the back of the
-// running process — and since OpenCode v2 reads sandboxes from its database, the
-// JSON write did not even reach it. Registration is not ours to perform.
+// The OMP engine/OMPChamber server owns project and worktree registration.
+// The extension must not write registration state into the engine's storage
+// files directly, behind the back of the running process — registration is
+// not ours to perform.
 
 const isInsideOrSameDirectory = (root: string, target: string): boolean => {
   const relative = path.relative(root, target);

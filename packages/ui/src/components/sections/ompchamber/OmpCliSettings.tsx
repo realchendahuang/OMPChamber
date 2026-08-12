@@ -16,7 +16,6 @@ import { recordDeferredOmpRestart } from '@/lib/agent/deferredRestart';
 import { useUIStore } from '@/stores/useUIStore';
 import { useI18n } from '@/lib/i18n';
 import { runtimeFetch } from '@/lib/runtime-fetch';
-import { isWindowsArm64 } from '@/lib/platform';
 import { toast } from '@/components/ui';
 
 export const OmpCliSettings: React.FC = () => {
@@ -150,15 +149,13 @@ export const OmpCliSettings: React.FC = () => {
         </SettingsFieldRow>
 
         <SettingsInset className={SETTINGS_OPTION_STACK_CLASS}>
-          {!isWindowsArm64() && (
-            <SettingsCheckboxRow
-              settingsItem="sessions.omp-update-notifications"
-              checked={showOpenCodeUpdateNotifications}
-              onChange={handleShowUpdateNotificationsChange}
-              label={t('settings.ompchamber.ompCli.field.showUpdateNotifications')}
-              ariaLabel={t('settings.ompchamber.ompCli.field.showUpdateNotificationsAria')}
-            />
-          )}
+          <SettingsCheckboxRow
+            settingsItem="sessions.omp-update-notifications"
+            checked={showOpenCodeUpdateNotifications}
+            onChange={handleShowUpdateNotificationsChange}
+            label={t('settings.ompchamber.ompCli.field.showUpdateNotifications')}
+            ariaLabel={t('settings.ompchamber.ompCli.field.showUpdateNotificationsAria')}
+          />
 
           <SettingsCheckboxRow
             settingsItem="sessions.agent-control-tool"
