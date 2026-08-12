@@ -219,6 +219,10 @@ jobs:
           # target Electron ABI before packaging, otherwise node-pty/bun-pty
           # crash on require inside the packaged app.
           bun run rebuild:native
+          # macOS defaults to a 256-descriptor soft limit; signing walks the
+          # whole bundled omp-cli tree (tens of thousands of files) and dies
+          # with EMFILE without a raised limit.
+          ulimit -n 65536 || ulimit -n 10240 || true
           if [ -n "$APPLE_CERTIFICATE" ]; then
             bunx electron-builder --mac --${{ matrix.arch }} --publish=never
           else
