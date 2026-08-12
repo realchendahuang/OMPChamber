@@ -136,20 +136,27 @@ jobs:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
-          if [[ -z "$ANDROID_KEYSTORE_BASE64" ]]; then
-            echo "ANDROID_KEYSTORE_BASE64 secret is required."
-            exit 1
+          if [[ -n "$ANDROID_KEYSTORE_BASE64" ]]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/ompchamber-release.keystore"
+          else
+            # No keystore secret configured: fall back to a throwaway
+            # self-signed key so the APK/AAB is still installable via sideload.
+            echo "ANDROID_KEYSTORE_BASE64 secret not set; generating a self-signed keystore for this build."
+            keytool -genkeypair -noprompt \
+              -keystore "$RUNNER_TEMP/ompchamber-release.keystore" \
+              -alias ompchamber -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass ompchamber -keypass ompchamber \
+              -dname "CN=OMPChamber, OU=OSS, O=OMPChamber, C=US"
           fi
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/ompchamber-release.keystore"
 
       - name: Build signed Android release
         env:
           OMPCHAMBER_ANDROID_VERSION_CODE: ${{ needs.resolve-version.outputs.build_number }}
           OMPCHAMBER_ANDROID_VERSION_NAME: ${{ needs.resolve-version.outputs.version_name }}
           OMPCHAMBER_ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/ompchamber-release.keystore
-          OMPCHAMBER_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          OMPCHAMBER_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          OMPCHAMBER_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          OMPCHAMBER_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'ompchamber' }}
+          OMPCHAMBER_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || 'ompchamber' }}
+          OMPCHAMBER_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD || 'ompchamber' }}
         run: |
           bun run mobile:sync
           ./packages/mobile/android/gradlew -p packages/mobile/android bundleRelease assembleRelease
@@ -189,6 +196,8 @@ jobs:
     if: inputs.build_ios
     runs-on: macos-26
     needs: resolve-version
+    env:
+      IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
     steps:
       - uses: actions/checkout@v4
 
@@ -199,7 +208,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Notice when iOS signing is not configured
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 == ''
+        run: echo "iOS signing secrets are not configured; skipping the TestFlight build. Apple requires paid-developer signing for iOS distribution."
+
       - name: Install Apple signing assets
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 != ''
         shell: bash
         env:
           IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
@@ -252,9 +266,11 @@ jobs:
           install_profile "$nse_profile" IOS_NSE_PROFILE_UUID
 
       - name: Prepare mobile assets
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 != ''
         run: bun run mobile:sync
 
       - name: Set TestFlight entitlement and versions
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 != ''
         shell: bash
         env:
           VERSION_NAME: ${{ needs.resolve-version.outputs.version_name }}
@@ -322,6 +338,7 @@ jobs:
         working-directory: ${{ env.IOS_PROJECT_DIR }}
 
       - name: Archive iOS app
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 != ''
         shell: bash
         run: |
           set -euo pipefail
@@ -335,6 +352,7 @@ jobs:
         working-directory: ${{ env.IOS_PROJECT_DIR }}
 
       - name: Export IPA
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 != ''
         shell: bash
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -382,6 +400,7 @@ jobs:
         working-directory: ${{ env.IOS_PROJECT_DIR }}
 
       - name: Upload IPA artifact
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 != ''
         uses: actions/upload-artifact@v4
         with:
           name: ompchamber-ios-${{ needs.resolve-version.outputs.version_name }}-${{ needs.resolve-version.outputs.build_number }}
@@ -389,6 +408,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload to TestFlight
+        if: env.IOS_DISTRIBUTION_CERTIFICATE_BASE64 != ''
         shell: bash
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}

@@ -84,6 +84,8 @@ jobs:
   publish-npm:
     needs: create-release
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
@@ -116,7 +118,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm
-        if: ${{ github.event.inputs.dry_run != 'true' }}
+        if: ${{ github.event.inputs.dry_run != 'true' && env.NPM_TOKEN != '' }}
         working-directory: packages/web
         run: npm publish --access public
         env:
@@ -125,6 +127,8 @@ jobs:
   build-desktop-electron-macos:
     needs: create-release
     runs-on: ${{ matrix.runner }}
+    env:
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
     strategy:
       fail-fast: false
       matrix:
@@ -168,6 +172,7 @@ jobs:
             omp-cli-${{ runner.os }}-${{ matrix.arch }}-
 
       - name: Install Apple Certificate
+        if: env.APPLE_CERTIFICATE != ''
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -214,7 +219,15 @@ jobs:
           # target Electron ABI before packaging, otherwise node-pty/bun-pty
           # crash on require inside the packaged app.
           bun run rebuild:native
-          bunx electron-builder --mac --${{ matrix.arch }} --publish=never
+          if [ -n "$APPLE_CERTIFICATE" ]; then
+            bunx electron-builder --mac --${{ matrix.arch }} --publish=never
+          else
+            # No signing secrets configured: produce unsigned (ad-hoc signed)
+            # artifacts. electron-builder skips notarization automatically
+            # when the Apple ID env vars are absent.
+            echo "APPLE_CERTIFICATE secret not set; building unsigned macOS artifacts."
+            CSC_IDENTITY_AUTO_DISCOVERY=false bunx electron-builder --mac --${{ matrix.arch }} --publish=never -c.dmg.sign=false
+          fi
           # Verify the packaged app ships the OMP CLI bundle (afterPack
           # stages resources/omp-cli into <resources>/omp-cli).
           PACKAGED_OMP=$(find dist -type f -path '*/omp-cli/omp' -print -quit)
@@ -226,6 +239,7 @@ jobs:
           echo "Verified packaged OMP CLI: $PACKAGED_OMP"
 
       - name: Verify signature + entitlements + notarization
+        if: env.APPLE_CERTIFICATE != ''
         run: |
           set -euo pipefail
 

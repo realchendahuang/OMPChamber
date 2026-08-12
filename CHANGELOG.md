@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-08-12
+
+- **Releases no longer require signing secrets.** The macOS desktop job now produces unsigned (ad-hoc signed) DMG/ZIP artifacts when the Apple certificate secrets are absent — unsigned builds install via right-click → Open (Gatekeeper warns once). When the secrets are present, signing, the hardened-runtime/entitlement verification, and notarization run exactly as before.
+- **Android falls back to a self-signed keystore.** Without `ANDROID_KEYSTORE_*` secrets the mobile pipeline generates a throwaway key and still ships an installable APK/AAB for sideloading. iOS TestFlight still requires paid-developer signing; the job now skips with a notice instead of failing when those secrets are missing.
+- **npm publish skips cleanly without `NPM_TOKEN`** instead of failing the release run.
+
 ## [2.0.1] - 2026-08-12
 
 - **Packaged desktop apps ship the OMP engine again.** electron-builder's file matcher silently dropped the bundled `omp-cli` `node_modules` tree from `extraResources`, producing installers with a launcher but no engine. The runtime is now staged by `afterPack` (with a hard build failure when the engine entry is missing), and the release pipeline verifies the packaged tree.
