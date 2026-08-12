@@ -119,7 +119,6 @@ const isNormalizedPathWithinProject = (normalizedDirectory: string | null, norma
 export const normalizeForBranchComparison = (value: string): string => {
   return value
     .toLowerCase()
-    .replace(/^opencode[/-]?/i, '')
     .replace(/[-_]/g, '')
     .trim();
 };

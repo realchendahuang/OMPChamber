@@ -70,7 +70,7 @@ const persistRuntimeSettingsMirror = (settings: DesktopSettings, runtimeKey: str
     openInAppId: settings.openInAppId,
     pwaAppName: settings.pwaAppName,
     mobileKeyboardMode: settings.mobileKeyboardMode,
-    openCodeUpdateToastDismissedVersion: settings.openCodeUpdateToastDismissedVersion,
+    ompUpdateToastDismissedVersion: settings.ompUpdateToastDismissedVersion,
     dictationEnabled: settings.dictationEnabled,
     sttProvider: settings.sttProvider,
     sttServerUrl: settings.sttServerUrl,
@@ -168,15 +168,15 @@ const persistToLocalStorage = (settings: DesktopSettings) => {
     localStorage.removeItem('ompchamber.pwaName');
   }
   setStoredMobileKeyboardMode(settings.mobileKeyboardMode);
-  if (typeof settings.openCodeUpdateToastDismissedVersion === 'string') {
-    const version = settings.openCodeUpdateToastDismissedVersion.trim();
+  if (typeof settings.ompUpdateToastDismissedVersion === 'string') {
+    const version = settings.ompUpdateToastDismissedVersion.trim();
     if (version) {
-      localStorage.setItem('opencode-update-toast-dismissed-version', version);
+      localStorage.setItem('omp-update-toast-dismissed-version', version);
     } else {
-      localStorage.removeItem('opencode-update-toast-dismissed-version');
+      localStorage.removeItem('omp-update-toast-dismissed-version');
     }
   } else {
-    localStorage.removeItem('opencode-update-toast-dismissed-version');
+    localStorage.removeItem('omp-update-toast-dismissed-version');
   }
   if (typeof settings.dictationEnabled === 'boolean') {
     localStorage.setItem('dictationEnabled', String(settings.dictationEnabled));
@@ -551,7 +551,7 @@ const materializeAuthoritativeUiSettings = (settings: DesktopSettings): DesktopS
     summaryLength: defaults.summaryLength,
     maxLastMessageLength: defaults.maxLastMessageLength,
     inputSpellcheckEnabled: defaults.inputSpellcheckEnabled,
-    showOpenCodeUpdateNotifications: defaults.showOpenCodeUpdateNotifications,
+    showOmpUpdateNotifications: defaults.showOmpUpdateNotifications,
     agentControlToolEnabled: defaults.agentControlToolEnabled,
     showToolFileIcons: defaults.showToolFileIcons,
     codeBlockLineWrap: defaults.codeBlockLineWrap,
@@ -718,10 +718,10 @@ const applyDesktopUiPreferences = (settings: DesktopSettings) => {
     store.setInputSpellcheckEnabled(settings.inputSpellcheckEnabled);
   }
   if (
-    typeof settings.showOpenCodeUpdateNotifications === 'boolean'
-    && settings.showOpenCodeUpdateNotifications !== store.showOpenCodeUpdateNotifications
+    typeof settings.showOmpUpdateNotifications === 'boolean'
+    && settings.showOmpUpdateNotifications !== store.showOmpUpdateNotifications
   ) {
-    store.setShowOpenCodeUpdateNotifications(settings.showOpenCodeUpdateNotifications);
+    store.setShowOmpUpdateNotifications(settings.showOmpUpdateNotifications);
   }
   if (
     typeof settings.agentControlToolEnabled === 'boolean'
@@ -1039,9 +1039,9 @@ const sanitizeWebSettings = (payload: unknown): DesktopSettings | null => {
     result.homeDirectory = candidate.homeDirectory;
   }
 
-  if (typeof candidate.opencodeBinary === 'string') {
-    const trimmed = candidate.opencodeBinary.trim();
-    result.opencodeBinary = trimmed.length > 0 ? trimmed : undefined;
+  if (typeof candidate.ompBinary === 'string') {
+    const trimmed = candidate.ompBinary.trim();
+    result.ompBinary = trimmed.length > 0 ? trimmed : undefined;
   }
   if (typeof candidate.desktopLanAccessEnabled === 'boolean') {
     result.desktopLanAccessEnabled = candidate.desktopLanAccessEnabled;
@@ -1378,14 +1378,14 @@ const sanitizeWebSettings = (payload: unknown): DesktopSettings | null => {
   if (typeof candidate.inputSpellcheckEnabled === 'boolean') {
     result.inputSpellcheckEnabled = candidate.inputSpellcheckEnabled;
   }
-  if (typeof candidate.showOpenCodeUpdateNotifications === 'boolean') {
-    result.showOpenCodeUpdateNotifications = candidate.showOpenCodeUpdateNotifications;
+  if (typeof candidate.showOmpUpdateNotifications === 'boolean') {
+    result.showOmpUpdateNotifications = candidate.showOmpUpdateNotifications;
   }
   if (typeof candidate.agentControlToolEnabled === 'boolean') {
     result.agentControlToolEnabled = candidate.agentControlToolEnabled;
   }
-  if (typeof candidate.openCodeUpdateToastDismissedVersion === 'string') {
-    result.openCodeUpdateToastDismissedVersion = candidate.openCodeUpdateToastDismissedVersion.trim().slice(0, 128);
+  if (typeof candidate.ompUpdateToastDismissedVersion === 'string') {
+    result.ompUpdateToastDismissedVersion = candidate.ompUpdateToastDismissedVersion.trim().slice(0, 128);
   }
   if (typeof candidate.showToolFileIcons === 'boolean') {
     result.showToolFileIcons = candidate.showToolFileIcons;

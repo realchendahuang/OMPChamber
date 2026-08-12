@@ -79,9 +79,9 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
       try {
         const response = await runtimeFetch('/api/config/settings', { method: 'GET', headers: { Accept: 'application/json' } });
         if (!response.ok) return;
-        const data = (await response.json().catch(() => null)) as null | { opencodeBinary?: unknown };
+        const data = (await response.json().catch(() => null)) as null | { ompBinary?: unknown };
         if (!data || cancelled) return;
-        const value = typeof data.opencodeBinary === 'string' ? data.opencodeBinary.trim() : '';
+        const value = typeof data.ompBinary === 'string' ? data.ompBinary.trim() : '';
         if (value) setOmpBinary(value);
       } catch {
         // ignore
@@ -192,7 +192,7 @@ export function ChooserScreen({ onCliAvailable, localAvailable = true }: Chooser
   const handleApplyPath = React.useCallback(async () => {
     setIsApplyingPath(true);
     try {
-      await updateDesktopSettings({ opencodeBinary: ompBinary.trim() });
+      await updateDesktopSettings({ ompBinary: ompBinary.trim() });
       if (isDesktopApp) {
         await persistFirstChoice('local');
         await restartDesktopApp();

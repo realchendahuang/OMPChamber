@@ -361,6 +361,7 @@ Keep this in sync with `handleDirectoryEvent` in `sync-context.tsx`:
 | `todo.updated` | `todo` |
 | `message.updated` | `message` |
 | `message.removed` | `message`, `part` |
+| `ompchamber:command-output` | `message`, `part` |
 | `message.part.updated/removed/delta` | `part` |
 | `vcs.branch.updated` | (none — mutates `draft.vcs` directly) |
 | `permission.asked/replied` | `permission` |

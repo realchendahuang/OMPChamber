@@ -3,7 +3,7 @@
 // One relay connection per client session carries all app traffic; a tunnel
 // reconnect fails every open stream and the app's existing retry machinery
 // (runtime-fetch retries, event-pipeline reconnect) recovers.
-// Spec: .opencode/plans/private-relay/01-protocol-spec.md
+// Spec: .omp/plans/private-relay/01-protocol-spec.md
 
 import { createClientHandshake, type EstablishedChannelCrypto } from './handshake';
 import {

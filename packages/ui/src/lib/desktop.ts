@@ -56,8 +56,8 @@ export type DesktopSettings = {
   splashFgDark?: string;
   lastDirectory?: string;
   homeDirectory?: string;
-  // Optional absolute path to the `omp` binary (settings key retained as `opencodeBinary`).
-  opencodeBinary?: string;
+  // Optional absolute path to the `omp` binary.
+  ompBinary?: string;
   desktopLanAccessEnabled?: boolean;
   desktopKeepAwakeEnabled?: boolean;
   desktopMinimizeToTrayEnabled?: boolean;
@@ -155,10 +155,10 @@ export type DesktopSettings = {
   desktopWindowControlsPosition?: DesktopWindowControlsPosition;
   desktopWindowControlsStyle?: DesktopWindowControlsStyle;
   inputSpellcheckEnabled?: boolean;
-  showOpenCodeUpdateNotifications?: boolean;
+  showOmpUpdateNotifications?: boolean;
   agentControlToolEnabled?: boolean;
   optimizeSystemPrompt?: boolean;
-  openCodeUpdateToastDismissedVersion?: string;
+  ompUpdateToastDismissedVersion?: string;
   showToolFileIcons?: boolean;
   codeBlockLineWrap?: boolean;
   showTurnChangedFiles?: boolean;

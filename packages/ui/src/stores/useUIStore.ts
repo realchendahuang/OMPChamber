@@ -715,7 +715,7 @@ interface UIStore {
 
   showTerminalQuickKeysOnDesktop: boolean;
   persistChatDraft: boolean;
-  showOpenCodeUpdateNotifications: boolean;
+  showOmpUpdateNotifications: boolean;
   agentControlToolEnabled: boolean;
   inputSpellcheckEnabled: boolean;
   wideChatLayoutEnabled: boolean;
@@ -887,7 +887,7 @@ interface UIStore {
   setSummaryLength: (value: number) => void;
   setMaxLastMessageLength: (value: number) => void;
   setPersistChatDraft: (value: boolean) => void;
-  setShowOpenCodeUpdateNotifications: (value: boolean) => void;
+  setShowOmpUpdateNotifications: (value: boolean) => void;
   setAgentControlToolEnabled: (value: boolean) => void;
   setInputSpellcheckEnabled: (value: boolean) => void;
   setWideChatLayoutEnabled: (value: boolean) => void;
@@ -1045,7 +1045,7 @@ export const useUIStore = create<UIStore>()(
 
         showTerminalQuickKeysOnDesktop: false,
         persistChatDraft: true,
-        showOpenCodeUpdateNotifications: true,
+        showOmpUpdateNotifications: true,
         agentControlToolEnabled: true,
         inputSpellcheckEnabled: false,
         wideChatLayoutEnabled: false,
@@ -2257,8 +2257,8 @@ export const useUIStore = create<UIStore>()(
         setPersistChatDraft: (value) => {
           set({ persistChatDraft: value });
         },
-        setShowOpenCodeUpdateNotifications: (value) => {
-          set({ showOpenCodeUpdateNotifications: value });
+        setShowOmpUpdateNotifications: (value) => {
+          set({ showOmpUpdateNotifications: value });
         },
         setAgentControlToolEnabled: (value) => {
           set({ agentControlToolEnabled: value });
@@ -2589,7 +2589,7 @@ export const useUIStore = create<UIStore>()(
           summaryLength: state.summaryLength,
           maxLastMessageLength: state.maxLastMessageLength,
           persistChatDraft: state.persistChatDraft,
-          showOpenCodeUpdateNotifications: state.showOpenCodeUpdateNotifications,
+          showOmpUpdateNotifications: state.showOmpUpdateNotifications,
           agentControlToolEnabled: state.agentControlToolEnabled,
           inputSpellcheckEnabled: state.inputSpellcheckEnabled,
           wideChatLayoutEnabled: state.wideChatLayoutEnabled,

@@ -99,9 +99,9 @@ export function LocalSetupScreen({
       try {
         const response = await runtimeFetch('/api/config/settings', { method: 'GET', headers: { Accept: 'application/json' } });
         if (!response.ok) return;
-        const data = (await response.json().catch(() => null)) as null | { opencodeBinary?: unknown };
+        const data = (await response.json().catch(() => null)) as null | { ompBinary?: unknown };
         if (!data || cancelled) return;
-        const value = typeof data.opencodeBinary === 'string' ? data.opencodeBinary.trim() : '';
+        const value = typeof data.ompBinary === 'string' ? data.ompBinary.trim() : '';
         if (value) {
           setOmpBinary(value);
         }
@@ -156,7 +156,7 @@ export function LocalSetupScreen({
   const handleApplyPath = React.useCallback(async () => {
     setIsRetrying(true);
     try {
-      await updateDesktopSettings({ opencodeBinary: ompBinary.trim() });
+      await updateDesktopSettings({ ompBinary: ompBinary.trim() });
 
       // In desktop boot flow, restart the app so the native host can
       // re-evaluate the boot outcome with the updated binary path.

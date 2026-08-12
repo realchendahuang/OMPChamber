@@ -19,19 +19,19 @@ const UPDATE_TOAST_ID = 'omp-update-available';
 const UPGRADE_TOAST_ID = 'omp-upgrade-progress';
 const INITIAL_CHECK_DELAY_MS = 5_000;
 const CHECK_RETRY_DELAYS_MS = [10_000, 60_000];
-const UPDATE_TOAST_DISMISSED_VERSION_KEY = 'opencode-update-toast-dismissed-version';
+const UPDATE_TOAST_DISMISSED_VERSION_KEY = 'omp-update-toast-dismissed-version';
 
 export const OmpUpdateToast: React.FC = () => {
   const { t } = useI18n();
-  const showOpenCodeUpdateNotifications = useUIStore((state) => state.showOpenCodeUpdateNotifications);
+  const showOmpUpdateNotifications = useUIStore((state) => state.showOmpUpdateNotifications);
   const seenVersionsRef = React.useRef(new Set<string>());
   const upgradingRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!showOpenCodeUpdateNotifications) {
+    if (!showOmpUpdateNotifications) {
       toast.dismiss(UPDATE_TOAST_ID);
     }
-  }, [showOpenCodeUpdateNotifications]);
+  }, [showOmpUpdateNotifications]);
 
   const reloadOmp = React.useCallback(() => {
     toast.dismiss(UPGRADE_TOAST_ID);
@@ -95,7 +95,7 @@ export const OmpUpdateToast: React.FC = () => {
       // Upstream setting wins over our dedup logic: if user disabled
       // OMP update notifications, dismiss any active toast and bail
       // before consulting dedup state.
-      if (!useUIStore.getState().showOpenCodeUpdateNotifications) {
+      if (!useUIStore.getState().showOmpUpdateNotifications) {
         toast.dismiss(UPDATE_TOAST_ID);
         return;
       }
@@ -121,7 +121,7 @@ export const OmpUpdateToast: React.FC = () => {
           label: t('ompUpdate.toast.actions.dismiss'),
           onClick: () => {
             getDeferredSafeStorage().setItem(UPDATE_TOAST_DISMISSED_VERSION_KEY, version);
-            void updateDesktopSettings({ openCodeUpdateToastDismissedVersion: version });
+            void updateDesktopSettings({ ompUpdateToastDismissedVersion: version });
             toast.dismiss(UPDATE_TOAST_ID);
           },
         },
@@ -155,14 +155,14 @@ export const OmpUpdateToast: React.FC = () => {
       }
     };
 
-    if (showOpenCodeUpdateNotifications) {
+    if (showOmpUpdateNotifications) {
       timeoutIds.push(setTimeout(() => { void checkForUpdate(0); }, INITIAL_CHECK_DELAY_MS));
     }
 
     const unsubscribeRuntime = subscribeRuntimeEndpointChanged(({ runtimeKey }) => {
       seenVersionsRef.current.clear();
       toast.dismiss(UPDATE_TOAST_ID);
-      if (useUIStore.getState().showOpenCodeUpdateNotifications) {
+      if (useUIStore.getState().showOmpUpdateNotifications) {
         void checkForUpdate(0, runtimeKey);
       }
     });
@@ -174,7 +174,7 @@ export const OmpUpdateToast: React.FC = () => {
       unsubscribeRuntime();
       window.removeEventListener('ompchamber:omp-update-available', onUpdateAvailable);
     };
-  }, [runUpgrade, showOpenCodeUpdateNotifications, t]);
+  }, [runUpgrade, showOmpUpdateNotifications, t]);
 
   return null;
 };

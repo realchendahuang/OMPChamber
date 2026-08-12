@@ -23,8 +23,8 @@ export const OmpCliSettings: React.FC = () => {
   const [value, setValue] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
-  const showOpenCodeUpdateNotifications = useUIStore((state) => state.showOpenCodeUpdateNotifications);
-  const setShowOpenCodeUpdateNotifications = useUIStore((state) => state.setShowOpenCodeUpdateNotifications);
+  const showOmpUpdateNotifications = useUIStore((state) => state.showOmpUpdateNotifications);
+  const setShowOmpUpdateNotifications = useUIStore((state) => state.setShowOmpUpdateNotifications);
   const agentControlToolEnabled = useUIStore((state) => state.agentControlToolEnabled);
   const setAgentControlToolEnabled = useUIStore((state) => state.setAgentControlToolEnabled);
 
@@ -39,11 +39,11 @@ export const OmpCliSettings: React.FC = () => {
         if (!response.ok) {
           return;
         }
-        const data = (await response.json().catch(() => null)) as null | { opencodeBinary?: unknown };
+        const data = (await response.json().catch(() => null)) as null | { ompBinary?: unknown };
         if (cancelled || !data) {
           return;
         }
-        const next = typeof data.opencodeBinary === 'string' ? data.opencodeBinary.trim() : '';
+        const next = typeof data.ompBinary === 'string' ? data.ompBinary.trim() : '';
         setValue(next);
       } catch {
         // ignore
@@ -88,7 +88,7 @@ export const OmpCliSettings: React.FC = () => {
           || (trimmed.startsWith("'") && trimmed.endsWith("'")))
         ? trimmed.slice(1, -1).trim()
         : trimmed;
-      await updateDesktopSettings({ opencodeBinary: unquoted });
+      await updateDesktopSettings({ ompBinary: unquoted });
       recordDeferredOmpRestart('cli', { id: 'omp-binary' });
       toast.success(t('settings.view.pendingRestart.saved'));
     } finally {
@@ -97,9 +97,9 @@ export const OmpCliSettings: React.FC = () => {
   }, [t, value]);
 
   const handleShowUpdateNotificationsChange = React.useCallback((enabled: boolean) => {
-    setShowOpenCodeUpdateNotifications(enabled);
-    void updateDesktopSettings({ showOpenCodeUpdateNotifications: enabled });
-  }, [setShowOpenCodeUpdateNotifications]);
+    setShowOmpUpdateNotifications(enabled);
+    void updateDesktopSettings({ showOmpUpdateNotifications: enabled });
+  }, [setShowOmpUpdateNotifications]);
 
   const handleAgentControlToolChange = React.useCallback((enabled: boolean) => {
     setAgentControlToolEnabled(enabled);
@@ -151,7 +151,7 @@ export const OmpCliSettings: React.FC = () => {
         <SettingsInset className={SETTINGS_OPTION_STACK_CLASS}>
           <SettingsCheckboxRow
             settingsItem="sessions.omp-update-notifications"
-            checked={showOpenCodeUpdateNotifications}
+            checked={showOmpUpdateNotifications}
             onChange={handleShowUpdateNotificationsChange}
             label={t('settings.ompchamber.ompCli.field.showUpdateNotifications')}
             ariaLabel={t('settings.ompchamber.ompCli.field.showUpdateNotificationsAria')}

@@ -184,6 +184,52 @@ function hasMessage(draft: State, sessionID: string | undefined, messageID: stri
   return Binary.search(messages, messageID, (message) => message.id).found
 }
 
+// ID generator matching OMP's Identifier.ascending format (same scheme as the
+// optimistic-send IDs in session-actions.ts): BigInt(timestamp) * 0x1000 +
+// counter, encoded as 6 hex bytes + random base62, so client-generated IDs
+// sort correctly with server-generated ones.
+let lastCommandOutputIdTimestamp = 0
+let commandOutputIdCounter = 0
+
+function ascendingCommandOutputId(prefix: string): string {
+  const now = Date.now()
+  if (now !== lastCommandOutputIdTimestamp) {
+    lastCommandOutputIdTimestamp = now
+    commandOutputIdCounter = 0
+  }
+  commandOutputIdCounter += 1
+
+  const value = BigInt(now) * BigInt(0x1000) + BigInt(commandOutputIdCounter)
+  const bytes = new Uint8Array(6)
+  for (let i = 0; i < 6; i++) {
+    bytes[i] = Number((value >> BigInt(40 - 8 * i)) & BigInt(0xff))
+  }
+
+  let hex = ""
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0")
+  }
+
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+  let rand = ""
+  for (let i = 0; i < 14; i++) {
+    rand += chars[Math.floor(Math.random() * 62)]
+  }
+
+  return `${prefix}_${hex}${rand}`
+}
+
+function insertSortedById<T>(list: T[], item: T, idOf: (entry: T) => string): T[] {
+  const next = [...list]
+  const result = Binary.search(next, idOf(item), idOf)
+  if (result.found) {
+    next[result.index] = item
+  } else {
+    next.splice(result.index, 0, item)
+  }
+  return next
+}
+
 export function reduceGlobalEvent(event: Event): GlobalEventResult {
   if (event.type === "global.disposed" || event.type === "server.connected") {
     return { type: "refresh" }
@@ -338,6 +384,130 @@ export function applyDirectoryEvent(
         return false
       }
       draft.subagent[sessionID] = next
+      return true
+    }
+
+    case "ompchamber:command-output": {
+      // OMP `command_output` frames (slash-command results such as `/session`)
+      // project onto this synthetic event (omp-event-bridge). OMP does not
+      // model command output as a message, so we append a client-only
+      // synthetic assistant message with a single synthetic text part, which
+      // renders through the standard assistant text path. Partial behavior,
+      // made explicit:
+      // - The message is live-only: the next authoritative message load for
+      //   the session replaces it (the server does not persist command
+      //   output), so it is never proof of history.
+      // - Timeline turns group assistant messages by parentID, so the message
+      //   is parented to the user message that produced it: an explicit
+      //   payload messageID when it resolves to a loaded message, otherwise
+      //   the session's latest loaded user message (the slash-command prompt
+      //   in the normal case). When no user message is loaded yet, a hidden
+      //   synthetic user marker is created so the output still has a turn to
+      //   render in (subagent-nudge/shell-bridge precedent: its synthetic
+      //   text part is filtered from display).
+      // - SSE Last-Event-ID replay re-delivers the event; delivery is
+      //   deduplicated by a content key stored on the synthetic message, so
+      //   replay and out-of-order re-delivery are no-ops. Identical outputs
+      //   (same session/message/command/text) collapse into one message — a
+      //   missing duplicate is safer than doubled content.
+      // - The part is marked synthetic so the message is fully synthetic:
+      //   excluded from assistant-activity and model-choice derivation, never
+      //   a live-status signal. The message carries finish/completed
+      //   timestamps so it cannot affect streaming state.
+      const props = event.properties as {
+        sessionID?: string
+        text?: string
+        command?: string
+        messageID?: string
+      }
+      const sessionID = typeof props?.sessionID === "string" ? props.sessionID : ""
+      const text = typeof props?.text === "string" ? props.text : ""
+      if (!sessionID || !text) return false
+      const command = typeof props?.command === "string" && props.command.trim().length > 0 ? props.command : undefined
+      const sourceMessageID = typeof props?.messageID === "string" && props.messageID.length > 0 ? props.messageID : undefined
+      const dedupeKey = JSON.stringify([sessionID, sourceMessageID ?? "", command ?? "", text])
+
+      const messages = draft.message[sessionID] ?? []
+      const isDuplicate = messages.some(
+        (message) => (message as { commandOutputKey?: unknown }).commandOutputKey === dedupeKey,
+      )
+      if (isDuplicate) return false
+
+      const now = Date.now()
+
+      let parentUserID: string | undefined
+      if (sourceMessageID) {
+        const source = messages.find((message) => message.id === sourceMessageID)
+        if (source) {
+          parentUserID = source.role === "user"
+            ? source.id
+            : (source as { parentID?: unknown }).parentID as string | undefined
+        }
+      }
+      if (!parentUserID) {
+        for (let index = messages.length - 1; index >= 0; index -= 1) {
+          const candidate = messages[index]
+          if (candidate.role === "user" && (candidate as { commandOutputMarker?: unknown }).commandOutputMarker !== true) {
+            parentUserID = candidate.id
+            break
+          }
+        }
+      }
+
+      let nextMessages = messages
+      if (!parentUserID) {
+        const markerID = ascendingCommandOutputId("msg")
+        const marker = {
+          id: markerID,
+          sessionID,
+          role: "user",
+          time: { created: now },
+          agent: "",
+          model: { providerID: "", modelID: "" },
+          commandOutputMarker: true,
+        } as unknown as Message
+        nextMessages = insertSortedById(nextMessages, marker, (message) => message.id)
+        parentUserID = markerID
+        draft.part[markerID] = [{
+          id: ascendingCommandOutputId("prt"),
+          sessionID,
+          messageID: markerID,
+          type: "text",
+          text: command ? `/${command}` : "",
+          synthetic: true,
+          time: { start: now, end: now },
+        } as unknown as Part]
+      }
+
+      const assistantID = ascendingCommandOutputId("msg")
+      const assistant = {
+        id: assistantID,
+        sessionID,
+        role: "assistant",
+        time: { created: now, completed: now },
+        parentID: parentUserID,
+        modelID: "",
+        providerID: "",
+        mode: "",
+        agent: "",
+        path: { cwd: "", root: "" },
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        finish: "stop",
+        commandOutputKey: dedupeKey,
+      } as unknown as Message
+      nextMessages = insertSortedById(nextMessages, assistant, (message) => message.id)
+      draft.message[sessionID] = nextMessages
+      draft.part[assistantID] = [{
+        id: ascendingCommandOutputId("prt"),
+        sessionID,
+        messageID: assistantID,
+        type: "text",
+        text,
+        synthetic: true,
+        time: { start: now, end: now },
+        ...(command ? { metadata: { command } } : {}),
+      } as unknown as Part]
       return true
     }
 

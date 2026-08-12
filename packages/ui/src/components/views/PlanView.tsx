@@ -77,11 +77,11 @@ const joinPath = (base: string, segment: string): string => {
 };
 
 const buildRepoPlanPath = (directory: string, created: number, slug: string): string => {
-  return joinPath(joinPath(joinPath(directory, '.opencode'), 'plans'), `${created}-${slug}.md`);
+  return joinPath(joinPath(joinPath(directory, '.omp'), 'plans'), `${created}-${slug}.md`);
 };
 
 const buildHomePlanPath = (created: number, slug: string): string => {
-  return `~/.opencode/plans/${created}-${slug}.md`;
+  return `~/.omp/plans/${created}-${slug}.md`;
 };
 
 const resolveTilde = (path: string, homeDir: string | null): string => {

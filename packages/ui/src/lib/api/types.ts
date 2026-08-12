@@ -639,7 +639,7 @@ export interface SettingsPayload {
   darkThemeId?: string;
   lastDirectory?: string;
   homeDirectory?: string;
-  opencodeBinary?: string;
+  ompBinary?: string;
   projects?: ProjectEntry[];
   activeProjectId?: string;
   securityScopedBookmarks?: string[];
@@ -657,8 +657,8 @@ export interface SettingsPayload {
   queueModeEnabled?: boolean;
   gitmojiEnabled?: boolean;
   inputSpellcheckEnabled?: boolean;
-  showOpenCodeUpdateNotifications?: boolean;
-  openCodeUpdateToastDismissedVersion?: string;
+  showOmpUpdateNotifications?: boolean;
+  ompUpdateToastDismissedVersion?: string;
   showToolFileIcons?: boolean;
   codeBlockLineWrap?: boolean;
   showTurnChangedFiles?: boolean;

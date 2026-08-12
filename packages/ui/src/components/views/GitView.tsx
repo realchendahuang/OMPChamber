@@ -591,16 +591,6 @@ export const GitView: React.FC<GitViewProps> = ({ isActive }) => {
     const normalizedRoot = typeof rootBranchHint === 'string' ? rootBranchHint.trim() : '';
 
     if (normalizedFromMeta) {
-      const looksLikeCorruptedSelfTarget =
-        normalizedFromMeta === current &&
-        normalizedFromMeta.startsWith('opencode/') &&
-        normalizedRoot.length > 0 &&
-        normalizedRoot !== normalizedFromMeta;
-
-      if (looksLikeCorruptedSelfTarget) {
-        return normalizedRoot;
-      }
-
       return normalizedFromMeta;
     }
     if (normalizedRoot) {

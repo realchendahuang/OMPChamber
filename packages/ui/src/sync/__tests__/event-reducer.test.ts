@@ -343,4 +343,132 @@ describe("applyDirectoryEvent", () => {
 
     expect(result).toBe(false)
   })
+
+  test("appends ompchamber:command-output as a finished synthetic assistant message", () => {
+    const draft = state({
+      message: {
+        ses_1: [
+          { id: "msg_u1", sessionID: "ses_1", role: "user", time: { created: 1 } },
+          { id: "msg_a1", sessionID: "ses_1", role: "assistant", time: { created: 2, completed: 3 }, parentID: "msg_u1" },
+        ] as State["message"]["ses_1"],
+      },
+    })
+
+    const result = applyDirectoryEvent(draft, {
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1", text: "session: abc123", command: "session" },
+    } as Event)
+
+    expect(result).toBe(true)
+    const messages = draft.message.ses_1
+    expect(messages.length).toBe(3)
+    // Locate by the dedupe key: fixture ids above do not follow the ascending
+    // id format, so array position is not meaningful here.
+    const appended = messages.find((message) => (message as { commandOutputKey?: unknown }).commandOutputKey !== undefined)
+    expect(appended).toBeDefined()
+    expect(appended?.role).toBe("assistant")
+    expect((appended as { parentID?: unknown }).parentID).toBe("msg_u1")
+    expect((appended as { finish?: unknown }).finish).toBe("stop")
+    expect(typeof (appended?.time as { completed?: unknown }).completed).toBe("number")
+    const parts = draft.part[(appended as NonNullable<typeof appended>).id]
+    expect(parts.length).toBe(1)
+    expect(parts[0].type).toBe("text")
+    expect((parts[0] as { text?: unknown }).text).toBe("session: abc123")
+    expect((parts[0] as { synthetic?: unknown }).synthetic).toBe(true)
+    expect((parts[0] as { metadata?: unknown }).metadata).toEqual({ command: "session" })
+  })
+
+  test("deduplicates replayed ompchamber:command-output deliveries", () => {
+    const draft = state({
+      message: {
+        ses_1: [{ id: "msg_u1", sessionID: "ses_1", role: "user", time: { created: 1 } }] as State["message"]["ses_1"],
+      },
+    })
+    const event = {
+      id: "evt_42",
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1", text: "session: abc123", command: "session" },
+    } as Event
+
+    expect(applyDirectoryEvent(draft, event)).toBe(true)
+    expect(applyDirectoryEvent(draft, event)).toBe(false)
+    expect(draft.message.ses_1.length).toBe(2)
+
+    // Identical payload without an event id also collapses.
+    const anonymous = {
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1", text: "session: abc123", command: "session" },
+    } as Event
+    expect(applyDirectoryEvent(draft, anonymous)).toBe(false)
+    expect(draft.message.ses_1.length).toBe(2)
+
+    // A different output is a new message.
+    expect(applyDirectoryEvent(draft, {
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1", text: "session: def456", command: "session" },
+    } as Event)).toBe(true)
+    expect(draft.message.ses_1.length).toBe(3)
+  })
+
+  test("parents ompchamber:command-output to an explicit payload messageID", () => {
+    const draft = state({
+      message: {
+        ses_1: [
+          { id: "msg_u1", sessionID: "ses_1", role: "user", time: { created: 1 } },
+          { id: "msg_u2", sessionID: "ses_1", role: "user", time: { created: 2 } },
+          { id: "msg_a2", sessionID: "ses_1", role: "assistant", time: { created: 3 }, parentID: "msg_u2" },
+        ] as State["message"]["ses_1"],
+      },
+    })
+
+    applyDirectoryEvent(draft, {
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1", text: "out", messageID: "msg_u1" },
+    } as Event)
+    const findAppended = (text: string) => draft.message.ses_1.find((message) => (
+      (message as { commandOutputKey?: unknown }).commandOutputKey === JSON.stringify(["ses_1", text === "out" ? "msg_u1" : "msg_a2", "", text])
+    ))
+    expect((findAppended("out") as { parentID?: unknown }).parentID).toBe("msg_u1")
+
+    applyDirectoryEvent(draft, {
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1", text: "out2", messageID: "msg_a2" },
+    } as Event)
+    expect((findAppended("out2") as { parentID?: unknown }).parentID).toBe("msg_u2")
+  })
+
+  test("creates a hidden user marker when no user message is loaded", () => {
+    const draft = state()
+
+    const result = applyDirectoryEvent(draft, {
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1", text: "out", command: "session" },
+    } as Event)
+
+    expect(result).toBe(true)
+    const messages = draft.message.ses_1
+    expect(messages.length).toBe(2)
+    const [marker, appended] = messages
+    expect(marker.role).toBe("user")
+    expect((marker as { commandOutputMarker?: unknown }).commandOutputMarker).toBe(true)
+    expect((appended as { parentID?: unknown }).parentID).toBe(marker.id)
+    const markerParts = draft.part[marker.id]
+    expect(markerParts.length).toBe(1)
+    expect((markerParts[0] as { synthetic?: unknown }).synthetic).toBe(true)
+    expect((markerParts[0] as { text?: unknown }).text).toBe("/session")
+  })
+
+  test("ignores ompchamber:command-output without session or text", () => {
+    const draft = state()
+
+    expect(applyDirectoryEvent(draft, {
+      type: "ompchamber:command-output",
+      properties: { text: "out" },
+    } as Event)).toBe(false)
+    expect(applyDirectoryEvent(draft, {
+      type: "ompchamber:command-output",
+      properties: { sessionID: "ses_1" },
+    } as Event)).toBe(false)
+    expect(draft.message.ses_1).toBe(undefined)
+  })
 })

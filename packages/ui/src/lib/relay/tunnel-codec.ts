@@ -1,7 +1,7 @@
 // Tunnel mux frame codec (Layer 3 of the protocol spec). Pure functions, no I/O.
 // Frame layout: [1 byte frameType (high bit = fragment-continues)][4 byte BE streamId][payload].
 // Client-initiated streams use odd streamIds starting at 1; even ids are reserved.
-// Spec: .opencode/plans/private-relay/01-protocol-spec.md (Layer 3).
+// Spec: .omp/plans/private-relay/01-protocol-spec.md (Layer 3).
 
 import {
   BATCH_CONTAINER_TAG_BATCH,
