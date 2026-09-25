@@ -9,6 +9,14 @@
 > Tools, Sessions, Skills, MCP, Subagents) provided by OMP instead of OpenCode.
 > See [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) for attribution.
 
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/realchendahuang/OMPChamber?style=social)](https://github.com/realchendahuang/OMPChamber)
+[![GitHub forks](https://img.shields.io/github/forks/realchendahuang/OMPChamber?style=social)](https://github.com/realchendahuang/OMPChamber/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/realchendahuang/OMPChamber)](https://github.com/realchendahuang/OMPChamber/issues)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/realchendahuang/OMPChamber/pulls)
+[![Follow @realchendahuang](https://img.shields.io/badge/Follow-%40realchendahuang-1DA1F2?logo=x&logoColor=white)](https://x.com/realchendahuang)
+
 ## Run agent work. Keep control. Ship from anywhere.
 
 **OMPChamber is a desktop workspace for running, supervising, and reviewing OMP agent work, powered by the OpenChamber UI.**
